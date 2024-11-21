@@ -73,6 +73,12 @@ function ServerFilter() {
     setIsModalOpen(false);
   };
 
+  const handleDelete = (id) => {
+    setServerGroups((prevState) =>
+      prevState.filter((server) => server.id !== id)
+    );
+  };
+
   const modalContents = () => {
     return (
       <>
@@ -311,7 +317,9 @@ function ServerFilter() {
           contents={modalContents}
         />
       )}
-      {expandedMenu && <ServerArea serverGroups={serverGroups} />}
+      {expandedMenu && (
+        <ServerArea serverGroups={serverGroups} handleDelete={handleDelete} />
+      )}
       <section>
         <h3 className="text-xl font-bold mt-12">확인 서버</h3>
         <textarea

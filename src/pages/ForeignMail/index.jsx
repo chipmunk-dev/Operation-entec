@@ -37,7 +37,7 @@ Message: ${message}
   }, [mails]);
 
   return (
-    <div className="max-w-4xl mx-auto p-8 bg-gradient-to-br from-blue-50 to-white min-h-screen">
+    <div className="p-8">
       <div className="flex items-center gap-3 mb-8">
         <MdEmail className="text-4xl text-blue-600" />
         <h1 className="text-3xl font-bold text-gray-800">
