@@ -24,10 +24,10 @@ function ForeignMail() {
 
       const [host, message, date, ip] = mail.split('\t');
       const messages = `------------------------------------------------------------------------------------------
-Date:   ${date} (Base On Korea Time)
-IP:   ${ip}
-Host:   ${host}
-Message:   ${message} 
+Date: ${date} (Base On Korea Time)
+IP: ${ip}
+Host: ${host}
+Message: ${message} 
 ------------------------------------------------------------------------------------------
 `;
       acc += messages;
