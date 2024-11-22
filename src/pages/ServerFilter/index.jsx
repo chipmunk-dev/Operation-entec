@@ -279,7 +279,7 @@ function ServerFilter() {
               name="server"
               className="w-full h-[300px] overflow-y-auto border border-gray-300 rounded-lg p-4 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all mt-4"
               value={server}
-              onChange={(e) => setServer(e.target.value)}
+              onChange={(e) => setServer(e.target.value.toLowerCase())}
               placeholder="서버 목록을 입력하세요..."
             ></textarea>
           </section>
@@ -393,7 +393,7 @@ function ServerFilter() {
           name="checkServer"
           className="w-full h-[300px] overflow-y-auto border border-gray-300 rounded-lg p-4 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
           value={checkServer}
-          onChange={(e) => setCheckServer(e.target.value)}
+          onChange={(e) => setCheckServer(e.target.value.toLowerCase())}
           placeholder="확인할 서버 목록을 입력하세요..."
         ></textarea>
       </section>
