@@ -19,6 +19,7 @@ function App() {
           <Route path="/server-filter" element={<ServerFilter />} />
           <Route path="/foreign-mail" element={<ForeignMail />} />
           <Route path="/redirect" element={<Redirect />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
 
