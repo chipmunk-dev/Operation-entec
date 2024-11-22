@@ -54,7 +54,7 @@ function ServerFilter() {
       .trim()
       .split(division)
       .filter((server) => server !== '')
-      .map((server) => server.trim());
+      .map((server) => server.trim().toLowerCase());
     const serverMap = serverList.reduce((acc, cur) => {
       acc[cur] = message;
       return acc;
@@ -279,7 +279,7 @@ function ServerFilter() {
               name="server"
               className="w-full h-[300px] overflow-y-auto border border-gray-300 rounded-lg p-4 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all mt-4"
               value={server}
-              onChange={(e) => setServer(e.target.value.toLowerCase())}
+              onChange={(e) => setServer(e.target.value)}
               placeholder="서버 목록을 입력하세요..."
             ></textarea>
           </section>
@@ -300,7 +300,7 @@ function ServerFilter() {
         }
 
         const serverInfo = serverGroups.find(
-          (group) => group.serverMap[trimmedServer]
+          (group) => group.serverMap[trimmedServer.toLocaleLowerCase()]
         );
 
         if (serverInfo) {
@@ -309,7 +309,11 @@ function ServerFilter() {
               key={index}
               className="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-indigo-200 shadow-sm hover:shadow-md transition-all"
             >
-              <span className="font-medium text-indigo-700">{server}</span>
+              <span className="font-medium text-indigo-700">
+                {serverInfo.serverList
+                  .find((s) => s === trimmedServer.toLocaleLowerCase())
+                  .toUpperCase()}
+              </span>
               <span className="text-gray-400">→</span>
               <span className="text-gray-700">{serverInfo.message}</span>
               <button
@@ -393,7 +397,7 @@ function ServerFilter() {
           name="checkServer"
           className="w-full h-[300px] overflow-y-auto border border-gray-300 rounded-lg p-4 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
           value={checkServer}
-          onChange={(e) => setCheckServer(e.target.value.toLowerCase())}
+          onChange={(e) => setCheckServer(e.target.value)}
           placeholder="확인할 서버 목록을 입력하세요..."
         ></textarea>
       </section>
