@@ -19,7 +19,7 @@ function ForeignMail() {
   };
 
   useEffect(() => {
-    const result = mails.reduce((acc, mail) => {
+    const makeMessages = mails.reduce((acc, mail) => {
       if (mail.trim() === '') return acc;
 
       const [host, message, date, ip] = mail.split('\t');
@@ -33,6 +33,15 @@ Message: ${message}
       acc += messages;
       return acc;
     }, '');
+    const result = `Dear!
+This is KIC Control office in Korea.  
+Monitoring System detected warning message(s) from your server.  
+Please check following message(s).
+
+${makeMessages}
+
+Thank you.`;
+
     setResult(result);
   }, [mails]);
 

@@ -8,9 +8,7 @@ function Redirect() {
     setMessage(e.target.value?.trim().split('\n'));
   };
 
-  useEffect(() => {
-    console.log(message);
-  }, [message]);
+  useEffect(() => {}, [message]);
 
   return (
     <div className="p-4">

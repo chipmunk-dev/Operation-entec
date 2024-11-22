@@ -3,7 +3,7 @@ import PropsTypes from 'prop-types';
 const Modal = ({ handleConfirm, handleCloseModal, contents }) => {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white p-8 rounded shadow-lg relative max-w-[90%] max-h-[90%] min-w-[320px]">
+      <div className="bg-white p-8 rounded shadow-lg relative max-w-[90%] max-h-[90%] min-w-[320px] overflow-y-auto">
         <span
           className="absolute top-4 right-4 text-xl cursor-pointer"
           onClick={() => handleCloseModal(false)}
