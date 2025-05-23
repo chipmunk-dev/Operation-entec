@@ -137,9 +137,11 @@ function AutoBackupErrorFilter() {
           <p className="font-bold text-xl mb-2">🚨 매우 중요: 데이터 컬럼 순서를 반드시 확인하세요! 🚨</p> {/* 제목을 더 크고 강조되게 변경 */}
           <p className="mt-2">입력하시는 백업 리스트 데이터의 <strong className="text-red-900">컬럼 순서가 정확히 일치해야만</strong> 정상적으로 필터링됩니다.</p> {/* 핵심 내용을 더 강하게 표현 */}
           <p className="mt-2">필요한 컬럼 순서는 다음과 같습니다 (최소한 백업 시작 시간까지의 9번째 컬럼까지 데이터가 있어야 합니다):</p>
-          <p className="ml-4 font-mono text-base bg-red-200 p-3 rounded border border-red-300">[ID], [작업 종류], [상태 코드], [상태], [미확인1], [미확인2], [정책 이름], [소스/클라이언트], [백업 시작 시간], ...</p> {/* 컬럼 목록 배경색 변경 및 패딩 증가 */}
+          <p className="mt-2"> * Status (3번째), JobPolicy(7번째), Start Time(9번째) *</p>
+          <p className="ml-4 font-mono text-base bg-red-200 p-3 rounded border border-red-300">[Job Id], [Type], <strong>[Status]</strong>, [State], [Operation], [State Details], <strong>[Job Policy]</strong>, [Job Schedule], <strong>[StartTime]</strong>, ...</p> {/* 컬럼 목록 배경색 변경 및 패딩 증가 */}
           <p className="mt-3 font-bold text-xl text-red-900">☝️ 위 순서대로 컬럼을 정렬하신 후 데이터를 복사/붙여넣기 해주세요. (절대 필수!)</p> {/* 최종 지시사항을 더 크고 강하게 강조 */}
         </div>
+        <br/>
       </div>
 
       {/* 입력창 섹션들 */}
