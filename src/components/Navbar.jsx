@@ -4,9 +4,10 @@ const Navbar = () => {
   const location = useLocation();
 
   const menuItems = [
-    { name: '작업 서버필터', path: '/server-filter' },
     { name: '해외메일 작성', path: '/foreign-mail' },
+    { name: '자동 백업 에러 필터', path: '/auto-backup-error-filter' },
     { name: '재전달 작성', path: '/redirect' },
+    { name: '작업 서버 필터', path: '/server-filter' },
   ];
 
   return (

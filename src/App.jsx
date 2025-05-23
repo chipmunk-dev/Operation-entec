@@ -8,6 +8,7 @@ import Navbar from './components/Navbar';
 import ServerFilter from './pages/ServerFilter';
 import ForeignMail from './pages/ForeignMail';
 import Redirect from './pages/Redirect';
+import AutoBackupErrorFilter from './pages/AutoBackupErrorFilter';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/server-filter" element={<ServerFilter />} />
           <Route path="/foreign-mail" element={<ForeignMail />} />
           <Route path="/redirect" element={<Redirect />} />
+          <Route path="/auto-backup-error-filter" element={<AutoBackupErrorFilter />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
