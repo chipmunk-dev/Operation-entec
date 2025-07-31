@@ -223,10 +223,10 @@ function AutoBackupErrorFilter() {
               <div className="w-1/3 flex flex-col">
                 <h4 className="font-semibold mb-2 text-center">에러 코드</h4>
                 <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 text-sm font-mono whitespace-pre-wrap max-h-48 overflow-y-auto mb-2 flex-grow">
-                  {filteredText1.map(policy => policy.errorCode).join('\n')}
+                  {filteredText1.map(policy => `Err: ${policy.errorCode}`).join('\n')}
                 </div>
                 <button
-                  onClick={() => copyToClipboard(filteredText1.map(p => p.errorCode).join('\n'))}
+                  onClick={() => copyToClipboard(filteredText1.map(p => `Err: ${p.errorCode}`).join('\n'))}
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm w-full"
                 >
                   복사
@@ -274,10 +274,10 @@ function AutoBackupErrorFilter() {
               <div className="w-1/3 flex flex-col">
                 <h4 className="font-semibold mb-2 text-center">에러 코드</h4>
                 <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 text-sm font-mono whitespace-pre-wrap max-h-48 overflow-y-auto mb-2 flex-grow">
-                  {filteredText2.map(policy => policy.errorCode).join('\n')}
+                  {filteredText2.map(policy => `Err: ${policy.errorCode}`).join('\n')}
                 </div>
                 <button
-                  onClick={() => copyToClipboard(filteredText2.map(p => p.errorCode).join('\n'))}
+                  onClick={() => copyToClipboard(filteredText2.map(p => `Err: ${p.errorCode}`).join('\n'))}
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm w-full"
                 >
                   복사
@@ -325,10 +325,10 @@ function AutoBackupErrorFilter() {
               <div className="w-1/3 flex flex-col">
                 <h4 className="font-semibold mb-2 text-center">에러 코드</h4>
                 <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 text-sm font-mono whitespace-pre-wrap max-h-48 overflow-y-auto mb-2 flex-grow">
-                  {filteredText3.map(policy => policy.errorCode).join('\n')}
+                  {filteredText3.map(policy => `Err: ${policy.errorCode}`).join('\n')}
                 </div>
                 <button
-                  onClick={() => copyToClipboard(filteredText3.map(p => p.errorCode).join('\n'))}
+                  onClick={() => copyToClipboard(filteredText3.map(p => `Err: ${p.errorCode}`).join('\n'))}
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm w-full"
                 >
                   복사
