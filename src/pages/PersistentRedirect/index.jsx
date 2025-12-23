@@ -85,7 +85,10 @@ function PersistentRedirect() {
     const d = new Date();
     const month = d.getMonth() + 1;
     const day = d.getDate();
-    return `${month}/${day}`;
+    const hour = d.getHours();
+    const minute = d.getMinutes();
+
+    return `${month}/${day} ${hour}:${minute}`;
   };
 
   // --- 데이터 파싱 로직 ---
@@ -368,7 +371,6 @@ function PersistentRedirect() {
         }`}
              style={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>
           
-          {/* [수정] 조건부 렌더링: 메시지 있음 + 이름 없음 -> 에러 피드백 */}
           {hasSelectedPendingMessages && !workerName.trim() ? (
               <div className="flex flex-col items-center justify-center h-full text-red-500 gap-2">
                   <FaExclamationCircle className="text-3xl" />
