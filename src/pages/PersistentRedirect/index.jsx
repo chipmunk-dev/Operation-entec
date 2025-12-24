@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { IoMdCopy } from 'react-icons/io';
-import { FaCheck, FaUndo, FaListUl, FaCheckDouble, FaPaperPlane, FaExclamationCircle, FaCommentDots, FaEnvelope } from 'react-icons/fa';
+import { FaCheck, FaUndo, FaListUl, FaCheckDouble, FaPaperPlane, FaExclamationCircle, FaCommentDots, FaEnvelope, FaGlobe, FaInfoCircle } from 'react-icons/fa';
 
 function PersistentRedirect() {
   const [inputs, setInputs] = useState([]);
@@ -163,7 +163,7 @@ function PersistentRedirect() {
         });
         formatted += '감사합니다.';
 
-    } else {
+    } else if (outputMode === 'email') {
         formatted = 'Dear!\n';
         formatted += 'This is KIC Control office in Korea.\n';
         formatted += 'Monitoring System detected warning message(s) from your server.\n';
@@ -179,6 +179,14 @@ function PersistentRedirect() {
         });
         
         formatted += '\nThank you.';
+
+    } else if (outputMode === 'global') {
+        formatted = '- Resend -\n\n';
+        
+        sortedSelected.forEach((message) => {
+            formatted += `host: ${message.data.host || ''}\n`;
+            formatted += `message: ${message.data.cleanEvent || ''}\n\n`;
+        });
     }
 
     setFormattedResult(formatted);
@@ -223,7 +231,6 @@ function PersistentRedirect() {
     return a.id - b.id;
   });
 
-  // --- 재전달 메세지 생성 헬퍼 함수 ---
   const generateRedirectText = (contentText) => {
       let methodText = "";
       if (contentText.includes('문자만')) {
@@ -231,7 +238,6 @@ function PersistentRedirect() {
       } else if (contentText.includes('메일')) {
           methodText = contentText;
       } else {
-          // 문자, 유선, 메신저 등 끝단어 제거 후 메신저 부착
           const cleanedName = contentText.replace(/[ \t]*(문자|유선|메신저|[\/])+[ \t]*$/g, '');
           methodText = `${cleanedName} 메신저`;
       }
@@ -242,7 +248,7 @@ function PersistentRedirect() {
     <div className="p-8 max-w-6xl mx-auto">
       <h1 className="text-3xl font-bold text-gray-800 mb-6">지속 이벤트 재전달</h1>
 
-      {/* --- 근무자 정보 및 데이터 설정 --- */}
+      {/* ... (근무자 정보, 입력 데이터 순서, 원본 데이터 붙여넣기 등 상단 UI 생략 - 기존과 동일) ... */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div className={`p-5 border rounded-lg shadow-sm h-full transition-colors ${!workerName.trim() ? 'bg-red-50 border-red-200 ring-2 ring-red-100' : 'bg-gray-50 border-gray-200'}`}>
           <h3 className={`text-sm font-bold mb-4 border-b pb-2 ${!workerName.trim() ? 'text-red-600 border-red-200' : 'text-gray-700 border-gray-200'}`}>
@@ -321,17 +327,30 @@ function PersistentRedirect() {
       </div>
 
       <div className="mb-8 bg-white p-6 rounded-lg shadow-md border border-gray-200">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
-            <div className="flex items-center gap-6">
-                <h3 className="text-lg font-bold text-gray-800">4. 완성된 포맷 (전달용)</h3>
-                <div className="flex bg-gray-100 p-1 rounded-lg">
-                    <button onClick={() => setOutputMode('messenger')} className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-bold transition-all ${outputMode === 'messenger' ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700'}`}>
-                        <FaCommentDots /> 메신저
-                    </button>
-                    <button onClick={() => setOutputMode('email')} className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-bold transition-all ${outputMode === 'email' ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700'}`}>
-                        <FaEnvelope /> 해외메일
-                    </button>
+        <div className="flex flex-col sm:flex-row justify-between items-start mb-4 gap-4">
+            <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-6">
+                    <h3 className="text-lg font-bold text-gray-800">4. 완성된 포맷 (전달용)</h3>
+                    <div className="flex bg-gray-100 p-1 rounded-lg">
+                        <button onClick={() => setOutputMode('messenger')} className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-bold transition-all ${outputMode === 'messenger' ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700'}`}>
+                            <FaCommentDots /> 메신저
+                        </button>
+                        <button onClick={() => setOutputMode('global')} className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-bold transition-all ${outputMode === 'global' ? 'bg-white text-purple-600 shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700'}`}>
+                            <FaGlobe /> 해외 메신저
+                        </button>
+                        <button onClick={() => setOutputMode('email')} className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-bold transition-all ${outputMode === 'email' ? 'bg-white text-green-600 shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700'}`}>
+                            <FaEnvelope /> 해외메일
+                        </button>
+                    </div>
                 </div>
+                
+                {/* [추가됨] 해외 메신저 모드일 때만 보이는 안내 문구 */}
+                {outputMode === 'global' && (
+                    <div className="flex items-center gap-1 text-xs text-gray-500 ml-36 animate-pulse-once">
+                        <FaInfoCircle className="text-purple-500" />
+                        <span>cicop, 해외법인 담당자에게 메신저로 재전달 필요시</span>
+                    </div>
+                )}
             </div>
 
             <button
@@ -393,12 +412,9 @@ function PersistentRedirect() {
                 else itemClass += 'bg-white border-gray-200 hover:border-gray-300';
             }
 
-            // --- 콘텐츠 처리 로직 ---
             const originalContent = message.data.processingContent || message.data.processingLog;
             let displayContentFull = '';
             let displayContentClean = '';
-            
-            // 괄호 여부 확인
             const hasParenthesis = originalContent && (originalContent.includes('(') || originalContent.includes(')'));
 
             if (isConfirmedTab && originalContent) {
@@ -406,49 +422,7 @@ function PersistentRedirect() {
                 const nameStr = workerName || '(이름)';
                 const prefix = `${workerTeam} ${nameStr} ${workerPosition} ${dateStr}`;
 
-                // 1) Full 버전 (원본 포함)
-                // 단순히 '문자만' -> '문자' 정도의 기본 로직만 수행하고 괄호는 유지
-                let methodForFull = generateRedirectText(originalContent);
-                // *기존 로직과 달리, Full 버전에서는 괄호를 제거하지 않고 그대로 두어야 하므로
-                // generateRedirectText 내부의 정규식은 '끝부분'의 연락수단만 건드립니다.
-                // 다만 괄호가 중간에 끼어있고 뒤에 연락수단이 없는 경우(ex: "김책임(괄호)") 처리가 애매할 수 있으나
-                // 요구사항 상 "문자만" 교체 및 "메신저" 부착은 generateRedirectText가 담당합니다.
-                
-                // 만약 괄호 안에 "문자만"이 들어있으면 그것도 바뀌어야 하므로 간단히 replace
-                let textForFull = originalContent.replace('문자만', '문자');
-                
-                // 연락수단이 명시 안된 경우 메신저 붙이기 등 복잡한 로직보다는
-                // "기존 내용 -> ... 재전달" 형식이므로, 
-                // Full 버전은 [원본내용 + "재전달"] 형식이 아니라 [원본내용 -> ... "변환된내용" 재전달] 임.
-                
-                // 요구사항 재확인:
-                // 확인메세지: "김미경 책임 문자(Major)"
-                // 수정메세지: "김미경 책임 문자(Major) → ... 김미경 책임 메신저(Major)? or 김미경 책임 문자 재전달?"
-                // 아까 예시: "임관우 사원 문자(Major 문자만) -> ... 임관우 사원 문자 재전달"
-                // 즉, 화살표 오른쪽(재전달 내용)은 괄호가 다 빠져야 깔끔합니다. 
-                // 하지만 [원본포함] 옵션은 "화살표 왼쪽"에 원본이 있다는 뜻이 아니라, "화살표 오른쪽" 내용에 괄호를 살리느냐 마느냐의 문제일 수 있습니다.
-                // 사용자 예시를 보면: "내용: 원본(괄호) -> 확인후: 원본(괄호) -> ... 재전달" 
-                // 즉, **처리내용 디스플레이** 자체가 `[원본] -> [누가] [언제] [재전달내용]` 입니다.
-                
-                // 따라서 [Clean 버전]은 재전달 내용에서 괄호를 빼는 것.
-                // [Full 버전]은 재전달 내용에도 괄호를 남기는 것? -> 사용자 예시: "임관우 사원 문자(Major 문자만) → ... 임관우 사원 문자 재전달"
-                // 잠깐, 예시를 보면 "확인후" 결과물 자체가 괄호가 빠져있습니다.
-                // 사용자가 원한건:
-                // 옵션 1 (괄호포함): "원본(괄호) -> ... 원본(괄호) 재전달" (혹은 괄호 안의 문자만->문자 변환)
-                // 옵션 2 (괄호제외): "원본(괄호) -> ... 괄호없는깔끔한내용 재전달"
-                
-                // 로직 구현:
-                // A. 공통 접두사: prefix
-                
-                // B. Full Message (화살표 오른쪽)
-                // 괄호 유지, "문자만"->"문자"
                 let rightSideFull = originalContent.replace('문자만', '문자');
-                // 만약 끝에 연락수단이 없다면 메신저를 붙여야 하나? 
-                // 예시: "전상용 책임 문자(/logs)" -> 괄호가 뒤에 있어서 애매함.
-                // 일단 Full 버전은 사용자가 "그대로"를 원하므로 텍스트 변환 최소화
-                
-                // C. Clean Message (화살표 오른쪽)
-                // 괄호 제거
                 let textWithoutParens = originalContent.replace(/\([^)]*\)/g, '').trim();
                 let rightSideClean = generateRedirectText(textWithoutParens);
 
@@ -465,61 +439,35 @@ function PersistentRedirect() {
                     <div><span className="font-bold text-gray-500">일시:</span> {message.data.date}</div>
                     <div><span className="font-bold text-gray-500">IP:</span> {message.data.ip}</div>
                     
-                    {/* [대기중 탭] 
-                       - originalContent가 있으면 그냥 보여줌. (화살표 X, 변환 X) 
-                    */}
                     {!isConfirmedTab && originalContent && (
                         <div className="col-span-1 md:col-span-2 mt-2 pt-2 border-t border-indigo-100 text-xs p-2 rounded bg-indigo-50 text-indigo-700">
                              <span className="font-bold">└ 확인내용:</span> {originalContent}
                         </div>
                     )}
 
-                    {/* [확인됨 탭] 
-                       - 괄호가 있으면: [원본포함], [괄호제외] 둘 다 표시
-                       - 괄호가 없으면: 그냥 [재전달] 하나만 표시 (Clean 버전과 Full 버전이 사실상 같음)
-                    */}
                     {isConfirmedTab && originalContent && (
                         <div className="col-span-1 md:col-span-2 mt-3 pt-3 border-t border-gray-200 flex flex-col gap-2">
                              {hasParenthesis ? (
                                 <>
-                                    {/* 옵션 1: 원본 포함 */}
                                     <div className="flex items-center justify-between bg-gray-100 p-2 rounded text-xs text-gray-600">
                                         <span className="flex-1 mr-2"><span className="font-bold text-gray-500">[원본포함]</span> {displayContentFull}</span>
-                                        <button
-                                            onClick={() => handleCopyContent(displayContentFull, `${message.id}-full`)}
-                                            className={`shrink-0 px-2 py-1 rounded border text-[10px] font-bold transition-colors flex items-center gap-1 ${
-                                                copiedKey === `${message.id}-full` ? 'bg-green-100 border-green-300 text-green-700' : 'bg-white border-gray-300 hover:bg-gray-50'
-                                            }`}
-                                        >
+                                        <button onClick={() => handleCopyContent(displayContentFull, `${message.id}-full`)} className={`shrink-0 px-2 py-1 rounded border text-[10px] font-bold transition-colors flex items-center gap-1 ${copiedKey === `${message.id}-full` ? 'bg-green-100 border-green-300 text-green-700' : 'bg-white border-gray-300 hover:bg-gray-50'}`}>
                                             {copiedKey === `${message.id}-full` ? <FaCheck /> : <IoMdCopy />}
                                             {copiedKey === `${message.id}-full` ? '복사됨' : '복사'}
                                         </button>
                                     </div>
-
-                                    {/* 옵션 2: 괄호 제외 */}
                                     <div className="flex items-center justify-between bg-indigo-50 p-2 rounded text-xs text-indigo-800">
                                         <span className="flex-1 mr-2"><span className="font-bold text-indigo-500">[괄호제외]</span> {displayContentClean}</span>
-                                        <button
-                                            onClick={() => handleCopyContent(displayContentClean, `${message.id}-clean`)}
-                                            className={`shrink-0 px-2 py-1 rounded border text-[10px] font-bold transition-colors flex items-center gap-1 ${
-                                                copiedKey === `${message.id}-clean` ? 'bg-green-100 border-green-300 text-green-700' : 'bg-white border-indigo-200 text-indigo-600 hover:bg-indigo-100'
-                                            }`}
-                                        >
+                                        <button onClick={() => handleCopyContent(displayContentClean, `${message.id}-clean`)} className={`shrink-0 px-2 py-1 rounded border text-[10px] font-bold transition-colors flex items-center gap-1 ${copiedKey === `${message.id}-clean` ? 'bg-green-100 border-green-300 text-green-700' : 'bg-white border-indigo-200 text-indigo-600 hover:bg-indigo-100'}`}>
                                             {copiedKey === `${message.id}-clean` ? <FaCheck /> : <IoMdCopy />}
                                             {copiedKey === `${message.id}-clean` ? '복사됨' : '복사'}
                                         </button>
                                     </div>
                                 </>
                              ) : (
-                                 /* 괄호 없음: 하나만 표시 (Clean 버전 사용) */
                                 <div className="flex items-center justify-between bg-gray-100 p-2 rounded text-xs text-gray-600">
                                     <span className="flex-1 mr-2"><span className="font-bold text-gray-500">[재전달]</span> {displayContentClean}</span>
-                                    <button
-                                        onClick={() => handleCopyContent(displayContentClean, `${message.id}-clean`)}
-                                        className={`shrink-0 px-2 py-1 rounded border text-[10px] font-bold transition-colors flex items-center gap-1 ${
-                                            copiedKey === `${message.id}-clean` ? 'bg-green-100 border-green-300 text-green-700' : 'bg-white border-gray-300 hover:bg-gray-50'
-                                        }`}
-                                    >
+                                    <button onClick={() => handleCopyContent(displayContentClean, `${message.id}-clean`)} className={`shrink-0 px-2 py-1 rounded border text-[10px] font-bold transition-colors flex items-center gap-1 ${copiedKey === `${message.id}-clean` ? 'bg-green-100 border-green-300 text-green-700' : 'bg-white border-gray-300 hover:bg-gray-50'}`}>
                                         {copiedKey === `${message.id}-clean` ? <FaCheck /> : <IoMdCopy />}
                                         {copiedKey === `${message.id}-clean` ? '복사됨' : '복사'}
                                     </button>
