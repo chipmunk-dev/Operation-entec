@@ -23,7 +23,7 @@ function ForeignMail() {
   };
 
   useEffect(() => {
-    const makeMessages = mails.reduce((acc, mail) => {
+    const makeMessages = mails.reduce((acc, mail, mailIdx) => {
       if (mail.trim() === '') return acc;
 
       const columns = mail.split('\t');
@@ -38,12 +38,17 @@ function ForeignMail() {
       // message는 순서 상관없이 클리닝 및 undefined/null 체크
       const cleanedMessage = (parsedData.message || '').replace(/\[202.*/g, '');
 
-      const messages = `------------------------------------------------------------------------------------------
+      const messages = mailIdx === 0 ? `-----------------------------------------------------------
 Date: ${parsedData.date} (Base On Korea Time)
 IP: ${parsedData.ip}
 Host: ${parsedData.host}
 Message: ${cleanedMessage}
-------------------------------------------------------------------------------------------
+-----------------------------------------------------------
+` : `Date: ${parsedData.date} (Base On Korea Time)
+IP: ${parsedData.ip}
+Host: ${parsedData.host}
+Message: ${cleanedMessage}
+-----------------------------------------------------------
 `;
       acc += messages;
       return acc;
