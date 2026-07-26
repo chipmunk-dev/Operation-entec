@@ -9,6 +9,7 @@ import Navbar from './components/Navbar';
 import ForeignMail from './pages/ForeignMail';
 import AutoBackupErrorFilter from './pages/AutoBackupErrorFilter';
 import PersistentRedirect from './pages/PersistentRedirect';
+import PersistentEventExcel from './pages/PersistentEventExcel';
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(true);
@@ -27,6 +28,7 @@ function App() {
               <Route path="/" element={<Navigate to="/foreign-mail" replace />} />
               <Route path="/foreign-mail" element={<ForeignMail />} />
               <Route path="/persistent-redirect" element={<PersistentRedirect />} />
+              <Route path="/persistent-event-excel" element={<PersistentEventExcel />} />
               <Route path="/auto-backup-error-filter" element={<AutoBackupErrorFilter />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

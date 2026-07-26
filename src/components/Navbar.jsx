@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import { MdBackup, MdEmail, MdMenu, MdOutlineChevronLeft } from 'react-icons/md';
-import { FaArrowsRotate } from 'react-icons/fa6';
+import { FaArrowsRotate, FaFileExcel } from 'react-icons/fa6';
 import { NavLink } from 'react-router-dom';
 
 const menuItems = [
@@ -21,6 +21,12 @@ const menuItems = [
     description: 'Event Redirect',
     path: '/persistent-redirect',
     icon: FaArrowsRotate,
+  },
+  {
+    name: '지속 메시지 엑셀',
+    description: 'Event Excel Report',
+    path: '/persistent-event-excel',
+    icon: FaFileExcel,
   },
 ];
 
