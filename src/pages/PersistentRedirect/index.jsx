@@ -238,7 +238,7 @@ function PersistentRedirect() {
       } else if (contentText.includes('메일')) {
           methodText = contentText;
       } else {
-          const cleanedName = contentText.replace(/[ \t]*(문자|유선|메신저|[\/])+[ \t]*$/g, '');
+          const cleanedName = contentText.replace(/[ \t]*(문자|유선|메신저|[/])+[ \t]*$/g, '');
           methodText = `${cleanedName} 메신저`;
       }
       return methodText;

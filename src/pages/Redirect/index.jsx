@@ -1,14 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 function Redirect() {
   const [message, setMessage] = useState('');
-  const [result, setResult] = useState('');
 
   const handleChange = (e) => {
     setMessage(e.target.value?.trim().split('\n'));
   };
-
-  useEffect(() => {}, [message]);
 
   return (
     <div className="p-4">
@@ -18,7 +15,7 @@ function Redirect() {
         onChange={handleChange}
       ></textarea>
 
-      <div className="mt-4">{result}</div>
+      <div className="mt-4">{message}</div>
     </div>
   );
 }

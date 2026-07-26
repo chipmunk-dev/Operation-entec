@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { Link, useLocation } from 'react-router-dom';
 
 const Navbar = ({ isOpen, setIsOpen }) => {
@@ -88,6 +89,11 @@ const Navbar = ({ isOpen, setIsOpen }) => {
       </div>
     </nav>
   );
+};
+
+Navbar.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  setIsOpen: PropTypes.func.isRequired,
 };
 
 export default Navbar;

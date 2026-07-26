@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { IoMdCopy } from 'react-icons/io';
+import { useEffect, useState } from 'react';
 
 // 날짜 형식을 YYYY-MM-DD HH:MM (24시간)으로 변환하는 헬퍼 함수
 const formatBackupTime = (timeStr) => {
@@ -342,4 +341,4 @@ function AutoBackupErrorFilter() {
   );
 }
 
-export default AutoBackupErrorFilter; 
+export default AutoBackupErrorFilter;
