@@ -1,95 +1,94 @@
 import PropTypes from 'prop-types';
-import { Link, useLocation } from 'react-router-dom';
+import { MdBackup, MdEmail, MdMenu, MdOutlineChevronLeft } from 'react-icons/md';
+import { FaArrowsRotate } from 'react-icons/fa6';
+import { NavLink } from 'react-router-dom';
 
-const Navbar = ({ isOpen, setIsOpen }) => {
-  const location = useLocation();
+const menuItems = [
+  {
+    name: '해외메일 작성',
+    description: 'Foreign Mail',
+    path: '/foreign-mail',
+    icon: MdEmail,
+  },
+  {
+    name: '자동 백업 에러',
+    description: 'Backup Error Filter',
+    path: '/auto-backup-error-filter',
+    icon: MdBackup,
+  },
+  {
+    name: '지속 이벤트 재전달',
+    description: 'Event Redirect',
+    path: '/persistent-redirect',
+    icon: FaArrowsRotate,
+  },
+];
 
-  const menuItems = [
-    { name: '해외메일 작성', nameEn: 'Foreign Mail', path: '/foreign-mail' },
-    { name: '자동 백업 에러 필터', nameEn: 'Auto Backup Error Filter', path: '/auto-backup-error-filter' },
-    { name: '지속 이벤트 재전달', nameEn: 'Persistent Event Redirect', path: '/persistent-redirect' },
-  ];
+const Navbar = ({ isOpen, setIsOpen }) => (
+  <aside
+    className={`fixed inset-y-0 left-0 z-40 flex flex-col border-r border-slate-800 bg-slate-950 text-white transition-[width] duration-300 ${
+      isOpen ? 'w-64' : 'w-[72px]'
+    }`}
+  >
+    <div className="flex h-20 items-center justify-between border-b border-slate-800 px-4">
+      <div className={`min-w-0 transition-opacity ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+        {isOpen && (
+          <>
+            <p className="truncate text-base font-bold tracking-tight">Operation Entec</p>
+            <p className="mt-0.5 text-[11px] font-medium text-slate-500">OP WORKSPACE</p>
+          </>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-slate-400 transition hover:bg-slate-800 hover:text-white"
+        aria-label={isOpen ? '메뉴 접기' : '메뉴 펼치기'}
+      >
+        {isOpen ? <MdOutlineChevronLeft size={22} /> : <MdMenu size={22} />}
+      </button>
+    </div>
 
-  return (
-    <nav
-      className={`min-h-screen bg-gray-800 text-white fixed left-0 top-0 transition-all duration-300 z-40 overflow-hidden ${
-        isOpen ? 'w-64' : 'w-16'
-      }`}
-    >
-      {/* 햄버거 버튼 - 우측 상단 */}
-      <div className="p-4 flex justify-end">
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="p-1.5 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors"
-          aria-label="Toggle menu"
+    <nav className="flex-1 space-y-2 overflow-hidden px-3 py-5">
+      {menuItems.map(({ name, description, path, icon: Icon }) => (
+        <NavLink
+          key={path}
+          to={path}
+          title={!isOpen ? name : undefined}
+          className={({ isActive }) =>
+            `group flex h-14 items-center rounded-xl transition ${
+              isActive
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-950/30'
+                : 'text-slate-400 hover:bg-slate-900 hover:text-white'
+            } ${isOpen ? 'gap-3 px-3' : 'justify-center'}`
+          }
         >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            {isOpen ? (
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            ) : (
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            )}
-          </svg>
-        </button>
-      </div>
-
-      {/* 메뉴 항목들 */}
-      <div className="overflow-hidden">
-        <div className={`p-6 pt-0 transition-all duration-300 ${isOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}`}>
-          <ul className="space-y-2">
-            {menuItems.map((item, index) => (
-              <li 
-                key={item.path}
-                className="overflow-hidden"
-                style={{
-                  transitionDelay: isOpen ? `${index * 50}ms` : '0ms',
-                }}
-              >
-                <Link
-                  to={item.path}
-                  className={`block px-4 py-3 rounded-lg transition-colors relative
-                    ${
-                      location.pathname === item.path
-                        ? 'bg-blue-600 text-white font-semibold'
-                        : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                    }`}
-                >
-                  <div className="flex flex-col">
-                    <span className={`transition-all duration-300 ${isOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'}`}>
-                      {item.name}
-                    </span>
-                    <span className={`text-xs text-gray-400 mt-1 transition-all duration-300 ${isOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'}`}>
-                      {item.nameEn}
-                    </span>
-                  </div>
-                  {location.pathname === item.path && (
-                    <span className="absolute left-0 top-0 bottom-0 w-1 bg-blue-400 rounded-r"></span>
-                  )}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
+          <Icon className="shrink-0 text-xl" />
+          {isOpen && (
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-semibold">{name}</span>
+              <span className="mt-0.5 block truncate text-[11px] text-slate-400 group-[.active]:text-blue-100">
+                {description}
+              </span>
+            </span>
+          )}
+        </NavLink>
+      ))}
     </nav>
-  );
-};
+
+    {isOpen && (
+      <div className="m-3 rounded-xl border border-slate-800 bg-slate-900/70 p-3">
+        <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400">
+          <span className="h-2 w-2 rounded-full bg-emerald-400" />
+          Local processing
+        </div>
+        <p className="mt-1.5 text-[11px] leading-4 text-slate-500">
+          입력 데이터는 외부 서버로 전송되지 않습니다.
+        </p>
+      </div>
+    )}
+  </aside>
+);
 
 Navbar.propTypes = {
   isOpen: PropTypes.bool.isRequired,

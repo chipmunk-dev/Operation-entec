@@ -169,8 +169,10 @@ function PersistentRedirect() {
         formatted += 'Monitoring System detected warning message(s) from your server.\n';
         formatted += 'Please check following message(s).\n\n';
         
-        sortedSelected.forEach((message) => {
-            formatted += '------------------------------------------------------------------------------------------\n';
+        sortedSelected.forEach((message, index) => {
+            if (index === 0) {
+                formatted += '------------------------------------------------------------------------------------------\n';
+            }
             formatted += `Date: ${message.data.date || ''} (Base On Korea Time)\n`;
             formatted += `IP: ${message.data.ip || ''}\n`;
             formatted += `Host: ${message.data.host || ''}\n`;
@@ -245,12 +247,23 @@ function PersistentRedirect() {
   };
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">지속 이벤트 재전달</h1>
+    <div className="page-shell">
+      <header className="page-header">
+        <span className="page-eyebrow">Event operations</span>
+        <div className="flex items-center gap-3">
+          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-100 text-emerald-600">
+            <FaPaperPlane size={20} />
+          </span>
+          <h1 className="page-title">지속 이벤트 재전달</h1>
+        </div>
+        <p className="page-description">
+          지속 중인 이벤트를 정리하고 담당자별 전달 문구와 처리 기록을 한 화면에서
+          관리합니다.
+        </p>
+      </header>
 
-      {/* ... (근무자 정보, 입력 데이터 순서, 원본 데이터 붙여넣기 등 상단 UI 생략 - 기존과 동일) ... */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div className={`p-5 border rounded-lg shadow-sm h-full transition-colors ${!workerName.trim() ? 'bg-red-50 border-red-200 ring-2 ring-red-100' : 'bg-gray-50 border-gray-200'}`}>
+        <div className={`panel p-5 transition-colors ${!workerName.trim() ? 'border-rose-200 bg-rose-50/50' : ''}`}>
           <h3 className={`text-sm font-bold mb-4 border-b pb-2 ${!workerName.trim() ? 'text-red-600 border-red-200' : 'text-gray-700 border-gray-200'}`}>
             1. 근무자 정보 입력 { !workerName.trim() && <span className="text-xs font-normal text-red-500 ml-2">* 필수</span> }
           </h3>
@@ -293,7 +306,7 @@ function PersistentRedirect() {
           </div>
         </div>
 
-        <div className="p-5 bg-blue-50 border border-blue-100 rounded-lg shadow-sm h-full">
+        <div className="panel border-blue-100 bg-blue-50/60 p-5">
           <h3 className="text-sm font-bold text-blue-800 mb-4 border-b pb-2 border-blue-200">2. 입력 데이터 순서</h3>
           <div className="flex justify-between gap-2">
             {inputColumnOrder.map((dataType, index) => (
@@ -314,19 +327,19 @@ function PersistentRedirect() {
         </div>
       </div>
 
-      <div className="mb-6">
+      <div className="panel mb-6 p-5">
         <label htmlFor="rawDataInput" className="block text-sm font-bold text-gray-700 mb-2">
           3. 원본 데이터 붙여넣기
         </label>
         <textarea
           id="rawDataInput"
-          className="w-full h-32 p-4 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none transition-all text-sm font-mono"
+          className="field-input min-h-36 resize-y font-mono leading-6"
           onChange={handleChange}
           placeholder="엑셀이나 로그파일의 데이터를 복사해서 붙여넣으세요."
         />
       </div>
 
-      <div className="mb-8 bg-white p-6 rounded-lg shadow-md border border-gray-200">
+      <div className="panel mb-8 p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start mb-4 gap-4">
             <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-6">
@@ -363,14 +376,14 @@ function PersistentRedirect() {
             </button>
         </div>
         
-        <div className={`p-4 rounded-lg border h-64 max-h-80 overflow-y-auto text-sm transition-colors ${!workerName.trim() && hasSelectedPendingMessages ? 'bg-red-50 border-red-200' : 'bg-gray-100 border-gray-300'}`} style={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>
+        <div className={`h-64 max-h-80 overflow-y-auto whitespace-pre-wrap rounded-xl border p-4 font-mono text-sm transition-colors ${!workerName.trim() && hasSelectedPendingMessages ? 'bg-red-50 border-red-200' : 'border-slate-200 bg-slate-950 text-slate-200'}`}>
           {hasSelectedPendingMessages && !workerName.trim() ? (
               <div className="flex flex-col items-center justify-center h-full text-red-500 gap-2">
                   <FaExclamationCircle className="text-3xl" />
                   <span className="font-bold">근무자 정보(이름)를 입력해주세요!</span>
               </div>
           ) : (
-              formattedResult || <span className="text-gray-400 select-none">아래 목록에서 [+ 추가] 버튼을 누르면 내용이 생성됩니다.</span>
+              formattedResult || <span className="select-none text-slate-500">아래 목록에서 [+ 추가] 버튼을 누르면 내용이 생성됩니다.</span>
           )}
         </div>
       </div>

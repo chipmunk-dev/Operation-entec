@@ -15,14 +15,14 @@ function App() {
 
   return (
     <Router>
-      <div className="flex min-h-screen">
+      <div className="min-h-screen bg-slate-50">
         <Navbar isOpen={isMenuOpen} setIsOpen={setIsMenuOpen} />
         <div
-          className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${
-            isMenuOpen ? 'ml-64' : 'ml-16'
+          className={`flex min-h-screen flex-col transition-[margin] duration-300 ${
+            isMenuOpen ? 'ml-64' : 'ml-[72px]'
           }`}
         >
-          <div className="flex-1">
+          <main className="flex-1">
             <Routes>
               <Route path="/" element={<Navigate to="/foreign-mail" replace />} />
               <Route path="/foreign-mail" element={<ForeignMail />} />
@@ -30,25 +30,21 @@ function App() {
               <Route path="/auto-backup-error-filter" element={<AutoBackupErrorFilter />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
-          </div>
+          </main>
 
-          <footer className="w-full p-3 bg-gray-800 mt-auto">
-            <span className="text-sm font-bold text-gray-300">
-              ※ 해당 서비스는{' '}
-              <strong className="text-red-400">서버가 존재하지 않으며</strong>,
-              데이터베이스를 사용하지 않아{' '}
-              <strong className="text-red-400">
-                입력되는 데이터들은 로컬 스토리지(사용자의 개인 컴퓨터) 말고는 일체
-                저장하지 않습니다.
-              </strong>{' '}
-              <br />
-              OP 업무의 편의성을 높이고자 만든 서비스이며,{' '}
-              <strong className="text-red-400">
-                문제시 호스팅을 중지하겠습니다.
-              </strong>{' '}
-              <br />
-              특이사항은 wldns0622@cnspartner.com로 문의주시면 감사하겠습니다.
-            </span>
+          <footer className="border-t border-slate-200 bg-white px-6 py-5">
+            <div className="mx-auto flex max-w-[1440px] flex-col gap-2 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+              <p>
+                데이터는 외부 서버로 전송되지 않으며, 일부 임시 보고는 현재 브라우저에만
+                저장됩니다.
+              </p>
+              <a
+                href="mailto:wldns0622@cnspartner.com"
+                className="font-medium text-slate-600 hover:text-blue-600"
+              >
+                문의 · wldns0622@cnspartner.com
+              </a>
+            </div>
           </footer>
         </div>
       </div>

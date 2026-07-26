@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "operation-entec-api",
+  "main": "src/index.js",
+  "compatibility_date": "2026-05-03",
+  "workers_dev": true,
+  "preview_urls": false,
+  "vars": {
+    "ALLOWED_ORIGINS": "http://localhost:5173,https://stupendous-stardust-bd8168.netlify.app"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "operation-entec-db",
+      "database_id": "4fe245f1-8d14-4e09-ab88-529ae7743343",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

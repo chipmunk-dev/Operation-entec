@@ -1,342 +1,778 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { IoMdCheckmark, IoMdCopy } from 'react-icons/io';
+import {
+  MdBackup,
+  MdCloudDownload,
+  MdCloudUpload,
+  MdDeleteOutline,
+  MdInfoOutline,
+  MdOutlineCloudDone,
+  MdOutlineTableView,
+} from 'react-icons/md';
+import {
+  clearBackupDraft,
+  createDefaultBackupState,
+  DEFAULT_COLUMN_POSITIONS,
+  loadBackupDraft,
+  saveBackupDraft,
+  sanitizeBackupState,
+} from '../../utils/autoBackupStorage';
+import {
+  isSharedApiConfigured,
+  loadSharedBackup,
+  saveSharedBackup,
+  SharedApiError,
+} from '../../utils/sharedBackupApi';
 
-// 날짜 형식을 YYYY-MM-DD HH:MM (24시간)으로 변환하는 헬퍼 함수
-const formatBackupTime = (timeStr) => {
-  if (!timeStr) return 'Unknown Time';
+const zones = ['P-EUBKMST', 'NBUMASTER', 'EXTMASTER'];
+const columnOptions = Array.from({ length: 40 }, (_, index) => index + 1);
+const columnFields = [
+  { key: 'status', label: 'Status' },
+  { key: 'policyName', label: 'Policy' },
+  { key: 'startTime', label: 'Start Time' },
+];
 
-  let year, month, day, hour, minute;
+const pad = (number) => number.toString().padStart(2, '0');
 
-  // 'YYYY. M. D 오후/오전 H:MM:SS' 형식 처리
-  const koreanFormatMatch = timeStr.match(/(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})\s*(오전|오후)\s*(\d{1,2}):(\d{1,2}):(\d{1,2})/);
-  if (koreanFormatMatch) {
-    year = koreanFormatMatch[1];
-    month = parseInt(koreanFormatMatch[2], 10);
-    day = parseInt(koreanFormatMatch[3], 10);
-    hour = parseInt(koreanFormatMatch[5], 10);
-    minute = parseInt(koreanFormatMatch[6], 10);
-    const ampm = koreanFormatMatch[4];
+const formatBackupTime = (value) => {
+  if (!value?.trim()) return 'Unknown Time';
 
-    if (ampm === '오후' && hour !== 12) {
-      hour += 12;
-    } else if (ampm === '오전' && hour === 12) {
-      hour = 0; // 자정 (12 AM)은 0시
-    }
+  const time = value
+    .replace(/[\u00a0\u202f]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const months = {
+    jan: 1, january: 1, feb: 2, february: 2, mar: 3, march: 3,
+    apr: 4, april: 4, may: 5, jun: 6, june: 6, jul: 7, july: 7,
+    aug: 8, august: 8, sep: 9, sept: 9, september: 9,
+    oct: 10, october: 10, nov: 11, november: 11, dec: 12, december: 12,
+  };
 
+  const korean = time.match(
+    /^(\d{4})[.\-/]\s*(\d{1,2})[.\-/]\s*(\d{1,2})\.?\s*(오전|오후)\s*(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?$/,
+  );
+  const english = time.match(
+    /^([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4}),?\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?\s*(AM|PM)$/i,
+  );
+  const numeric = time.match(
+    /^(\d{4})[.\-/](\d{1,2})[.\-/](\d{1,2})[T\s]+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?\s*(AM|PM)?(?:Z|[+-]\d{2}:?\d{2})?$/i,
+  );
+
+  let year;
+  let month;
+  let day;
+  let hour;
+  let minute;
+  let second = 0;
+  let period;
+
+  if (korean) {
+    [, year, month, day, period, hour, minute, second = 0] = korean;
+  } else if (english) {
+    const monthNumber = months[english[1].toLowerCase()];
+    if (!monthNumber) return value;
+    [, , day, year, hour, minute, second = 0, period] = english;
+    month = monthNumber;
+  } else if (numeric) {
+    [, year, month, day, hour, minute, second = 0, period] = numeric;
   } else {
-    // 'Month Day, YYYY H:MM:SS AM/PM' 형식 처리
-    const englishFormatMatch = timeStr.match(/(\w{3})\s*(\d{1,2}),\s*(\d{4})\s*(\d{1,2}):(\d{1,2}):(\d{1,2})\s*(AM|PM)/);
-    if (englishFormatMatch) {
-      const monthNames = {
-        Jan: 1, Feb: 2, Mar: 3, Apr: 4, May: 5, Jun: 6,
-        Jul: 7, Aug: 8, Sep: 9, Oct: 10, Nov: 11, Dec: 12
-      };
-      year = englishFormatMatch[3];
-      month = monthNames[englishFormatMatch[1]];
-      day = parseInt(englishFormatMatch[2], 10);
-      hour = parseInt(englishFormatMatch[4], 10);
-      minute = parseInt(englishFormatMatch[5], 10);
-      const ampm = englishFormatMatch[7];
-
-      if (ampm === 'PM' && hour !== 12) {
-        hour += 12;
-      } else if (ampm === 'AM' && hour === 12) {
-        hour = 0; // 자정 (12 AM)은 0시
-      }
-    } else {
-      // 예상치 못한 다른 형식일 경우 원본 반환 또는 오류 표시
-      console.warn("Unexpected date format:", timeStr);
-      return timeStr; // 또는 'Invalid Time Format'
-    }
+    return value;
   }
 
-  // Date 객체를 사용하여 형식을 맞춤 (월은 0-based이므로 1을 빼줌)
-  // 주의: 이 Date 생성자는 시간대 문제를 일으킬 수 있으나, 현재 문자열 파싱 기반이므로 큰 문제는 없을 것으로 예상
-  // 시, 분 정보만 필요하므로 초는 사용하지 않음
-  const dateObj = new Date(year, month - 1, day, hour, minute);
+  year = Number(year);
+  month = Number(month);
+  day = Number(day);
+  hour = Number(hour);
+  minute = Number(minute);
+  second = Number(second);
+  period = period?.toUpperCase();
 
-  const pad = (num) => num.toString().padStart(2, '0');
+  if ((period === '오후' || period === 'PM') && hour !== 12) hour += 12;
+  if ((period === '오전' || period === 'AM') && hour === 12) hour = 0;
 
-  // YYYY-MM-DD HH:MM 형식으로 반환
-  return `${dateObj.getFullYear()}-${pad(dateObj.getMonth() + 1)}-${pad(dateObj.getDate())} ${pad(dateObj.getHours())}:${pad(dateObj.getMinutes())}`;
+  const isValid =
+    year >= 1000 &&
+    month >= 1 && month <= 12 &&
+    day >= 1 && day <= new Date(year, month, 0).getDate() &&
+    hour >= 0 && hour <= 23 &&
+    minute >= 0 && minute <= 59 &&
+    second >= 0 && second <= 59;
+
+  if (!isValid) return value;
+
+  return `${year}-${pad(month)}-${pad(day)} ${pad(hour)}:${pad(minute)}:${pad(second)}`;
+};
+
+const parseRows = (text, zone, columnPositions) => {
+  let invalidCount = 0;
+  let normalCount = 0;
+  let timeWarningCount = 0;
+  const statusIndex = columnPositions.status - 1;
+  const policyIndex = columnPositions.policyName - 1;
+  const startTimeIndex = columnPositions.startTime - 1;
+  const requiredColumnCount = Math.max(
+    columnPositions.status,
+    columnPositions.policyName,
+    columnPositions.startTime,
+  );
+
+  const errors = text.split('\n').reduce((result, line) => {
+    if (!line.trim() || line.startsWith('[')) return result;
+    const columns = line.split('\t');
+    if (columns.length < requiredColumnCount) {
+      invalidCount += 1;
+      return result;
+    }
+    const status = columns[statusIndex]?.trim();
+    const policyName = columns[policyIndex]?.trim();
+    const rawStartTime = columns[startTimeIndex]?.trim();
+    if (!status || !policyName || !rawStartTime) {
+      invalidCount += 1;
+      return result;
+    }
+    if (status === '0' || status === '1') {
+      normalCount += 1;
+      return result;
+    }
+    const startTime = formatBackupTime(rawStartTime);
+    if (!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(startTime)) {
+      timeWarningCount += 1;
+    }
+    result.push({
+      id: `${zone}-${result.length}`,
+      zone,
+      errorCode: status,
+      policyName,
+      startTime,
+    });
+    return result;
+  }, []);
+
+  return { errors, invalidCount, normalCount, timeWarningCount };
 };
 
 function AutoBackupErrorFilter() {
-  const [inputText1, setInputText1] = useState('');
-  const [filteredText1, setFilteredText1] = useState([]);
-  const [inputText2, setInputText2] = useState('');
-  const [filteredText2, setFilteredText2] = useState([]);
-  const [inputText3, setInputText3] = useState('');
-  const [filteredText3, setFilteredText3] = useState([]);
+  const initialDraft = useMemo(() => loadBackupDraft(zones), []);
+  const [activeZone, setActiveZone] = useState(initialDraft.state.activeZone);
+  const [inputs, setInputs] = useState(initialDraft.state.inputs);
+  const [showGuide, setShowGuide] = useState(false);
+  const [showColumnSettings, setShowColumnSettings] = useState(false);
+  const [columnPositions, setColumnPositions] = useState(initialDraft.state.columnPositions);
+  const [copiedKey, setCopiedKey] = useState('');
+  const [storageStatus, setStorageStatus] = useState(
+    initialDraft.restoredAt ? 'restored' : 'ready',
+  );
+  const [lastSavedAt, setLastSavedAt] = useState(initialDraft.restoredAt);
+  const [notice, setNotice] = useState(initialDraft.notice || '');
+  const [sharedStatus, setSharedStatus] = useState(
+    isSharedApiConfigured ? 'ready' : 'unconfigured',
+  );
+  const [sharedSavedAt, setSharedSavedAt] = useState(null);
+  const [saveCooldown, setSaveCooldown] = useState(0);
+  const [loadCooldown, setLoadCooldown] = useState(0);
 
-  const filterErrorPolicies = (text) => {
-    if (!text || text.trim() === '') {
-      return [];
+  const summaries = useMemo(
+    () =>
+      Object.fromEntries(
+        zones.map((zone) => [zone, parseRows(inputs[zone], zone, columnPositions)]),
+      ),
+    [inputs, columnPositions],
+  );
+  const allErrors = zones.flatMap((zone) => summaries[zone].errors);
+  const totalNormal = zones.reduce((sum, zone) => sum + summaries[zone].normalCount, 0);
+  const totalInvalid = zones.reduce(
+    (sum, zone) =>
+      sum + summaries[zone].invalidCount + summaries[zone].timeWarningCount,
+    0,
+  );
+
+  useEffect(() => {
+    setStorageStatus('saving');
+    const timer = window.setTimeout(() => {
+      try {
+        const savedAt = saveBackupDraft({ inputs, columnPositions, activeZone });
+        setLastSavedAt(savedAt);
+        setStorageStatus('saved');
+      } catch (error) {
+        setStorageStatus('error');
+        setNotice(
+          error instanceof Error
+            ? error.message
+            : '브라우저 임시 저장에 실패했습니다.',
+        );
+      }
+    }, 500);
+
+    return () => window.clearTimeout(timer);
+  }, [inputs, columnPositions, activeZone]);
+
+  useEffect(() => {
+    if (!saveCooldown && !loadCooldown) return undefined;
+    const timer = window.setInterval(() => {
+      setSaveCooldown((seconds) => Math.max(0, seconds - 1));
+      setLoadCooldown((seconds) => Math.max(0, seconds - 1));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [saveCooldown, loadCooldown]);
+
+  const copy = async (key, content) => {
+    if (!content) return;
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopiedKey(key);
+      setTimeout(() => setCopiedKey(''), 2000);
+    } catch {
+      setNotice('클립보드 접근이 차단되었습니다. 브라우저 권한을 확인해 주세요.');
+    }
+  };
+
+  const resetReport = () => {
+    if (!window.confirm('세 백업존의 입력과 열 설정을 모두 초기화할까요?')) return;
+    const defaults = createDefaultBackupState(zones);
+    clearBackupDraft();
+    setInputs(defaults.inputs);
+    setColumnPositions(defaults.columnPositions);
+    setActiveZone(defaults.activeZone);
+    setLastSavedAt(null);
+    setNotice('저장된 에러 보고 데이터를 초기화했습니다.');
+  };
+
+  const handleSharedLoad = async () => {
+    if (loadCooldown || sharedStatus === 'loading') return;
+    setSharedStatus('loading');
+    setNotice('');
+
+    try {
+      const response = await loadSharedBackup();
+      setLoadCooldown(10);
+      if (response.status === 'empty') {
+        setSharedStatus('empty');
+        setSharedSavedAt(null);
+        setNotice('저장된 공유 데이터가 없습니다.');
+        return;
+      }
+
+      const restored = sanitizeBackupState(response.data, zones);
+      setInputs(restored.inputs);
+      setColumnPositions(restored.columnPositions);
+      setActiveZone(restored.activeZone);
+      setSharedSavedAt(response.savedAt);
+      setSharedStatus('loaded');
+      setNotice('공유 데이터를 불러와 현재 입력에 적용했습니다.');
+    } catch (error) {
+      if (error instanceof SharedApiError && error.retryAfter) {
+        setLoadCooldown(error.retryAfter);
+      }
+      setSharedStatus('error');
+      setNotice(
+        error instanceof Error
+          ? error.message
+          : '공유 데이터를 불러오지 못했습니다.',
+      );
+    }
+  };
+
+  const handleSharedSave = async () => {
+    if (saveCooldown || sharedStatus === 'saving') return;
+    if (!zones.some((zone) => inputs[zone].trim())) {
+      setNotice('공유 저장할 백업 데이터가 없습니다.');
+      return;
+    }
+    if (
+      !window.confirm(
+        '현재 입력을 공유 데이터로 저장할까요?\n\n기존 공유 데이터는 현재 입력으로 교체됩니다.',
+      )
+    ) {
+      return;
     }
 
-    const lines = text.split('\n');
-    const errorPolicies = lines.filter(line => {
-      // 헤더 라인 또는 빈 라인 스킵
-      if (line.trim() === '' || line.startsWith('[')) return false;
-      const columns = line.split('\t');
-      // 세 번째 열(인덱스 2)의 값이 '0' 또는 '1'이 아닌 경우 에러로 간주
-      // 최소한 필요한 컬럼 개수 확인 (예: 에러 코드, 정책 이름, 시작 시간 컬럼까지)
-      // 정책 이름 인덱스 6, 시작 시간 인덱스 8이므로 최소 9개 컬럼 필요
-      return columns.length > 8 && columns[2] !== '0' && columns[2] !== '1';
-    }).map(line => {
-      const columns = line.split('\t');
-      // 세 번째 열(인덱스 2)은 에러 코드, 일곱 번째 열(인덱스 6)은 정책 이름, 아홉 번째 열(인덱스 8)은 백업 시작 시간
-      const errorCode = columns.length > 2 ? columns[2] : 'Unknown Error Code';
-      const policyName = columns.length > 6 ? columns[6] : 'Unknown Policy';
-      const startTime = columns.length > 8 ? columns[8] : 'Unknown Time';
-
-      // 시작 시간을 원하는 형식으로 변환
-      const formattedStartTime = formatBackupTime(startTime);
-
-      // 객체 형태로 반환
-      return { errorCode, policyName, startTime: formattedStartTime };
-    });
-
-    return errorPolicies;
-  };
-
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text)
-      .then(() => {
-        // 복사 성공 시 사용자에게 알림 (선택 사항)
-        console.log('Copied to clipboard:', text);
-        // 예: 작은 팝업 메시지를 띄우거나, 버튼 텍스트를 '복사됨!'으로 변경
-      })
-      .catch(err => {
-        // 복사 실패 시 오류 처리 (선택 사항)
-        console.error('Failed to copy:', err);
+    setSharedStatus('saving');
+    setNotice('');
+    try {
+      const response = await saveSharedBackup({
+        inputs,
+        columnPositions,
+        activeZone,
       });
+      setSaveCooldown(10);
+      setSharedSavedAt(response.savedAt);
+      setSharedStatus('saved');
+      setNotice('현재 데이터를 공유 저장했습니다.');
+    } catch (error) {
+      if (error instanceof SharedApiError && error.retryAfter) {
+        setSaveCooldown(error.retryAfter);
+      }
+      setSharedStatus('error');
+      setNotice(
+        error instanceof Error
+          ? error.message
+          : '공유 데이터 저장에 실패했습니다. 기존 공유 데이터는 유지됩니다.',
+      );
+    }
   };
 
-  useEffect(() => {
-    setFilteredText1(filterErrorPolicies(inputText1));
-  }, [inputText1]);
+  const copyOutlookTable = async (zone, rows) => {
+    const escapeHtml = (text) =>
+      text
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;');
+    const toLines = (values) => values.map(escapeHtml).join('<br>');
+    const policies = rows.map((row) => row.policyName);
+    const times = rows.map((row) => row.startTime);
+    const statuses = rows.map((row) => `Err: ${row.errorCode}`);
+    const plain = `${zone}\t${policies.join('\n')}\t${times.join('\n')}\t${statuses.join('\n')}`;
+    const html = `<table><tr><td>${escapeHtml(zone)}</td><td>${toLines(policies)}</td><td>${toLines(times)}</td><td>${toLines(statuses)}</td></tr></table>`;
 
-  useEffect(() => {
-    setFilteredText2(filterErrorPolicies(inputText2));
-  }, [inputText2]);
-
-  useEffect(() => {
-    setFilteredText3(filterErrorPolicies(inputText3));
-  }, [inputText3]);
+    try {
+      if (!window.ClipboardItem || !navigator.clipboard.write) {
+        await copy(`${zone}-table`, plain);
+        return;
+      }
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          'text/html': new Blob([html], { type: 'text/html' }),
+          'text/plain': new Blob([plain], { type: 'text/plain' }),
+        }),
+      ]);
+      setCopiedKey(`${zone}-table`);
+      setTimeout(() => setCopiedKey(''), 2000);
+    } catch {
+      setNotice('Outlook 표 복사에 실패했습니다. 열별 묶음 복사를 이용해 주세요.');
+    }
+  };
 
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold text-gray-800 mb-4">자동 백업 에러 필터</h1>
-
-      <div className="mt-4 p-4 bg-yellow-100 border border-yellow-400 rounded-md text-yellow-800 mb-8">
-        <p className="font-bold text-lg">※ 중요: 데이터 입력 전 확인해주세요!</p>
-        <p className="mt-2">백업존에서 데이터를 그대로 복사하여 붙여넣어주세요.</p>
-        <p className="mt-2">정상종료된 백업과 에러가 발생한 백업 다 넣어도 상관없습니다.(Status코드 2이상 발생한 백업 데이터만 필터링 됩니다.)</p>
-        <div className="mt-4 p-4 bg-red-100 border border-red-400 rounded-md text-red-800 mb-8"> {/* 배경색과 테두리를 빨간색 계열로 변경하여 경고 느낌 강조 */}
-          <p className="font-bold text-xl mb-2">🚨 매우 중요: 데이터 컬럼 순서를 반드시 확인하세요! 🚨</p> {/* 제목을 더 크고 강조되게 변경 */}
-          <p className="mt-2">입력하시는 백업 리스트 데이터의 <strong className="text-red-900">컬럼 순서가 정확히 일치해야만</strong> 정상적으로 필터링됩니다.</p> {/* 핵심 내용을 더 강하게 표현 */}
-          <p className="mt-2">필요한 컬럼 순서는 다음과 같습니다 (최소한 백업 시작 시간까지의 9번째 컬럼까지 데이터가 있어야 합니다):</p>
-          <p className="mt-2"> * Status (3번째), JobPolicy(7번째), Start Time(9번째) *</p>
-          <p className="ml-4 font-mono text-base bg-red-200 p-3 rounded border border-red-300">[Job Id], [Type], <strong>[Status]</strong>, [State], [Operation], [State Details], <strong>[Job Policy]</strong>, [Job Schedule], <strong>[StartTime]</strong>, ...</p> {/* 컬럼 목록 배경색 변경 및 패딩 증가 */}
-          <p className="mt-3 font-bold text-xl text-red-900">☝️ 위 순서대로 컬럼을 정렬하신 후 데이터를 복사/붙여넣기 해주세요. (절대 필수!)</p> {/* 최종 지시사항을 더 크고 강하게 강조 */}
+    <div className="page-shell">
+      <header className="page-header">
+        <span className="page-eyebrow">Backup operations</span>
+        <div className="flex items-center gap-3">
+          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-violet-100 text-violet-600">
+            <MdBackup size={25} />
+          </span>
+          <h1 className="page-title">자동 백업 에러 필터</h1>
         </div>
-        <br/>
-      </div>
+        <p className="page-description">
+          백업존에서 복사한 작업 목록을 붙여넣으면 정상 작업을 제외하고 확인이 필요한
+          오류만 모아 보여줍니다.
+        </p>
+      </header>
 
-      {/* 입력창 섹션들 */}
-      <div className="mb-8">
-        {/* 첫 번째 백업 존 입력 */}
-        <div className="w-full px-4 mb-4 mx-auto max-w-screen-lg">
-          <h2 className="text-2xl font-bold text-gray-700 mb-4">[P-EUBKMST]</h2>
-          <textarea
-            id="inputText1"
-            className="w-full h-32 p-4 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-border-blue-500 resize-none transition-all"
-            onChange={(e) => setInputText1(e.target.value)}
-            placeholder="여기에 백업 정책 리스트를 붙여넣으세요... (P-EUBKMST)"
-            value={inputText1}
-          />
+      {notice && (
+        <div className="mb-6 flex items-start justify-between gap-4 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+          <p>{notice}</p>
+          <button
+            type="button"
+            onClick={() => setNotice('')}
+            className="shrink-0 font-bold text-blue-500 hover:text-blue-800"
+            aria-label="알림 닫기"
+          >
+            ×
+          </button>
         </div>
+      )}
 
-        {/* 두 번째 백업 존 입력 */}
-        <div className="w-full px-4 mb-4 mx-auto max-w-screen-lg">
-          <h2 className="text-2xl font-bold text-gray-700 mb-4">[NBUMASTER]</h2>
-          <textarea
-            id="inputText2"
-            className="w-full h-32 p-4 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none transition-all"
-            onChange={(e) => setInputText2(e.target.value)}
-            placeholder="여기에 백업 정책 리스트를 붙여넣으세요... (NBUMASTER)"
-            value={inputText2}
-          />
-        </div>
-
-        {/* 세 번째 백업 존 입력 */}
-        <div className="w-full px-4 mb-4 mx-auto max-w-screen-lg">
-          <h2 className="text-2xl font-bold text-gray-700 mb-4">[EXTMASTER]</h2>
-          <textarea
-            id="inputText3"
-            className="w-full h-32 p-4 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none transition-all"
-            onChange={(e) => setInputText3(e.target.value)}
-            placeholder="여기에 백업 정책 리스트를 붙여넣으세요... (EXTMASTER)"
-            value={inputText3}
-          />
-        </div>
-      </div>
-
-      {/* 결과창 섹션들을 가로로 정렬 */}
-      <div className="flex space-x-4">
-        {/* 첫 번째 백업 존 결과 */}
-        {filteredText1.length > 0 && (
-          <div className="w-1/3 p-4 bg-white rounded-lg shadow-md">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">에러 필터 결과 [P-EUBKMST]</h3>
-            {/* 결과 목록들을 가로로 정렬 */}
-            <div className="flex justify-between space-x-4">
-              {/* 정책 이름 목록 */}
-              <div className="w-1/3 flex flex-col">
-                <h4 className="font-semibold mb-2 text-center">정책 이름</h4>
-                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 text-sm font-mono whitespace-pre-wrap max-h-48 overflow-y-auto mb-2 flex-grow">
-                  {filteredText1.map(policy => policy.policyName).join('\n')}
-                </div>
-                <button
-                  onClick={() => copyToClipboard(filteredText1.map(p => p.policyName).join('\n'))}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm w-full"
-                >
-                  복사
-                </button>
+      <section className="mb-6 grid gap-4 lg:grid-cols-2">
+        <div className="panel overflow-hidden">
+          <div className="border-b border-slate-100 bg-blue-50/60 px-5 py-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-bold text-slate-900">근무자 공유 데이터</p>
+                <p className="mt-1 text-xs text-slate-500">
+                  버튼을 눌렀을 때만 다른 PC와 데이터를 공유합니다.
+                </p>
               </div>
-
-              {/* 백업 시작 시간 목록 */}
-              <div className="w-1/3 flex flex-col">
-                <h4 className="font-semibold mb-2 text-center">백업 시작 시간</h4>
-                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 text-sm font-mono whitespace-pre-wrap max-h-48 overflow-y-auto mb-2 flex-grow">
-                  {filteredText1.map(policy => policy.startTime).join('\n')}
-                </div>
-                <button
-                  onClick={() => copyToClipboard(filteredText1.map(p => p.startTime).join('\n'))}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm w-full"
-                >
-                  복사
-                </button>
-              </div>
-
-              {/* 에러 코드 목록 */}
-              <div className="w-1/3 flex flex-col">
-                <h4 className="font-semibold mb-2 text-center">에러 코드</h4>
-                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 text-sm font-mono whitespace-pre-wrap max-h-48 overflow-y-auto mb-2 flex-grow">
-                  {filteredText1.map(policy => `Err: ${policy.errorCode}`).join('\n')}
-                </div>
-                <button
-                  onClick={() => copyToClipboard(filteredText1.map(p => `Err: ${p.errorCode}`).join('\n'))}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm w-full"
-                >
-                  복사
-                </button>
-              </div>
+              <span
+                className={`status-pill ${
+                  sharedStatus === 'error'
+                    ? 'bg-rose-100 text-rose-700'
+                    : sharedStatus === 'unconfigured'
+                      ? 'bg-slate-200 text-slate-600'
+                      : 'bg-blue-100 text-blue-700'
+                }`}
+              >
+                {sharedStatus === 'unconfigured'
+                  ? 'API 연결 전'
+                  : sharedStatus === 'empty'
+                    ? '저장 데이터 없음'
+                    : sharedSavedAt
+                      ? '공유 데이터 있음'
+                      : '확인 전'}
+              </span>
             </div>
+          </div>
+          <div className="p-5">
+            <p className="min-h-10 text-xs leading-5 text-slate-500">
+              가져오기는 현재 화면을 공유 데이터로 교체합니다. 이후 입력을 수정하면
+              수정된 내용이 즉시 현재 작업 기준이 됩니다.
+            </p>
+            {sharedSavedAt && (
+              <p className="mt-2 text-xs font-semibold text-blue-700">
+                마지막 공유 저장 · {new Date(sharedSavedAt).toLocaleString('ko-KR')}
+              </p>
+            )}
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={handleSharedLoad}
+                disabled={
+                  !isSharedApiConfigured ||
+                  loadCooldown > 0 ||
+                  sharedStatus === 'loading' ||
+                  sharedStatus === 'saving'
+                }
+                className="btn-secondary"
+              >
+                <MdCloudDownload size={18} />
+                {sharedStatus === 'loading'
+                  ? '가져오는 중'
+                  : loadCooldown
+                    ? `${loadCooldown}초 후 가져오기`
+                    : '공유 데이터 가져오기'}
+              </button>
+              <button
+                type="button"
+                onClick={handleSharedSave}
+                disabled={
+                  !isSharedApiConfigured ||
+                  saveCooldown > 0 ||
+                  sharedStatus === 'saving' ||
+                  sharedStatus === 'loading'
+                }
+                className="btn-primary"
+              >
+                <MdCloudUpload size={18} />
+                {sharedStatus === 'saving'
+                  ? '저장 중'
+                  : saveCooldown
+                    ? `${saveCooldown}초 후 저장`
+                    : '현재 데이터를 공유 저장'}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="panel overflow-hidden">
+          <div className="border-b border-slate-100 bg-emerald-50/60 px-5 py-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-bold text-slate-900">현재 PC 임시 저장</p>
+                <p className="mt-1 text-xs text-slate-500">
+                  입력할 때마다 이 브라우저에 자동 저장합니다.
+                </p>
+              </div>
+              <span className="status-pill bg-emerald-100 text-emerald-700">
+                <MdOutlineCloudDone size={16} />
+                {storageStatus === 'saving' ? '저장 중' : '자동 저장'}
+              </span>
+            </div>
+          </div>
+          <div className="flex h-[154px] flex-col justify-between p-5">
+            <p className="text-xs leading-5 text-slate-500">
+              새로고침해도 복원되며 마지막 수정 후 7일이 지나면 삭제됩니다. 이 데이터는
+              다른 PC에서는 볼 수 없습니다.
+            </p>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <span className="text-xs font-semibold text-emerald-700">
+                {lastSavedAt
+                  ? `최근 저장 · ${new Date(lastSavedAt).toLocaleString('ko-KR')}`
+                  : '저장된 임시 데이터 없음'}
+              </span>
+              <button
+                type="button"
+                onClick={resetReport}
+                className="btn-ghost px-3 py-2 text-rose-600 hover:bg-rose-50"
+              >
+                <MdDeleteOutline size={18} />
+                현재 PC 데이터 초기화
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {[
+          ['입력 백업존', `${zones.filter((zone) => inputs[zone].trim()).length} / ${zones.length}`, 'text-blue-600'],
+          ['오류 작업', `${allErrors.length}건`, 'text-rose-600'],
+          ['정상 제외', `${totalNormal}건`, 'text-emerald-600'],
+          ['형식 확인 필요', `${totalInvalid}건`, 'text-amber-600'],
+        ].map(([label, value, color]) => (
+          <div key={label} className="panel p-4">
+            <p className="text-xs font-semibold text-slate-500">{label}</p>
+            <p className={`mt-2 text-2xl font-bold ${color}`}>{value}</p>
+          </div>
+        ))}
+      </section>
+
+      <section className="panel mb-6 overflow-hidden">
+        <div className="panel-header">
+          <div>
+            <h2 className="font-bold text-slate-900">1. 백업 데이터 입력</h2>
+            <p className="mt-1 text-xs text-slate-500">백업존을 선택하고 데이터를 붙여넣으세요.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setShowColumnSettings(!showColumnSettings)}
+              className="btn-secondary"
+            >
+              열 순서 설정
+            </button>
+            <button type="button" onClick={() => setShowGuide(!showGuide)} className="btn-ghost">
+              <MdInfoOutline size={18} />
+              입력 형식 {showGuide ? '닫기' : '보기'}
+            </button>
+          </div>
+        </div>
+
+        {showColumnSettings && (
+          <div className="border-b border-blue-100 bg-blue-50/70 p-5">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p className="text-sm font-bold text-blue-900">필드별 입력 열 위치</p>
+                <p className="mt-1 text-xs text-blue-700">
+                  붙여넣을 데이터에서 각 필드가 위치한 열 번호를 선택하세요.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  setColumnPositions({ ...DEFAULT_COLUMN_POSITIONS })
+                }
+                className="btn-ghost px-3 py-2 text-blue-700 hover:bg-blue-100"
+              >
+                기본값 복원
+              </button>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {columnFields.map(({ key, label }) => (
+                <label key={key} className="text-xs font-semibold text-blue-800">
+                  {label}
+                  <select
+                    value={columnPositions[key]}
+                    onChange={(event) =>
+                      setColumnPositions((current) => ({
+                        ...current,
+                        [key]: Number(event.target.value),
+                      }))
+                    }
+                    className="field-select mt-1.5"
+                  >
+                    {columnOptions.map((column) => (
+                      <option key={column} value={column}>
+                        {column}번째 열
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ))}
+            </div>
+            {new Set(Object.values(columnPositions)).size !== columnFields.length && (
+              <p className="mt-3 rounded-lg bg-amber-100 px-3 py-2 text-xs font-semibold text-amber-800">
+                서로 다른 필드에 같은 열이 선택되어 있습니다. 입력 열 위치를 확인해 주세요.
+              </p>
+            )}
           </div>
         )}
 
-        {/* 두 번째 백업 존 결과 */}
-        {filteredText2.length > 0 && (
-          <div className="w-1/3 p-4 bg-white rounded-lg shadow-md">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">에러 필터 결과 [NBUMASTER]</h3>
-            {/* 결과 목록들을 가로로 정렬 */}
-            <div className="flex justify-between space-x-4">
-              {/* 정책 이름 목록 */}
-              <div className="w-1/3 flex flex-col">
-                <h4 className="font-semibold mb-2 text-center">정책 이름</h4>
-                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 text-sm font-mono whitespace-pre-wrap max-h-48 overflow-y-auto mb-2 flex-grow">
-                  {filteredText2.map(policy => policy.policyName).join('\n')}
-                </div>
-                <button
-                  onClick={() => copyToClipboard(filteredText2.map(p => p.policyName).join('\n'))}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm w-full"
-                >
-                  복사
-                </button>
-              </div>
-
-              {/* 백업 시작 시간 목록 */}
-              <div className="w-1/3 flex flex-col">
-                <h4 className="font-semibold mb-2 text-center">백업 시작 시간</h4>
-                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 text-sm font-mono whitespace-pre-wrap max-h-48 overflow-y-auto mb-2 flex-grow">
-                  {filteredText2.map(policy => policy.startTime).join('\n')}
-                </div>
-                <button
-                  onClick={() => copyToClipboard(filteredText2.map(p => p.startTime).join('\n'))}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm w-full"
-                >
-                  복사
-                </button>
-              </div>
-
-              {/* 에러 코드 목록 */}
-              <div className="w-1/3 flex flex-col">
-                <h4 className="font-semibold mb-2 text-center">에러 코드</h4>
-                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 text-sm font-mono whitespace-pre-wrap max-h-48 overflow-y-auto mb-2 flex-grow">
-                  {filteredText2.map(policy => `Err: ${policy.errorCode}`).join('\n')}
-                </div>
-                <button
-                  onClick={() => copyToClipboard(filteredText2.map(p => `Err: ${p.errorCode}`).join('\n'))}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm w-full"
-                >
-                  복사
-                </button>
-              </div>
-            </div>
+        {showGuide && (
+          <div className="border-b border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
+            <p className="font-semibold">
+              현재 설정에서는 최소{' '}
+              {Math.max(...Object.values(columnPositions))}개 열이 필요합니다.
+            </p>
+            <p className="mt-1 leading-6 text-amber-800">
+              Status는 {columnPositions.status}번째, Policy는{' '}
+              {columnPositions.policyName}번째, Start Time은{' '}
+              {columnPositions.startTime}번째 열에서 읽습니다. 열은 탭(Tab)으로
+              구분되어야 합니다.
+            </p>
           </div>
         )}
 
-        {/* 세 번째 백업 존 결과 */}
-        {filteredText3.length > 0 && (
-          <div className="w-1/3 p-4 bg-white rounded-lg shadow-md">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">에러 필터 결과 [EXTMASTER]</h3>
-            {/* 결과 목록들을 가로로 정렬 */}
-            <div className="flex justify-between space-x-4">
-              {/* 정책 이름 목록 */}
-              <div className="w-1/3 flex flex-col">
-                <h4 className="font-semibold mb-2 text-center">정책 이름</h4>
-                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 text-sm font-mono whitespace-pre-wrap max-h-48 overflow-y-auto mb-2 flex-grow">
-                  {filteredText3.map(policy => policy.policyName).join('\n')}
-                </div>
+        <div className="border-b border-slate-200 px-5 pt-4">
+          <div className="flex gap-1 overflow-x-auto">
+            {zones.map((zone) => {
+              const errorCount = summaries[zone].errors.length;
+              return (
                 <button
-                  onClick={() => copyToClipboard(filteredText3.map(p => p.policyName).join('\n'))}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm w-full"
+                  key={zone}
+                  type="button"
+                  onClick={() => setActiveZone(zone)}
+                  className={`flex shrink-0 items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition ${
+                    activeZone === zone
+                      ? 'border-blue-600 text-blue-700'
+                      : 'border-transparent text-slate-500 hover:text-slate-800'
+                  }`}
                 >
-                  복사
+                  {zone}
+                  {errorCount > 0 && (
+                    <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[11px] text-rose-700">
+                      {errorCount}
+                    </span>
+                  )}
                 </button>
-              </div>
+              );
+            })}
+          </div>
+        </div>
 
-              {/* 백업 시작 시간 목록 */}
-              <div className="w-1/3 flex flex-col">
-                <h4 className="font-semibold mb-2 text-center">백업 시작 시간</h4>
-                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 text-sm font-mono whitespace-pre-wrap max-h-48 overflow-y-auto mb-2 flex-grow">
-                  {filteredText3.map(policy => policy.startTime).join('\n')}
-                </div>
-                <button
-                  onClick={() => copyToClipboard(filteredText3.map(p => p.startTime).join('\n'))}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm w-full"
-                >
-                  복사
-                </button>
-              </div>
+        <div className="panel-body">
+          <textarea
+            value={inputs[activeZone]}
+            onChange={(event) =>
+              setInputs((current) => ({ ...current, [activeZone]: event.target.value }))
+            }
+            className="field-input min-h-52 resize-y font-mono leading-6"
+            placeholder={`${activeZone} 백업 작업 목록을 여기에 붙여넣으세요.`}
+            spellCheck="false"
+          />
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex gap-2 text-xs">
+              <span className="status-pill bg-emerald-50 text-emerald-700">
+                정상 {summaries[activeZone].normalCount}
+              </span>
+              <span className="status-pill bg-rose-50 text-rose-700">
+                오류 {summaries[activeZone].errors.length}
+              </span>
+              {summaries[activeZone].invalidCount > 0 && (
+                <span className="status-pill bg-amber-50 text-amber-700">
+                  제외된 행 {summaries[activeZone].invalidCount}
+                </span>
+              )}
+              {summaries[activeZone].timeWarningCount > 0 && (
+                <span className="status-pill bg-amber-50 text-amber-700">
+                  시간 확인 {summaries[activeZone].timeWarningCount}
+                </span>
+              )}
+            </div>
+            <button
+              type="button"
+              disabled={!inputs[activeZone]}
+              onClick={() => setInputs((current) => ({ ...current, [activeZone]: '' }))}
+              className="btn-ghost text-rose-600 hover:bg-rose-50"
+            >
+              <MdDeleteOutline size={18} />
+              현재 입력 지우기
+            </button>
+          </div>
+        </div>
+      </section>
 
-              {/* 에러 코드 목록 */}
-              <div className="w-1/3 flex flex-col">
-                <h4 className="font-semibold mb-2 text-center">에러 코드</h4>
-                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 text-sm font-mono whitespace-pre-wrap max-h-48 overflow-y-auto mb-2 flex-grow">
-                  {filteredText3.map(policy => `Err: ${policy.errorCode}`).join('\n')}
-                </div>
-                <button
-                  onClick={() => copyToClipboard(filteredText3.map(p => `Err: ${p.errorCode}`).join('\n'))}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm w-full"
-                >
-                  복사
-                </button>
-              </div>
+      <section className="panel overflow-hidden">
+        <div className="panel-header">
+          <div>
+            <h2 className="font-bold text-slate-900">2. Outlook 보고용 결과</h2>
+            <p className="mt-1 text-xs text-slate-500">
+              백업존별로 각 열을 복사해 Outlook 테이블의 해당 셀에 붙여넣으세요.
+            </p>
+          </div>
+        </div>
+
+        {allErrors.length ? (
+          <div className="divide-y divide-slate-200">
+            {zones.map((zone) => {
+              const zoneErrors = summaries[zone].errors;
+              if (!zoneErrors.length) return null;
+
+              const bundles = [
+                {
+                  key: 'policy',
+                  label: 'Policy 명',
+                  content: zoneErrors.map((row) => row.policyName).join('\n'),
+                  style: 'bg-blue-50/60 text-blue-950',
+                },
+                {
+                  key: 'time',
+                  label: 'RIC 시간',
+                  content: zoneErrors.map((row) => row.startTime).join('\n'),
+                  style: 'bg-violet-50/60 text-violet-950',
+                },
+                {
+                  key: 'status',
+                  label: '특이사항 (Status 코드)',
+                  content: zoneErrors.map((row) => `Err: ${row.errorCode}`).join('\n'),
+                  style: 'bg-rose-50/60 text-rose-950',
+                },
+              ];
+
+              return (
+                <article key={zone} className="p-5">
+                  <div className="mb-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-slate-900">{zone}</h3>
+                      <span className="status-pill bg-rose-100 text-rose-700">
+                        오류 {zoneErrors.length}건
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="hidden text-xs text-slate-400 sm:inline">
+                        세 목록은 입력 순서대로 정렬됩니다.
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => copyOutlookTable(zone, zoneErrors)}
+                        className="btn-primary px-3 py-2"
+                      >
+                        {copiedKey === `${zone}-table` ? (
+                          <IoMdCheckmark />
+                        ) : (
+                          <MdOutlineTableView />
+                        )}
+                        {copiedKey === `${zone}-table` ? '표 복사됨' : 'Outlook 행 복사'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 lg:grid-cols-3">
+                    {bundles.map((bundle) => {
+                      const copyKey = `${zone}-${bundle.key}`;
+                      return (
+                        <section
+                          key={bundle.key}
+                          className="overflow-hidden rounded-xl border border-slate-200"
+                        >
+                          <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
+                            <h4 className="text-sm font-bold text-slate-700">{bundle.label}</h4>
+                            <button
+                              type="button"
+                              onClick={() => copy(copyKey, bundle.content)}
+                              className="btn-ghost px-3 py-1.5"
+                            >
+                              {copiedKey === copyKey ? (
+                                <IoMdCheckmark className="text-emerald-600" />
+                              ) : (
+                                <IoMdCopy />
+                              )}
+                              {copiedKey === copyKey ? '복사됨' : '묶음 복사'}
+                            </button>
+                          </div>
+                          <div className={`min-h-32 p-4 ${bundle.style}`}>
+                            <pre className="whitespace-pre-wrap font-mono text-sm leading-7">
+                              {bundle.content}
+                            </pre>
+                          </div>
+                        </section>
+                      );
+                    })}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="grid min-h-64 place-items-center p-8 text-center">
+            <div>
+              <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-emerald-50 text-emerald-500">
+                <MdBackup size={28} />
+              </span>
+              <p className="mt-4 text-sm font-semibold text-slate-700">표시할 오류가 없습니다.</p>
+              <p className="mt-1 text-xs text-slate-400">데이터를 입력하면 오류 작업이 여기에 표시됩니다.</p>
             </div>
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
 }

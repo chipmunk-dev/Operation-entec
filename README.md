@@ -6,8 +6,9 @@
 탭으로 구분된 데이터를 붙여넣으면 해외 메일, 지속 이벤트 재전달 문구,
 백업 오류 목록 등 필요한 형식으로 변환할 수 있습니다.
 
-> 별도의 서버나 데이터베이스를 사용하지 않습니다. 입력 데이터는 외부로
-> 전송되지 않으며 현재 브라우저 화면의 메모리에서만 처리됩니다.
+> 대부분의 데이터 가공은 브라우저에서 처리됩니다. 자동 백업 에러 보고의 임시
+> 데이터는 현재 브라우저에 최대 7일 동안 저장되며, 사용자가 공유 저장을 선택한
+> 경우에만 백업 입력과 열 설정이 Cloudflare D1으로 전송됩니다.
 
 ## 주요 기능
 
@@ -56,6 +57,9 @@ npm run dev
 | `npm run build` | 프로덕션 빌드 생성 |
 | `npm run preview` | 프로덕션 빌드 미리보기 |
 | `npm run lint` | ESLint 코드 검사 |
+| `npm run worker:test` | Worker 데이터 검증 테스트 |
+| `npm run worker:migrate:local` | 로컬 D1 마이그레이션 적용 |
+| `npm run worker:dev` | 로컬 Worker API 실행 |
 
 ## 입력 데이터 형식
 
@@ -78,24 +82,64 @@ Host    Message/Event    Date    IP
 
 | 위치 | 필드 | 용도 |
 | ---: | --- | --- |
-| 3번째 열 | Status | 오류 여부 판단 |
-| 7번째 열 | Job Policy | 정책 이름 표시 |
-| 9번째 열 | Start Time | 백업 시작 시간 표시 |
+| 1번째 열 | Status | 오류 여부 판단 |
+| 6번째 열 | Job Policy | 정책 이름 표시 |
+| 7번째 열 | Start Time | 백업 시작 시간 표시 |
 
 권장 열 순서:
 
 ```text
-Job Id    Type    Status    State    Operation    State Details
-Job Policy    Job Schedule    Start Time
+Status    State    Operation    State Details    Job Schedule
+Job Policy    Start Time
 ```
+
+화면의 열 순서 설정에서 각 필드의 위치를 입력 데이터에 맞게 변경할 수 있습니다.
 
 ## 데이터 처리 및 보안
 
-- 백엔드 API를 호출하지 않습니다.
-- 데이터베이스를 사용하지 않습니다.
-- 입력한 데이터는 브라우저 메모리에서만 가공됩니다.
-- 페이지를 새로고침하거나 닫으면 입력 및 작업 상태가 사라집니다.
+- 메시지 파싱과 결과 생성은 브라우저에서 수행합니다.
+- 공유 저장을 선택하지 않으면 입력 데이터는 외부 API로 전송되지 않습니다.
+- 자동 백업 에러 보고의 원본과 열 설정은 현재 브라우저에 최대 7일 동안
+  임시 저장되며, 나머지 화면 상태는 새로고침하면 사라집니다.
 - 결과 복사 기능을 사용할 때만 브라우저 Clipboard API에 접근합니다.
+
+Cloudflare Worker 연결 전에는 공유 저장 버튼이 비활성화됩니다. 연결 후 사용자가
+명시적으로 `현재 데이터를 공유 저장`을 누른 경우에만 백업존 원본 입력과 열 설정이
+공유 D1 데이터베이스로 전송됩니다. 파싱 결과는 저장하지 않습니다.
+
+운영 Worker API:
+
+```text
+https://operation-entec-api.devquokkajeong.workers.dev
+```
+
+Netlify에는 다음 환경변수를 등록해야 합니다.
+
+```text
+VITE_SHARED_API_URL=https://operation-entec-api.devquokkajeong.workers.dev
+```
+
+## 공유 저장 로컬 개발
+
+공유 저장 API는 Cloudflare Worker와 D1으로 구성되어 있습니다.
+
+```bash
+npm run worker:migrate:local
+npm run worker:dev
+```
+
+별도 터미널에서 프런트엔드를 실행합니다.
+
+```bash
+cp .env.example .env.local
+npm run dev
+```
+
+로컬 Worker는 기본적으로 `http://localhost:8787`, Vite는
+`http://localhost:5173`에서 실행됩니다.
+
+공유 데이터는 항상 최신 스냅샷 하나만 유지합니다. 저장과 가져오기는 각각 독립적으로
+10초에 한 번만 가능하며, 저장 실패 시 기존 공유 데이터는 유지됩니다.
 
 민감한 운영 데이터를 다루는 경우에도 배포 환경과 브라우저 확장 프로그램의
 보안 정책은 별도로 확인해 주세요.
