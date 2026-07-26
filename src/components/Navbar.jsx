@@ -1,5 +1,11 @@
 import PropTypes from 'prop-types';
-import { MdBackup, MdEmail, MdMenu, MdOutlineChevronLeft } from 'react-icons/md';
+import {
+  MdBackup,
+  MdEmail,
+  MdHistory,
+  MdMenu,
+  MdOutlineChevronLeft,
+} from 'react-icons/md';
 import { FaArrowsRotate, FaFileExcel } from 'react-icons/fa6';
 import { NavLink } from 'react-router-dom';
 
@@ -27,6 +33,44 @@ const menuItems = [
     description: 'Event Excel Report',
     path: '/persistent-event-excel',
     icon: FaFileExcel,
+  },
+];
+
+const changeLogItems = [
+  {
+    date: '2025.05',
+    title: '업무 변환 도구 시작',
+    detail: '해외메일 작성과 자동 백업 오류 필터·열 설정을 추가했습니다.',
+  },
+  {
+    date: '2025.07',
+    title: '백업 오류 판독 보강',
+    detail: 'Context Error Code 형식을 반영해 오류 추출 정확도를 높였습니다.',
+  },
+  {
+    date: '2025.12',
+    title: '지속 이벤트 재전달',
+    detail: '대기·확인 관리와 국내·해외 전달 문구 생성을 추가했습니다.',
+  },
+  {
+    date: '2025.12',
+    title: '재전달 편의 기능',
+    detail: '시간 표시, 괄호 제외 문구, 해외 담당자 전달 방식을 보강했습니다.',
+  },
+  {
+    date: '2026.01',
+    title: '해외메일 형식 개선',
+    detail: '메일 본문의 줄 간격과 출력 형식을 다듬었습니다.',
+  },
+  {
+    date: '2026.07',
+    title: '운영 화면 개편',
+    detail: '전체 UI와 직접 경로 접속을 개선하고 백업 공유 저장을 추가했습니다.',
+  },
+  {
+    date: '2026.07',
+    title: '지속 메시지·이벤트 파싱',
+    detail: '엑셀 보고서와 담당자 판독, Event 탭·줄바꿈 자동 정리를 추가했습니다.',
   },
 ];
 
@@ -93,6 +137,56 @@ const Navbar = ({ isOpen, setIsOpen }) => (
         </p>
       </div>
     )}
+
+    <div className="group relative flex justify-center px-3 pb-3">
+      <button
+        type="button"
+        className="grid h-8 w-8 place-items-center rounded-lg border border-slate-800 bg-slate-900 text-slate-500 transition hover:border-slate-700 hover:text-slate-200 focus:border-blue-500 focus:text-white focus:outline-none"
+        aria-label="간략 변경 내역"
+        aria-describedby="operation-change-log"
+      >
+        <MdHistory size={17} />
+      </button>
+
+      <div
+        id="operation-change-log"
+        role="tooltip"
+        className={`pointer-events-none fixed bottom-3 z-50 max-h-[calc(100vh-1.5rem)] w-80 translate-x-1 overflow-y-auto rounded-2xl border border-slate-700 bg-slate-950/95 p-4 opacity-0 shadow-2xl shadow-slate-950/50 backdrop-blur transition duration-150 group-hover:pointer-events-auto group-hover:translate-x-0 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:translate-x-0 group-focus-within:opacity-100 ${
+          isOpen ? 'left-[268px]' : 'left-[84px]'
+        }`}
+      >
+        <div className="mb-3 border-b border-slate-800 pb-3">
+          <p className="text-sm font-bold text-white">Operation Entec 히스토리</p>
+          <p className="mt-1 text-[11px] text-slate-500">
+            2025년 이후 주요 기능·커밋 기준
+          </p>
+        </div>
+
+        <ol className="space-y-3">
+          {changeLogItems.map(({ date, title, detail }, index) => (
+            <li
+              key={`${date}-${title}`}
+              className="relative pl-4 before:absolute before:left-0 before:top-1.5 before:h-1.5 before:w-1.5 before:rounded-full before:bg-blue-500"
+            >
+              {index < changeLogItems.length - 1 && (
+                <span className="absolute left-[2.5px] top-3.5 h-[calc(100%+0.25rem)] w-px bg-slate-800" />
+              )}
+              <div className="flex items-baseline gap-2">
+                <span className="shrink-0 text-[10px] font-bold text-blue-400">
+                  {date}
+                </span>
+                <span className="text-xs font-semibold text-slate-200">
+                  {title}
+                </span>
+              </div>
+              <p className="mt-1 text-[11px] leading-4 text-slate-500">
+                {detail}
+              </p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
   </aside>
 );
 

@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
 import { IoMdCopy } from 'react-icons/io';
 import { FaCheck, FaUndo, FaListUl, FaCheckDouble, FaPaperPlane, FaExclamationCircle, FaCommentDots, FaEnvelope, FaGlobe, FaInfoCircle } from 'react-icons/fa';
+import {
+  DEFAULT_PERSISTENT_REDIRECT_ORDER,
+  parsePersistentRedirectRows,
+} from '../../utils/persistentRedirectParser';
 
 function PersistentRedirect() {
-  const [inputs, setInputs] = useState([]);
+  const [rawInput, setRawInput] = useState('');
   const [processedMessages, setProcessedMessages] = useState([]); 
   const [formattedResult, setFormattedResult] = useState('');
   const [formattedCopied, setFormattedCopied] = useState(false);
@@ -18,15 +22,16 @@ function PersistentRedirect() {
   const [copiedKey, setCopiedKey] = useState(null);
 
   const [sortOrder, setSortOrder] = useState('content');
-  const [inputColumnOrder, setInputColumnOrder] = useState(['host', 'event', 'date', 'ip']);
+  const [inputColumnOrder, setInputColumnOrder] = useState(
+    DEFAULT_PERSISTENT_REDIRECT_ORDER,
+  );
   
   const [workerTeam, setWorkerTeam] = useState('1조');
   const [workerName, setWorkerName] = useState('');
   const [workerPosition, setWorkerPosition] = useState('사원');
 
   const handleChange = (e) => {
-    const value = e.target.value;
-    setInputs(value.split('\n'));
+    setRawInput(e.target.value);
   };
 
   const handleFormattedCopy = () => {
@@ -93,52 +98,52 @@ function PersistentRedirect() {
     setSelectedMessages([]);
     setCompletedIds([]);
 
-    const messages = [];
-    inputs.reduce((acc, input, index) => {
-      if (input.trim() === '') return acc;
-      const columns = input.split('\t');
-      const parsedData = {};
-      
-      inputColumnOrder.forEach((dataType, colIndex) => {
-        parsedData[dataType] = (columns.length > colIndex && colIndex >= 0) ? columns[colIndex] : '';
-      });
-
-      const rawEvent = parsedData['event'] || '';
-      const logPattern = /(\[\d{4}-\d{2}-\d{2}.*\])$/;
+    const messages = parsePersistentRedirectRows(
+      rawInput,
+      inputColumnOrder,
+    ).map((parsedRow) => {
+      const parsedData = { ...parsedRow.data };
+      const rawEvent = parsedData.event || '';
+      const logPattern =
+        /(\[(?:19|20)\d{2}[-/.]\d{1,2}[-/.]\d{1,2}[\s\S]*\])$/u;
       const match = rawEvent.match(logPattern);
 
       let cleanEvent = rawEvent;
       let processingLog = '';
-      let processingContent = ''; 
+      let processingContent = '';
 
       if (match) {
         processingLog = match[1];
         cleanEvent = rawEvent.replace(logPattern, '').trim();
 
-        const contentMatch = processingLog.match(/\d{2}:\d{2}:\d{2}:\s*(.*?)\s*확인/);
+        const contentMatch = processingLog.match(
+          /\d{2}:\d{2}:\d{2}:\s*([\s\S]*?)\s*확인/u,
+        );
         if (contentMatch) {
-            processingContent = contentMatch[1].trim();
+          processingContent = contentMatch[1].trim();
         } else {
-            const parts = processingLog.split(':');
-            if (parts.length > 3) { 
-                const temp = processingLog.substring(processingLog.indexOf(':', 15) + 1); 
-                const confirmIndex = temp.lastIndexOf('확인');
-                if (confirmIndex !== -1) {
-                    processingContent = temp.substring(0, confirmIndex).trim();
-                }
+          const parts = processingLog.split(':');
+          if (parts.length > 3) {
+            const temp = processingLog.substring(
+              processingLog.indexOf(':', 15) + 1,
+            );
+            const confirmIndex = temp.lastIndexOf('확인');
+            if (confirmIndex !== -1) {
+              processingContent = temp.substring(0, confirmIndex).trim();
             }
+          }
         }
       }
 
-      parsedData['cleanEvent'] = cleanEvent;
-      parsedData['processingLog'] = processingLog;
-      parsedData['processingContent'] = processingContent; 
+      parsedData.cleanEvent = cleanEvent;
+      parsedData.processingLog = processingLog;
+      parsedData.processingContent = processingContent;
 
-      messages.push({ id: index, data: parsedData });
-      return acc;
-    }, '');
+      return { ...parsedRow, data: parsedData };
+    });
+
     setProcessedMessages(messages);
-  }, [inputs, inputColumnOrder]);
+  }, [rawInput, inputColumnOrder]);
 
   // --- 결과 텍스트 생성 ---
   useEffect(() => {
@@ -218,6 +223,9 @@ function PersistentRedirect() {
 
   const pendingMessages = processedMessages.filter(m => !confirmedIds.includes(m.id));
   const confirmedMessagesList = processedMessages.filter(m => confirmedIds.includes(m.id));
+  const recoveredMessageCount = processedMessages.filter(
+    (message) => message.wasRecovered,
+  ).length;
   
   let displayMessages = activeTab === 'pending' ? pendingMessages : confirmedMessagesList;
   const hasSelectedPendingMessages = selectedMessages.some(m => !confirmedIds.includes(m.id));
@@ -333,10 +341,21 @@ function PersistentRedirect() {
         </label>
         <textarea
           id="rawDataInput"
+          value={rawInput}
           className="field-input min-h-36 resize-y font-mono leading-6"
           onChange={handleChange}
           placeholder="엑셀이나 로그파일의 데이터를 복사해서 붙여넣으세요."
         />
+        <div className="mt-3 flex flex-wrap justify-end gap-2 text-xs">
+          <span className="status-pill bg-blue-50 text-blue-700">
+            {processedMessages.length}개 입력 행
+          </span>
+          {recoveredMessageCount > 0 && (
+            <span className="status-pill bg-violet-50 text-violet-700">
+              Event 탭·줄바꿈 제거 {recoveredMessageCount}건
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="panel mb-8 p-6">
