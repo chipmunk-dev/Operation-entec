@@ -32,18 +32,37 @@ function App() {
             </Routes>
           </main>
 
-          <footer className="border-t border-slate-200 bg-white px-6 py-5">
-            <div className="mx-auto flex max-w-[1440px] flex-col gap-2 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-              <p>
-                데이터는 외부 서버로 전송되지 않으며, 일부 임시 보고는 현재 브라우저에만
-                저장됩니다.
-              </p>
-              <a
-                href="mailto:wldns0622@cnspartner.com"
-                className="font-medium text-slate-600 hover:text-blue-600"
-              >
-                문의 · wldns0622@cnspartner.com
-              </a>
+          <footer className="border-t border-slate-200 bg-white px-6 py-6">
+            <div className="mx-auto flex max-w-[1440px] flex-col gap-4 text-xs text-slate-500 lg:flex-row lg:items-end lg:justify-between">
+              <div className="space-y-1.5">
+                <p className="font-semibold text-slate-700">
+                  Operation Entec
+                  <span className="ml-2 font-normal text-slate-400">
+                    OP 업무의 반복 작업을 줄이기 위한 내부 업무 지원 도구
+                  </span>
+                </p>
+                <p className="leading-5">
+                  데이터 가공은 브라우저에서 수행되며, 사용자가 공유 저장을 선택한
+                  백업 데이터만 별도 저장됩니다.
+                </p>
+                <p className="text-slate-400">© 2026 Operation Entec</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 font-medium">
+                <a
+                  href="https://github.com/chipmunk-dev/Operation-entec"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-slate-600 transition hover:text-blue-600"
+                >
+                  GitHub
+                </a>
+                <a
+                  href="mailto:wldns0622@cnspartner.com"
+                  className="text-slate-600 transition hover:text-blue-600"
+                >
+                  문의 · wldns0622@cnspartner.com
+                </a>
+              </div>
             </div>
           </footer>
         </div>
