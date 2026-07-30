@@ -72,6 +72,11 @@ const changeLogItems = [
     title: '지속 메시지·이벤트 파싱',
     detail: '엑셀 보고서와 담당자 판독, Event 탭·줄바꿈 자동 정리를 추가했습니다.',
   },
+  {
+    date: '2026.07.30',
+    title: '이벤트 검토·엑셀 입력 보강',
+    detail: 's 확인내용 일괄 제외와 지속 메시지 앞·뒤 빈 탭 자동 정리를 추가했습니다.',
+  },
 ];
 
 const Navbar = ({ isOpen, setIsOpen }) => (

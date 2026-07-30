@@ -243,14 +243,25 @@ const isValidStableField = (field, value) => {
     : true;
 };
 
-const normalizeLogicalRow = (rawRow, inputColumnOrder) => {
-  const rawColumns = rawRow.split('\t');
-  while (
-    rawColumns.length > 0 &&
-    rawColumns[rawColumns.length - 1].trim() === ''
-  ) {
-    rawColumns.pop();
+const splitRowColumns = (rawRow) => {
+  const columns = String(rawRow || '').split('\t');
+
+  while (columns.length > 0 && columns[0].trim() === '') {
+    columns.shift();
   }
+
+  while (
+    columns.length > 0 &&
+    columns[columns.length - 1].trim() === ''
+  ) {
+    columns.pop();
+  }
+
+  return columns;
+};
+
+const normalizeLogicalRow = (rawRow, inputColumnOrder) => {
+  const rawColumns = splitRowColumns(rawRow);
   const contentIndex = inputColumnOrder.indexOf('content');
   const suffixCount = inputColumnOrder.length - contentIndex - 1;
   const suffixFields = inputColumnOrder.slice(contentIndex + 1);
@@ -319,7 +330,7 @@ const looksLikeRecordStart = (physicalLine, inputColumnOrder) => {
   const contentIndex = inputColumnOrder.indexOf('content');
   if (contentIndex === 0) return false;
 
-  const columns = physicalLine.split('\t');
+  const columns = splitRowColumns(physicalLine);
   if (columns.length <= contentIndex) return false;
 
   return inputColumnOrder

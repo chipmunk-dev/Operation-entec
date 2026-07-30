@@ -311,6 +311,98 @@ test('IP 뒤의 빈 탭을 제거하고 줄바꿈이 있는 여러 행을 분리
   );
 });
 
+test('첫 열 앞의 단일·복수 빈 탭을 제거하고 여러 행을 분리한다', () => {
+  const rows = parsePersistentEventRows(
+    [
+      '\t1일\t그룹1\tHOST-01\tDisk warning [2026-07-08 13:39:08: 김철수 책임 확인]\t2026-07-08 13:22:28\t10.0.0.1\t',
+      '\t \t2일\t그룹2\tHOST-02\tCPU warning [2026-07-09 10:00:00: 이영희 선임 확인]\t2026-07-09 09:00:00\t10.0.0.2\t\t',
+    ].join('\n'),
+  );
+
+  assert.equal(rows.length, 2);
+  assert.equal(rows[0].data.duration, '1일');
+  assert.equal(rows[0].data.group, '그룹1');
+  assert.equal(rows[0].data.host, 'HOST-01');
+  assert.equal(rows[0].data.ip, '10.0.0.1');
+  assert.deepEqual(
+    rows[0].adminCandidates.map(({ label }) => label),
+    ['김철수 책임'],
+  );
+  assert.equal(rows[1].data.duration, '2일');
+  assert.equal(rows[1].data.group, '그룹2');
+  assert.equal(rows[1].data.host, 'HOST-02');
+  assert.equal(rows[1].data.ip, '10.0.0.2');
+  assert.deepEqual(
+    rows[1].adminCandidates.map(({ label }) => label),
+    ['이영희 선임'],
+  );
+});
+
+test('모든 필드를 마지막 열로 배치해도 행 앞뒤 빈 탭을 제거한다', () => {
+  const fields = [
+    'duration',
+    'group',
+    'host',
+    'content',
+    'occurredAt',
+    'ip',
+  ];
+  const firstRowData = {
+    duration: '1일',
+    group: '그룹1',
+    host: 'HOST-01',
+    content:
+      'Disk warning [2026-07-08 13:39:08: 김철수 책임 확인]',
+    occurredAt: '2026-07-08 13:22:28',
+    ip: '10.0.0.1',
+  };
+  const secondRowData = {
+    duration: '2일',
+    group: '그룹2',
+    host: 'HOST-02',
+    content:
+      'CPU warning [2026-07-09 10:00:00: 이영희 선임 확인]',
+    occurredAt: '2026-07-09 09:00:00',
+    ip: '10.0.0.2',
+  };
+
+  fields.forEach((lastField) => {
+    const order = [
+      ...fields.filter((field) => field !== lastField),
+      lastField,
+    ];
+    const input = [firstRowData, secondRowData]
+      .map(
+        (data, index) =>
+          `${index === 0 ? '\t' : '\t \t'}${order
+            .map((field) => data[field])
+            .join('\t')}\t\t`,
+      )
+      .join('\n');
+    const rows = parsePersistentEventRows(input, order);
+
+    assert.equal(rows.length, 2, `${lastField} 마지막 열의 행 개수`);
+    assert.equal(
+      rows[0].data[lastField],
+      firstRowData[lastField],
+      `${lastField} 첫 행 값`,
+    );
+    assert.equal(
+      rows[1].data[lastField],
+      secondRowData[lastField],
+      `${lastField} 둘째 행 값`,
+    );
+    assert.equal(rows[0].data.duration, firstRowData.duration);
+    assert.equal(rows[0].data.host, firstRowData.host);
+    assert.equal(rows[0].data.ip, firstRowData.ip);
+    assert.equal(rows[0].cleanContent, 'Disk warning');
+    assert.deepEqual(
+      rows[0].adminCandidates.map(({ label }) => label),
+      ['김철수 책임'],
+    );
+  });
+});
+
 test('IP 뒤의 예상하지 않은 값을 제외하고 다음 행을 정상 분리한다', () => {
   const rows = parsePersistentEventRows(
     [
