@@ -10,6 +10,12 @@
 > 데이터는 현재 브라우저에 최대 7일 동안 저장되며, 다른 PC와 공유할 때는
 > 사용자가 직접 JSON 파일로 내보내고 불러옵니다.
 
+## 배포 주소
+
+- 프런트엔드: https://stupendous-stardust-bd8168.netlify.app
+- 자동 백업 에러 필터:
+  https://stupendous-stardust-bd8168.netlify.app/auto-backup-error-filter
+
 ## 주요 기능
 
 ### 해외메일 작성
