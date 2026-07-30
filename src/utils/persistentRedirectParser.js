@@ -8,6 +8,75 @@ export const PERSISTENT_REDIRECT_FIELDS = [
 export const DEFAULT_PERSISTENT_REDIRECT_ORDER =
   PERSISTENT_REDIRECT_FIELDS.map(({ key }) => key);
 
+export const startsWithSConfirmationContent = (value) =>
+  /^[sS]/u.test(String(value || '').trim());
+
+export const extractPersistentRedirectEvent = (value) => {
+  const rawEvent = String(value || '');
+  const logPattern =
+    /(\[(?:19|20)\d{2}[-/.]\d{1,2}[-/.]\d{1,2}[\s\S]*\])$/u;
+  const match = rawEvent.match(logPattern);
+
+  let cleanEvent = rawEvent;
+  let processingLog = '';
+  let processingContent = '';
+
+  if (match) {
+    processingLog = match[1];
+    cleanEvent = rawEvent.replace(logPattern, '').trim();
+
+    const contentMatch = processingLog.match(
+      /\d{2}:\d{2}:\d{2}:\s*([\s\S]*?)\s*확인/u,
+    );
+
+    if (contentMatch) {
+      processingContent = contentMatch[1].trim();
+    } else {
+      const parts = processingLog.split(':');
+      if (parts.length > 3) {
+        const temp = processingLog.substring(
+          processingLog.indexOf(':', 15) + 1,
+        );
+        const confirmIndex = temp.lastIndexOf('확인');
+        if (confirmIndex !== -1) {
+          processingContent = temp.substring(0, confirmIndex).trim();
+        }
+      }
+    }
+  }
+
+  return {
+    cleanEvent,
+    processingLog,
+    processingContent,
+  };
+};
+
+export const togglePersistentRedirectId = (selectedIds, id) =>
+  selectedIds.includes(id)
+    ? selectedIds.filter((selectedId) => selectedId !== id)
+    : [...selectedIds, id];
+
+export const toggleAllPersistentRedirectIds = (
+  selectedIds,
+  availableIds,
+) => {
+  const availableIdSet = new Set(availableIds);
+  const areAllAvailableIdsSelected =
+    availableIds.length > 0 &&
+    availableIds.every((id) => selectedIds.includes(id));
+
+  if (areAllAvailableIdsSelected) {
+    return selectedIds.filter((id) => !availableIdSet.has(id));
+  }
+
+  return [...new Set([...selectedIds, ...availableIds])];
+};
+
+export const mergePersistentRedirectIds = (currentIds, idsToAdd) => [
+  ...new Set([...currentIds, ...idsToAdd]),
+];
+
 const stableFieldValidators = {
   host: (value) => value.length > 0,
   date: (value) =>
@@ -188,3 +257,22 @@ export const parsePersistentRedirectRows = (
         wasRecovered: logicalRow.wasRecovered,
       };
     });
+
+export const parsePersistentRedirectMessages = (
+  rawInput,
+  inputColumnOrder = DEFAULT_PERSISTENT_REDIRECT_ORDER,
+) =>
+  parsePersistentRedirectRows(rawInput, inputColumnOrder).map((parsedRow) => {
+    const eventDetails = extractPersistentRedirectEvent(parsedRow.data.event);
+
+    return {
+      ...parsedRow,
+      data: {
+        ...parsedRow.data,
+        ...eventDetails,
+      },
+      isSConfirmation: startsWithSConfirmationContent(
+        eventDetails.processingContent,
+      ),
+    };
+  });

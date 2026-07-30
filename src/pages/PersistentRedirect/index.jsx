@@ -3,7 +3,10 @@ import { IoMdCopy } from 'react-icons/io';
 import { FaCheck, FaUndo, FaListUl, FaCheckDouble, FaPaperPlane, FaExclamationCircle, FaCommentDots, FaEnvelope, FaGlobe, FaInfoCircle } from 'react-icons/fa';
 import {
   DEFAULT_PERSISTENT_REDIRECT_ORDER,
-  parsePersistentRedirectRows,
+  mergePersistentRedirectIds,
+  parsePersistentRedirectMessages,
+  toggleAllPersistentRedirectIds,
+  togglePersistentRedirectId,
 } from '../../utils/persistentRedirectParser';
 
 function PersistentRedirect() {
@@ -15,6 +18,8 @@ function PersistentRedirect() {
   const [selectedMessages, setSelectedMessages] = useState([]); 
   const [confirmedIds, setConfirmedIds] = useState([]);
   const [completedIds, setCompletedIds] = useState([]);
+  const [selectedSConfirmationIds, setSelectedSConfirmationIds] = useState([]);
+  const [isSFilterCollapsed, setIsSFilterCollapsed] = useState(false);
 
   const [activeTab, setActiveTab] = useState('pending');        
   const [outputMode, setOutputMode] = useState('messenger');
@@ -58,9 +63,10 @@ function PersistentRedirect() {
   };
 
   const handleConfirmMessage = (id) => {
-    if (!confirmedIds.includes(id)) {
-      setConfirmedIds([...confirmedIds, id]);
-    }
+    setConfirmedIds((current) => mergePersistentRedirectIds(current, [id]));
+    setSelectedSConfirmationIds((current) =>
+      current.filter((messageId) => messageId !== id),
+    );
   };
 
   const handleRestoreMessage = (id) => {
@@ -97,50 +103,13 @@ function PersistentRedirect() {
     setConfirmedIds([]);
     setSelectedMessages([]);
     setCompletedIds([]);
+    setSelectedSConfirmationIds([]);
+    setIsSFilterCollapsed(false);
 
-    const messages = parsePersistentRedirectRows(
+    const messages = parsePersistentRedirectMessages(
       rawInput,
       inputColumnOrder,
-    ).map((parsedRow) => {
-      const parsedData = { ...parsedRow.data };
-      const rawEvent = parsedData.event || '';
-      const logPattern =
-        /(\[(?:19|20)\d{2}[-/.]\d{1,2}[-/.]\d{1,2}[\s\S]*\])$/u;
-      const match = rawEvent.match(logPattern);
-
-      let cleanEvent = rawEvent;
-      let processingLog = '';
-      let processingContent = '';
-
-      if (match) {
-        processingLog = match[1];
-        cleanEvent = rawEvent.replace(logPattern, '').trim();
-
-        const contentMatch = processingLog.match(
-          /\d{2}:\d{2}:\d{2}:\s*([\s\S]*?)\s*확인/u,
-        );
-        if (contentMatch) {
-          processingContent = contentMatch[1].trim();
-        } else {
-          const parts = processingLog.split(':');
-          if (parts.length > 3) {
-            const temp = processingLog.substring(
-              processingLog.indexOf(':', 15) + 1,
-            );
-            const confirmIndex = temp.lastIndexOf('확인');
-            if (confirmIndex !== -1) {
-              processingContent = temp.substring(0, confirmIndex).trim();
-            }
-          }
-        }
-      }
-
-      parsedData.cleanEvent = cleanEvent;
-      parsedData.processingLog = processingLog;
-      parsedData.processingContent = processingContent;
-
-      return { ...parsedRow, data: parsedData };
-    });
+    );
 
     setProcessedMessages(messages);
   }, [rawInput, inputColumnOrder]);
@@ -226,6 +195,43 @@ function PersistentRedirect() {
   const recoveredMessageCount = processedMessages.filter(
     (message) => message.wasRecovered,
   ).length;
+  const allSConfirmationMessages = processedMessages.filter(
+    (message) => message.isSConfirmation,
+  );
+  const sConfirmationMessages = allSConfirmationMessages.filter(
+    (message) =>
+      !confirmedIds.includes(message.id),
+  );
+  const excludedSConfirmationCount =
+    allSConfirmationMessages.length - sConfirmationMessages.length;
+  const allSConfirmationMessagesSelected =
+    sConfirmationMessages.length > 0 &&
+    sConfirmationMessages.every((message) =>
+      selectedSConfirmationIds.includes(message.id),
+    );
+
+  const handleToggleSConfirmationSelection = (id) => {
+    setSelectedSConfirmationIds((current) =>
+      togglePersistentRedirectId(current, id),
+    );
+  };
+
+  const handleToggleAllSConfirmationMessages = () => {
+    const currentMessageIds = sConfirmationMessages.map(
+      (message) => message.id,
+    );
+    setSelectedSConfirmationIds((current) =>
+      toggleAllPersistentRedirectIds(current, currentMessageIds),
+    );
+  };
+
+  const handleExcludeSelectedSConfirmationMessages = () => {
+    if (selectedSConfirmationIds.length === 0) return;
+    setConfirmedIds((current) =>
+      mergePersistentRedirectIds(current, selectedSConfirmationIds),
+    );
+    setSelectedSConfirmationIds([]);
+  };
   
   let displayMessages = activeTab === 'pending' ? pendingMessages : confirmedMessagesList;
   const hasSelectedPendingMessages = selectedMessages.some(m => !confirmedIds.includes(m.id));
@@ -350,6 +356,12 @@ function PersistentRedirect() {
           <span className="status-pill bg-blue-50 text-blue-700">
             {processedMessages.length}개 입력 행
           </span>
+          {allSConfirmationMessages.length > 0 && (
+            <span className="status-pill bg-amber-50 text-amber-700">
+              s 시작 확인내용 {sConfirmationMessages.length} /{' '}
+              {allSConfirmationMessages.length}건
+            </span>
+          )}
           {recoveredMessageCount > 0 && (
             <span className="status-pill bg-violet-50 text-violet-700">
               Event 탭·줄바꿈 제거 {recoveredMessageCount}건
@@ -357,6 +369,188 @@ function PersistentRedirect() {
           )}
         </div>
       </div>
+
+      {allSConfirmationMessages.length > 0 && isSFilterCollapsed && (
+        <section className="panel mb-6 border-emerald-200 bg-emerald-50/70 p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-700">
+                <FaCheck />
+              </span>
+              <div>
+                <p className="text-sm font-bold text-emerald-900">
+                  s 확인내용 검토 영역을 접었습니다.
+                </p>
+                <p className="mt-1 text-xs leading-5 text-emerald-800">
+                  총 {allSConfirmationMessages.length}건 중{' '}
+                  {excludedSConfirmationCount}건을 제외했습니다. 제외한 메시지는 아래
+                  재전달 대기 목록에서 제거되어 있습니다.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsSFilterCollapsed(false)}
+              className="btn-secondary shrink-0 border-emerald-300 text-emerald-800 hover:bg-emerald-100"
+            >
+              다시 열기
+            </button>
+          </div>
+        </section>
+      )}
+
+      {allSConfirmationMessages.length > 0 && !isSFilterCollapsed && (
+        <section className="panel mb-6 overflow-hidden border-amber-200">
+          <div className="border-b border-amber-200 bg-amber-50 px-5 py-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 className="font-bold text-amber-950">
+                  s로 시작하는 확인내용
+                </h3>
+                <p className="mt-1 text-xs leading-5 text-amber-800">
+                  확인내용의 시작 문자가 s인 메시지만 모아 보여줍니다. 기존 대기,
+                  확인, 전달 대상 상태에는 영향을 주지 않습니다.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="status-pill bg-amber-200 text-amber-900">
+                  {selectedSConfirmationIds.length} / {sConfirmationMessages.length}건 선택
+                </span>
+                <button
+                  type="button"
+                  onClick={handleToggleAllSConfirmationMessages}
+                  className="btn-secondary"
+                >
+                  {allSConfirmationMessagesSelected
+                    ? '전체 선택 해제'
+                    : '메시지 전체 선택'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleExcludeSelectedSConfirmationMessages}
+                  disabled={selectedSConfirmationIds.length === 0}
+                  className="btn bg-rose-600 text-white hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  선택 메시지 일괄 제외
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-b border-blue-100 bg-blue-50/70 px-5 py-3">
+            <div className="flex items-start gap-2 text-xs leading-5 text-blue-800">
+              <FaInfoCircle className="mt-0.5 shrink-0 text-blue-600" />
+              <p>
+                이 영역에서 메시지를 <strong>제외</strong>하면 아래의 재전달 대기
+                목록에서도 제거되고 <strong>확인됨</strong> 탭으로 이동합니다.
+                잘못 제외한 메시지는 확인됨 탭의 <strong>복구</strong> 버튼으로
+                되돌릴 수 있습니다.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-3 p-5">
+            {sConfirmationMessages.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-emerald-300 bg-emerald-50 px-4 py-6 text-center">
+                <FaCheckDouble className="mx-auto text-2xl text-emerald-600" />
+                <p className="mt-2 text-sm font-bold text-emerald-800">
+                  모든 s 시작 메시지를 제외 처리했습니다.
+                </p>
+                <p className="mt-1 text-xs text-emerald-700">
+                  확인됨 탭에서 제외 결과를 확인하거나 복구할 수 있습니다.
+                </p>
+              </div>
+            ) : sConfirmationMessages.map((message) => {
+              const isSConfirmationSelected =
+                selectedSConfirmationIds.includes(message.id);
+
+              return (
+              <div
+                key={message.id}
+                role="button"
+                tabIndex={0}
+                aria-pressed={isSConfirmationSelected}
+                title={
+                  isSConfirmationSelected
+                    ? '클릭하여 선택 해제'
+                    : '클릭하여 메시지 선택'
+                }
+                onClick={() => handleToggleSConfirmationSelection(message.id)}
+                onKeyDown={(event) => {
+                  if (event.target !== event.currentTarget) return;
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    handleToggleSConfirmationSelection(message.id);
+                  }
+                }}
+                className={`cursor-pointer select-none rounded-xl border p-4 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 ${
+                  isSConfirmationSelected
+                    ? 'border-amber-500 bg-amber-50 shadow-md ring-2 ring-amber-200'
+                    : 'border-amber-200 bg-white hover:-translate-y-0.5 hover:border-amber-400 hover:bg-amber-50/50 hover:shadow-sm'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <input
+                    type="checkbox"
+                    checked={isSConfirmationSelected}
+                    onClick={(event) => event.stopPropagation()}
+                    onChange={() =>
+                      handleToggleSConfirmationSelection(message.id)
+                    }
+                    aria-label={`${message.data.host} 메시지 선택`}
+                    className="mt-1 h-4 w-4 shrink-0 rounded border-amber-400 text-amber-600 focus:ring-amber-500"
+                  />
+                  <div className="grid min-w-0 flex-1 gap-x-5 gap-y-1 text-sm md:grid-cols-2">
+                    <p>
+                      <span className="font-bold text-slate-500">서버:</span>{' '}
+                      {message.data.host}
+                    </p>
+                    <p>
+                      <span className="font-bold text-slate-500">일시:</span>{' '}
+                      {message.data.date}
+                    </p>
+                    <p className="md:col-span-2">
+                      <span className="font-bold text-slate-500">내용:</span>{' '}
+                      {message.data.cleanEvent}
+                    </p>
+                    <p className="md:col-span-2 text-amber-800">
+                      <span className="font-bold">확인내용:</span>{' '}
+                      {message.data.processingContent}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleConfirmMessage(message.id);
+                    }}
+                    className="flex shrink-0 items-center gap-1 rounded bg-rose-600 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-rose-700"
+                  >
+                    <FaCheck />
+                    제외
+                  </button>
+                </div>
+              </div>
+              );
+            })}
+          </div>
+
+          <div className="flex flex-col gap-3 border-t border-slate-200 bg-slate-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs leading-5 text-slate-500">
+              제외할 메시지를 모두 처리했다면 영역을 접고 아래 재전달 목록을 계속
+              확인하세요.
+            </p>
+            <button
+              type="button"
+              onClick={() => setIsSFilterCollapsed(true)}
+              className="btn bg-emerald-600 text-white hover:bg-emerald-700"
+            >
+              <FaCheck />
+              제외 완료
+            </button>
+          </div>
+        </section>
+      )}
 
       <div className="panel mb-8 p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start mb-4 gap-4">
