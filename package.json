@@ -8,11 +8,9 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "test:backup-transfer": "node --test test/backupTransfer.test.js",
     "test:persistent-event": "node --test test/persistentEventParser.test.js",
-    "test:persistent-redirect": "node --test test/persistentRedirectParser.test.js",
-    "worker:dev": "wrangler dev --config worker/wrangler.jsonc",
-    "worker:migrate:local": "wrangler d1 migrations apply operation-entec-db --local --config worker/wrangler.jsonc",
-    "worker:test": "node --test worker/test/*.test.js"
+    "test:persistent-redirect": "node --test test/persistentRedirectParser.test.js"
   },
   "dependencies": {
     "clsx": "^2.1.1",
@@ -42,7 +40,6 @@
     "postcss": "^8.4.49",
     "prettier": "^3.3.3",
     "tailwindcss": "^3.4.15",
-    "vite": "^5.4.10",
-    "wrangler": "^4.86.0"
+    "vite": "^5.4.10"
   }
 }

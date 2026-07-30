@@ -6,9 +6,9 @@
 탭으로 구분된 데이터를 붙여넣으면 해외 메일, 지속 이벤트 재전달 문구,
 백업 오류 목록, 지속 메시지 엑셀 보고서 등 필요한 형식으로 변환할 수 있습니다.
 
-> 대부분의 데이터 가공은 브라우저에서 처리됩니다. 자동 백업 에러 보고의 임시
-> 데이터는 현재 브라우저에 최대 7일 동안 저장되며, 사용자가 공유 저장을 선택한
-> 경우에만 백업 입력과 열 설정이 Cloudflare D1으로 전송됩니다.
+> 모든 데이터 가공은 브라우저에서 처리됩니다. 자동 백업 에러 보고의 임시
+> 데이터는 현재 브라우저에 최대 7일 동안 저장되며, 다른 PC와 공유할 때는
+> 사용자가 직접 JSON 파일로 내보내고 불러옵니다.
 
 ## 주요 기능
 
@@ -24,6 +24,7 @@
 - Status 코드가 `0` 또는 `1`이 아닌 백업 작업만 추출
 - 정책 이름, 백업 시작 시간, 에러 코드를 구분하여 표시 및 복사
 - 한국어와 영어 형식의 백업 시작 시간 지원
+- 백업존 원본 입력과 열 설정을 공유 JSON 파일로 내보내기 및 불러오기
 
 ### 지속 이벤트 재전달
 
@@ -68,9 +69,9 @@ npm run dev
 | `npm run build` | 프로덕션 빌드 생성 |
 | `npm run preview` | 프로덕션 빌드 미리보기 |
 | `npm run lint` | ESLint 코드 검사 |
-| `npm run worker:test` | Worker 데이터 검증 테스트 |
-| `npm run worker:migrate:local` | 로컬 D1 마이그레이션 적용 |
-| `npm run worker:dev` | 로컬 Worker API 실행 |
+| `npm run test:backup-transfer` | 자동 백업 JSON 공유 테스트 |
+| `npm run test:persistent-event` | 지속 메시지 파싱·엑셀 테스트 |
+| `npm run test:persistent-redirect` | 지속 이벤트 파싱 테스트 |
 
 ## 입력 데이터 형식
 
@@ -161,52 +162,19 @@ No.    발생일시    지속시간    어드민    호스트명    내용    IP
 
 ## 데이터 처리 및 보안
 
-- 메시지 파싱과 결과 생성은 브라우저에서 수행합니다.
-- 공유 저장을 선택하지 않으면 입력 데이터는 외부 API로 전송되지 않습니다.
+- 모든 메시지 파싱과 결과 생성은 브라우저에서 수행합니다.
+- 입력 데이터는 외부 API나 데이터베이스로 전송되지 않습니다.
 - 자동 백업 에러 보고의 원본과 열 설정은 현재 브라우저에 최대 7일 동안
   임시 저장되며, 나머지 화면 상태는 새로고침하면 사라집니다.
+- 자동 백업 화면에서 JSON 파일을 내보내면 세 백업존의 원본 입력, 열 설정,
+  선택된 백업존이 파일에 포함됩니다.
+- 전달받은 JSON을 불러오면 파일 형식, 버전, 용량, 데이터 구조를 검증한 후
+  현재 화면의 백업 입력과 열 설정을 교체합니다.
 - 결과 복사 기능을 사용할 때만 브라우저 Clipboard API에 접근합니다.
 
-Cloudflare Worker 연결 전에는 공유 저장 버튼이 비활성화됩니다. 연결 후 사용자가
-명시적으로 `현재 데이터를 공유 저장`을 누른 경우에만 백업존 원본 입력과 열 설정이
-공유 D1 데이터베이스로 전송됩니다. 파싱 결과는 저장하지 않습니다.
-
-운영 Worker API:
-
-```text
-https://operation-entec-api.devquokkajeong.workers.dev
-```
-
-Netlify에는 다음 환경변수를 등록해야 합니다.
-
-```text
-VITE_SHARED_API_URL=https://operation-entec-api.devquokkajeong.workers.dev
-```
-
-## 공유 저장 로컬 개발
-
-공유 저장 API는 Cloudflare Worker와 D1으로 구성되어 있습니다.
-
-```bash
-npm run worker:migrate:local
-npm run worker:dev
-```
-
-별도 터미널에서 프런트엔드를 실행합니다.
-
-```bash
-cp .env.example .env.local
-npm run dev
-```
-
-로컬 Worker는 기본적으로 `http://localhost:8787`, Vite는
-`http://localhost:5173`에서 실행됩니다.
-
-공유 데이터는 항상 최신 스냅샷 하나만 유지합니다. 저장과 가져오기는 각각 독립적으로
-10초에 한 번만 가능하며, 저장 실패 시 기존 공유 데이터는 유지됩니다.
-
-민감한 운영 데이터를 다루는 경우에도 배포 환경과 브라우저 확장 프로그램의
-보안 정책은 별도로 확인해 주세요.
+공유 JSON 파일에는 원본 운영 데이터가 포함되므로 사내에서 허용된 메신저나
+공유 폴더를 통해서만 전달하고, 사용이 끝난 파일은 조직의 보안 정책에 따라
+관리해 주세요. JSON 공유 과정에도 별도의 서버는 사용하지 않습니다.
 
 ## 기술 구성
 
@@ -227,8 +195,15 @@ src/
 ├── pages/
 │   ├── AutoBackupErrorFilter/
 │   ├── ForeignMail/
+│   ├── PersistentEventExcel/
 │   ├── PersistentRedirect/
 │   └── Redirect/
+├── utils/
+│   ├── autoBackupStorage.js
+│   ├── backupTransfer.js
+│   ├── persistentEventParser.js
+│   ├── persistentRedirectParser.js
+│   └── xlsxExport.js
 ├── App.jsx
 ├── index.css
 └── main.jsx

@@ -65,7 +65,7 @@ const changeLogItems = [
   {
     date: '2026.07',
     title: '운영 화면 개편',
-    detail: '전체 UI와 직접 경로 접속을 개선하고 백업 공유 저장을 추가했습니다.',
+    detail: '전체 UI와 직접 경로 접속을 개선하고 백업 JSON 파일 공유를 추가했습니다.',
   },
   {
     date: '2026.07',

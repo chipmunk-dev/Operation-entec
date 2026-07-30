@@ -52,6 +52,13 @@ export const sanitizeBackupState = (candidate, zones) => {
   ) {
     throw new Error('열 위치 설정이 올바르지 않습니다.');
   }
+  if (new Set([
+    positions.status,
+    positions.policyName,
+    positions.startTime,
+  ]).size !== 3) {
+    throw new Error('각 필드는 서로 다른 열을 사용해야 합니다.');
+  }
 
   return {
     inputs,

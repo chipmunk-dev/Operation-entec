@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { IoMdCheckmark, IoMdCopy } from 'react-icons/io';
 import {
   MdBackup,
-  MdCloudDownload,
-  MdCloudUpload,
   MdDeleteOutline,
+  MdFileDownload,
+  MdFileUpload,
   MdInfoOutline,
   MdOutlineCloudDone,
   MdOutlineTableView,
@@ -15,14 +15,13 @@ import {
   DEFAULT_COLUMN_POSITIONS,
   loadBackupDraft,
   saveBackupDraft,
-  sanitizeBackupState,
 } from '../../utils/autoBackupStorage';
 import {
-  isSharedApiConfigured,
-  loadSharedBackup,
-  saveSharedBackup,
-  SharedApiError,
-} from '../../utils/sharedBackupApi';
+  createBackupTransferFileName,
+  MAX_BACKUP_TRANSFER_SIZE,
+  parseBackupTransfer,
+  serializeBackupTransfer,
+} from '../../utils/backupTransfer';
 
 const zones = ['P-EUBKMST', 'NBUMASTER', 'EXTMASTER'];
 const columnOptions = Array.from({ length: 40 }, (_, index) => index + 1);
@@ -164,12 +163,7 @@ function AutoBackupErrorFilter() {
   );
   const [lastSavedAt, setLastSavedAt] = useState(initialDraft.restoredAt);
   const [notice, setNotice] = useState(initialDraft.notice || '');
-  const [sharedStatus, setSharedStatus] = useState(
-    isSharedApiConfigured ? 'ready' : 'unconfigured',
-  );
-  const [sharedSavedAt, setSharedSavedAt] = useState(null);
-  const [saveCooldown, setSaveCooldown] = useState(0);
-  const [loadCooldown, setLoadCooldown] = useState(0);
+  const fileInputRef = useRef(null);
 
   const summaries = useMemo(
     () =>
@@ -206,15 +200,6 @@ function AutoBackupErrorFilter() {
     return () => window.clearTimeout(timer);
   }, [inputs, columnPositions, activeZone]);
 
-  useEffect(() => {
-    if (!saveCooldown && !loadCooldown) return undefined;
-    const timer = window.setInterval(() => {
-      setSaveCooldown((seconds) => Math.max(0, seconds - 1));
-      setLoadCooldown((seconds) => Math.max(0, seconds - 1));
-    }, 1000);
-    return () => window.clearInterval(timer);
-  }, [saveCooldown, loadCooldown]);
-
   const copy = async (key, content) => {
     if (!content) return;
     try {
@@ -237,76 +222,66 @@ function AutoBackupErrorFilter() {
     setNotice('저장된 에러 보고 데이터를 초기화했습니다.');
   };
 
-  const handleSharedLoad = async () => {
-    if (loadCooldown || sharedStatus === 'loading') return;
-    setSharedStatus('loading');
-    setNotice('');
-
+  const handleJsonExport = () => {
     try {
-      const response = await loadSharedBackup();
-      setLoadCooldown(10);
-      if (response.status === 'empty') {
-        setSharedStatus('empty');
-        setSharedSavedAt(null);
-        setNotice('저장된 공유 데이터가 없습니다.');
-        return;
-      }
-
-      const restored = sanitizeBackupState(response.data, zones);
-      setInputs(restored.inputs);
-      setColumnPositions(restored.columnPositions);
-      setActiveZone(restored.activeZone);
-      setSharedSavedAt(response.savedAt);
-      setSharedStatus('loaded');
-      setNotice('공유 데이터를 불러와 현재 입력에 적용했습니다.');
+      const exportedAt = new Date();
+      const serialized = serializeBackupTransfer(
+        { inputs, columnPositions, activeZone },
+        zones,
+        exportedAt,
+      );
+      const blob = new Blob([serialized], {
+        type: 'application/json;charset=utf-8',
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = createBackupTransferFileName(exportedAt);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setNotice('현재 백업 데이터를 공유 JSON 파일로 내보냈습니다.');
     } catch (error) {
-      if (error instanceof SharedApiError && error.retryAfter) {
-        setLoadCooldown(error.retryAfter);
-      }
-      setSharedStatus('error');
       setNotice(
         error instanceof Error
           ? error.message
-          : '공유 데이터를 불러오지 못했습니다.',
+          : '공유 JSON 파일을 만들지 못했습니다.',
       );
     }
   };
 
-  const handleSharedSave = async () => {
-    if (saveCooldown || sharedStatus === 'saving') return;
-    if (!zones.some((zone) => inputs[zone].trim())) {
-      setNotice('공유 저장할 백업 데이터가 없습니다.');
-      return;
-    }
-    if (
-      !window.confirm(
-        '현재 입력을 공유 데이터로 저장할까요?\n\n기존 공유 데이터는 현재 입력으로 교체됩니다.',
-      )
-    ) {
+  const handleJsonImport = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (file.size > MAX_BACKUP_TRANSFER_SIZE) {
+      setNotice('공유 JSON 파일이 허용 크기(4MB)를 초과했습니다.');
       return;
     }
 
-    setSharedStatus('saving');
-    setNotice('');
     try {
-      const response = await saveSharedBackup({
-        inputs,
-        columnPositions,
-        activeZone,
-      });
-      setSaveCooldown(10);
-      setSharedSavedAt(response.savedAt);
-      setSharedStatus('saved');
-      setNotice('현재 데이터를 공유 저장했습니다.');
-    } catch (error) {
-      if (error instanceof SharedApiError && error.retryAfter) {
-        setSaveCooldown(error.retryAfter);
+      const parsed = parseBackupTransfer(await file.text(), zones);
+      if (
+        !window.confirm(
+          '불러온 JSON 데이터로 현재 백업 입력과 열 설정을 교체할까요?',
+        )
+      ) {
+        return;
       }
-      setSharedStatus('error');
+
+      setInputs(parsed.state.inputs);
+      setColumnPositions(parsed.state.columnPositions);
+      setActiveZone(parsed.state.activeZone);
+      setNotice(
+        `${file.name} 파일을 불러왔습니다. ` +
+          `내보낸 시각: ${new Date(parsed.exportedAt).toLocaleString('ko-KR')}`,
+      );
+    } catch (error) {
       setNotice(
         error instanceof Error
           ? error.message
-          : '공유 데이터 저장에 실패했습니다. 기존 공유 데이터는 유지됩니다.',
+          : '공유 JSON 파일을 불러오지 못했습니다.',
       );
     }
   };
@@ -377,76 +352,44 @@ function AutoBackupErrorFilter() {
           <div className="border-b border-slate-100 bg-blue-50/60 px-5 py-4">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-bold text-slate-900">근무자 공유 데이터</p>
+                <p className="text-sm font-bold text-slate-900">JSON 파일 공유</p>
                 <p className="mt-1 text-xs text-slate-500">
-                  버튼을 눌렀을 때만 다른 PC와 데이터를 공유합니다.
+                  서버 전송 없이 파일로 다른 PC와 데이터를 공유합니다.
                 </p>
               </div>
-              <span
-                className={`status-pill ${
-                  sharedStatus === 'error'
-                    ? 'bg-rose-100 text-rose-700'
-                    : sharedStatus === 'unconfigured'
-                      ? 'bg-slate-200 text-slate-600'
-                      : 'bg-blue-100 text-blue-700'
-                }`}
-              >
-                {sharedStatus === 'unconfigured'
-                  ? 'API 연결 전'
-                  : sharedStatus === 'empty'
-                    ? '저장 데이터 없음'
-                    : sharedSavedAt
-                      ? '공유 데이터 있음'
-                      : '확인 전'}
+              <span className="status-pill bg-blue-100 text-blue-700">
+                오프라인 공유
               </span>
             </div>
           </div>
           <div className="p-5">
             <p className="min-h-10 text-xs leading-5 text-slate-500">
-              가져오기는 현재 화면을 공유 데이터로 교체합니다. 이후 입력을 수정하면
-              수정된 내용이 즉시 현재 작업 기준이 됩니다.
+              내보낸 파일에는 세 백업존의 원본 입력과 열 설정이 포함됩니다. 파일을
+              전달받은 사용자가 불러오면 현재 화면의 데이터를 교체합니다.
             </p>
-            {sharedSavedAt && (
-              <p className="mt-2 text-xs font-semibold text-blue-700">
-                마지막 공유 저장 · {new Date(sharedSavedAt).toLocaleString('ko-KR')}
-              </p>
-            )}
             <div className="mt-4 flex flex-wrap gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json,application/json"
+                onChange={handleJsonImport}
+                className="hidden"
+              />
               <button
                 type="button"
-                onClick={handleSharedLoad}
-                disabled={
-                  !isSharedApiConfigured ||
-                  loadCooldown > 0 ||
-                  sharedStatus === 'loading' ||
-                  sharedStatus === 'saving'
-                }
+                onClick={() => fileInputRef.current?.click()}
                 className="btn-secondary"
               >
-                <MdCloudDownload size={18} />
-                {sharedStatus === 'loading'
-                  ? '가져오는 중'
-                  : loadCooldown
-                    ? `${loadCooldown}초 후 가져오기`
-                    : '공유 데이터 가져오기'}
+                <MdFileUpload size={18} />
+                JSON 파일 불러오기
               </button>
               <button
                 type="button"
-                onClick={handleSharedSave}
-                disabled={
-                  !isSharedApiConfigured ||
-                  saveCooldown > 0 ||
-                  sharedStatus === 'saving' ||
-                  sharedStatus === 'loading'
-                }
+                onClick={handleJsonExport}
                 className="btn-primary"
               >
-                <MdCloudUpload size={18} />
-                {sharedStatus === 'saving'
-                  ? '저장 중'
-                  : saveCooldown
-                    ? `${saveCooldown}초 후 저장`
-                    : '현재 데이터를 공유 저장'}
+                <MdFileDownload size={18} />
+                공유 JSON 내보내기
               </button>
             </div>
           </div>

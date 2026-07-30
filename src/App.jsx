@@ -44,8 +44,8 @@ function App() {
                   </span>
                 </p>
                 <p className="leading-5">
-                  데이터 가공은 브라우저에서 수행되며, 사용자가 공유 저장을 선택한
-                  백업 데이터만 별도 저장됩니다.
+                  데이터 가공과 JSON 파일 공유는 브라우저에서 수행되며 외부 서버에
+                  백업 데이터를 저장하지 않습니다.
                 </p>
                 <p className="text-slate-400">© 2026 Operation Entec</p>
               </div>
