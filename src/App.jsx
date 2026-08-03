@@ -7,6 +7,7 @@ import {
 } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import ForeignMail from './pages/ForeignMail';
+import GemsMessage from './pages/GemsMessage';
 import AutoBackupErrorFilter from './pages/AutoBackupErrorFilter';
 import PersistentRedirect from './pages/PersistentRedirect';
 import PersistentEventExcel from './pages/PersistentEventExcel';
@@ -27,6 +28,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Navigate to="/foreign-mail" replace />} />
               <Route path="/foreign-mail" element={<ForeignMail />} />
+              <Route path="/gems-message" element={<GemsMessage />} />
               <Route path="/persistent-redirect" element={<PersistentRedirect />} />
               <Route path="/persistent-event-excel" element={<PersistentEventExcel />} />
               <Route path="/auto-backup-error-filter" element={<AutoBackupErrorFilter />} />

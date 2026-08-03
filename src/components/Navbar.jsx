@@ -5,6 +5,7 @@ import {
   MdHistory,
   MdMenu,
   MdOutlineChevronLeft,
+  MdOutlineMessage,
 } from 'react-icons/md';
 import { FaArrowsRotate, FaFileExcel } from 'react-icons/fa6';
 import { NavLink } from 'react-router-dom';
@@ -15,6 +16,12 @@ const menuItems = [
     description: 'Foreign Mail',
     path: '/foreign-mail',
     icon: MdEmail,
+  },
+  {
+    name: '담당자 제거·메신저 최적화',
+    description: 'G-EMS Message Helper',
+    path: '/gems-message',
+    icon: MdOutlineMessage,
   },
   {
     name: '자동 백업 에러',
@@ -80,7 +87,12 @@ const changeLogItems = [
   {
     date: '2026.08.03',
     title: '해외메일·재전달 개선',
-    detail: '해외메일 상하 배치와 탭·줄바꿈 복구, Event·TOTAL 형식 통일 및 재전달 Resend 표기를 반영했습니다.',
+    detail: '해외메일 파싱·Event 양식과 재전달 Resend 출력을 개선했습니다.',
+  },
+  {
+    date: '2026.08.03',
+    title: '담당자 제거·메신저 최적화',
+    detail: 'G-EMS 메시지의 확인 담당자를 제거하고 기본·보고용 전달 문구로 정리하는 기능을 추가했습니다.',
   },
 ];
 
@@ -109,7 +121,7 @@ const Navbar = ({ isOpen, setIsOpen }) => (
       </button>
     </div>
 
-    <nav className="flex-1 space-y-2 overflow-hidden px-3 py-5">
+    <nav className="flex-1 space-y-2 overflow-x-hidden overflow-y-auto px-3 py-5">
       {menuItems.map(({ name, description, path, icon: Icon }) => (
         <NavLink
           key={path}
