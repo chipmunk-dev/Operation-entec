@@ -18,8 +18,8 @@ function PersistentRedirect() {
   const [selectedMessages, setSelectedMessages] = useState([]); 
   const [confirmedIds, setConfirmedIds] = useState([]);
   const [completedIds, setCompletedIds] = useState([]);
-  const [selectedSConfirmationIds, setSelectedSConfirmationIds] = useState([]);
-  const [isSFilterCollapsed, setIsSFilterCollapsed] = useState(false);
+  const [selectedReviewMessageIds, setSelectedReviewMessageIds] = useState([]);
+  const [isReviewFilterCollapsed, setIsReviewFilterCollapsed] = useState(false);
 
   const [activeTab, setActiveTab] = useState('pending');        
   const [outputMode, setOutputMode] = useState('messenger');
@@ -64,7 +64,7 @@ function PersistentRedirect() {
 
   const handleConfirmMessage = (id) => {
     setConfirmedIds((current) => mergePersistentRedirectIds(current, [id]));
-    setSelectedSConfirmationIds((current) =>
+    setSelectedReviewMessageIds((current) =>
       current.filter((messageId) => messageId !== id),
     );
   };
@@ -103,8 +103,8 @@ function PersistentRedirect() {
     setConfirmedIds([]);
     setSelectedMessages([]);
     setCompletedIds([]);
-    setSelectedSConfirmationIds([]);
-    setIsSFilterCollapsed(false);
+    setSelectedReviewMessageIds([]);
+    setIsReviewFilterCollapsed(false);
 
     const messages = parsePersistentRedirectMessages(
       rawInput,
@@ -195,42 +195,42 @@ function PersistentRedirect() {
   const recoveredMessageCount = processedMessages.filter(
     (message) => message.wasRecovered,
   ).length;
-  const allSConfirmationMessages = processedMessages.filter(
-    (message) => message.isSConfirmation,
+  const allReviewMessages = processedMessages.filter(
+    (message) => message.requiresReview,
   );
-  const sConfirmationMessages = allSConfirmationMessages.filter(
+  const reviewMessages = allReviewMessages.filter(
     (message) =>
       !confirmedIds.includes(message.id),
   );
-  const excludedSConfirmationCount =
-    allSConfirmationMessages.length - sConfirmationMessages.length;
-  const allSConfirmationMessagesSelected =
-    sConfirmationMessages.length > 0 &&
-    sConfirmationMessages.every((message) =>
-      selectedSConfirmationIds.includes(message.id),
+  const excludedReviewMessageCount =
+    allReviewMessages.length - reviewMessages.length;
+  const allReviewMessagesSelected =
+    reviewMessages.length > 0 &&
+    reviewMessages.every((message) =>
+      selectedReviewMessageIds.includes(message.id),
     );
 
-  const handleToggleSConfirmationSelection = (id) => {
-    setSelectedSConfirmationIds((current) =>
+  const handleToggleReviewMessageSelection = (id) => {
+    setSelectedReviewMessageIds((current) =>
       togglePersistentRedirectId(current, id),
     );
   };
 
-  const handleToggleAllSConfirmationMessages = () => {
-    const currentMessageIds = sConfirmationMessages.map(
+  const handleToggleAllReviewMessages = () => {
+    const currentMessageIds = reviewMessages.map(
       (message) => message.id,
     );
-    setSelectedSConfirmationIds((current) =>
+    setSelectedReviewMessageIds((current) =>
       toggleAllPersistentRedirectIds(current, currentMessageIds),
     );
   };
 
-  const handleExcludeSelectedSConfirmationMessages = () => {
-    if (selectedSConfirmationIds.length === 0) return;
+  const handleExcludeSelectedReviewMessages = () => {
+    if (selectedReviewMessageIds.length === 0) return;
     setConfirmedIds((current) =>
-      mergePersistentRedirectIds(current, selectedSConfirmationIds),
+      mergePersistentRedirectIds(current, selectedReviewMessageIds),
     );
-    setSelectedSConfirmationIds([]);
+    setSelectedReviewMessageIds([]);
   };
   
   let displayMessages = activeTab === 'pending' ? pendingMessages : confirmedMessagesList;
@@ -356,10 +356,10 @@ function PersistentRedirect() {
           <span className="status-pill bg-blue-50 text-blue-700">
             {processedMessages.length}개 입력 행
           </span>
-          {allSConfirmationMessages.length > 0 && (
+          {allReviewMessages.length > 0 && (
             <span className="status-pill bg-amber-50 text-amber-700">
-              s 시작 확인내용 {sConfirmationMessages.length} /{' '}
-              {allSConfirmationMessages.length}건
+              확인 필요 {reviewMessages.length} /{' '}
+              {allReviewMessages.length}건
             </span>
           )}
           {recoveredMessageCount > 0 && (
@@ -370,7 +370,7 @@ function PersistentRedirect() {
         </div>
       </div>
 
-      {allSConfirmationMessages.length > 0 && isSFilterCollapsed && (
+      {allReviewMessages.length > 0 && isReviewFilterCollapsed && (
         <section className="panel mb-6 border-emerald-200 bg-emerald-50/70 p-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
@@ -379,18 +379,18 @@ function PersistentRedirect() {
               </span>
               <div>
                 <p className="text-sm font-bold text-emerald-900">
-                  s 확인내용 검토 영역을 접었습니다.
+                  확인 필요 메시지 검토 영역을 접었습니다.
                 </p>
                 <p className="mt-1 text-xs leading-5 text-emerald-800">
-                  총 {allSConfirmationMessages.length}건 중{' '}
-                  {excludedSConfirmationCount}건을 제외했습니다. 제외한 메시지는 아래
+                  총 {allReviewMessages.length}건 중{' '}
+                  {excludedReviewMessageCount}건을 제외했습니다. 제외한 메시지는 아래
                   재전달 대기 목록에서 제거되어 있습니다.
                 </p>
               </div>
             </div>
             <button
               type="button"
-              onClick={() => setIsSFilterCollapsed(false)}
+              onClick={() => setIsReviewFilterCollapsed(false)}
               className="btn-secondary shrink-0 border-emerald-300 text-emerald-800 hover:bg-emerald-100"
             >
               다시 열기
@@ -399,36 +399,37 @@ function PersistentRedirect() {
         </section>
       )}
 
-      {allSConfirmationMessages.length > 0 && !isSFilterCollapsed && (
+      {allReviewMessages.length > 0 && !isReviewFilterCollapsed && (
         <section className="panel mb-6 overflow-hidden border-amber-200">
           <div className="border-b border-amber-200 bg-amber-50 px-5 py-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h3 className="font-bold text-amber-950">
-                  s로 시작하는 확인내용
+                  확인이 필요한 메시지
                 </h3>
                 <p className="mt-1 text-xs leading-5 text-amber-800">
-                  확인내용의 시작 문자가 s인 메시지만 모아 보여줍니다. 기존 대기,
-                  확인, 전달 대상 상태에는 영향을 주지 않습니다.
+                  확인내용이 독립된 s/S로 시작하거나 skip·스킵이 포함된 메시지를
+                  모아 보여줍니다. skip·스킵 뒤에 공백 유무와 관계없이 x/X가
+                  붙으면 스킵 아님으로 판독합니다.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="status-pill bg-amber-200 text-amber-900">
-                  {selectedSConfirmationIds.length} / {sConfirmationMessages.length}건 선택
+                  {selectedReviewMessageIds.length} / {reviewMessages.length}건 선택
                 </span>
                 <button
                   type="button"
-                  onClick={handleToggleAllSConfirmationMessages}
+                  onClick={handleToggleAllReviewMessages}
                   className="btn-secondary"
                 >
-                  {allSConfirmationMessagesSelected
+                  {allReviewMessagesSelected
                     ? '전체 선택 해제'
                     : '메시지 전체 선택'}
                 </button>
                 <button
                   type="button"
-                  onClick={handleExcludeSelectedSConfirmationMessages}
-                  disabled={selectedSConfirmationIds.length === 0}
+                  onClick={handleExcludeSelectedReviewMessages}
+                  disabled={selectedReviewMessageIds.length === 0}
                   className="btn bg-rose-600 text-white hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   선택 메시지 일괄 제외
@@ -450,41 +451,41 @@ function PersistentRedirect() {
           </div>
 
           <div className="space-y-3 p-5">
-            {sConfirmationMessages.length === 0 ? (
+            {reviewMessages.length === 0 ? (
               <div className="rounded-xl border border-dashed border-emerald-300 bg-emerald-50 px-4 py-6 text-center">
                 <FaCheckDouble className="mx-auto text-2xl text-emerald-600" />
                 <p className="mt-2 text-sm font-bold text-emerald-800">
-                  모든 s 시작 메시지를 제외 처리했습니다.
+                  모든 확인 필요 메시지를 제외 처리했습니다.
                 </p>
                 <p className="mt-1 text-xs text-emerald-700">
                   확인됨 탭에서 제외 결과를 확인하거나 복구할 수 있습니다.
                 </p>
               </div>
-            ) : sConfirmationMessages.map((message) => {
-              const isSConfirmationSelected =
-                selectedSConfirmationIds.includes(message.id);
+            ) : reviewMessages.map((message) => {
+              const isReviewMessageSelected =
+                selectedReviewMessageIds.includes(message.id);
 
               return (
               <div
                 key={message.id}
                 role="button"
                 tabIndex={0}
-                aria-pressed={isSConfirmationSelected}
+                aria-pressed={isReviewMessageSelected}
                 title={
-                  isSConfirmationSelected
+                  isReviewMessageSelected
                     ? '클릭하여 선택 해제'
                     : '클릭하여 메시지 선택'
                 }
-                onClick={() => handleToggleSConfirmationSelection(message.id)}
+                onClick={() => handleToggleReviewMessageSelection(message.id)}
                 onKeyDown={(event) => {
                   if (event.target !== event.currentTarget) return;
                   if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault();
-                    handleToggleSConfirmationSelection(message.id);
+                    handleToggleReviewMessageSelection(message.id);
                   }
                 }}
                 className={`cursor-pointer select-none rounded-xl border p-4 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 ${
-                  isSConfirmationSelected
+                  isReviewMessageSelected
                     ? 'border-amber-500 bg-amber-50 shadow-md ring-2 ring-amber-200'
                     : 'border-amber-200 bg-white hover:-translate-y-0.5 hover:border-amber-400 hover:bg-amber-50/50 hover:shadow-sm'
                 }`}
@@ -492,10 +493,10 @@ function PersistentRedirect() {
                 <div className="flex items-start justify-between gap-4">
                   <input
                     type="checkbox"
-                    checked={isSConfirmationSelected}
+                    checked={isReviewMessageSelected}
                     onClick={(event) => event.stopPropagation()}
                     onChange={() =>
-                      handleToggleSConfirmationSelection(message.id)
+                      handleToggleReviewMessageSelection(message.id)
                     }
                     aria-label={`${message.data.host} 메시지 선택`}
                     className="mt-1 h-4 w-4 shrink-0 rounded border-amber-400 text-amber-600 focus:ring-amber-500"
@@ -542,7 +543,7 @@ function PersistentRedirect() {
             </p>
             <button
               type="button"
-              onClick={() => setIsSFilterCollapsed(true)}
+              onClick={() => setIsReviewFilterCollapsed(true)}
               className="btn bg-emerald-600 text-white hover:bg-emerald-700"
             >
               <FaCheck />

@@ -6,6 +6,7 @@ import {
   mergePersistentRedirectIds,
   parsePersistentRedirectMessages,
   parsePersistentRedirectRows,
+  requiresPersistentRedirectReview,
   startsWithSConfirmationContent,
   toggleAllPersistentRedirectIds,
   togglePersistentRedirectId,
@@ -18,7 +19,7 @@ const makeRow = ({
   ip = '10.0.0.1',
 } = {}) => [host, event, date, ip].join('\t');
 
-test('s 필터는 앞쪽 공백을 제거한 뒤 ASCII s/S 시작만 판독한다', async (t) => {
+test('s 필터는 앞쪽 공백을 제거한 뒤 독립된 ASCII s/S만 판독한다', async (t) => {
   const positiveCases = [
     ['소문자 s', 's 김경상 책임 메신저'],
     ['대문자 S', 'S 김경상 책임 메신저'],
@@ -27,8 +28,8 @@ test('s 필터는 앞쪽 공백을 제거한 뒤 ASCII s/S 시작만 판독한�
     ['앞쪽 탭과 줄바꿈', '\t\n S 담당자'],
     ['앞쪽 NBSP', '\u00a0s 담당자'],
     ['앞쪽 narrow NBSP', '\u202fs 담당자'],
-    ['s로 시작하는 일반 영단어', 'server 미운영'],
-    ['s로 시작하는 skip 표기', 'skip X'],
+    ['탭 뒤의 내용', 's\t담당자'],
+    ['줄바꿈 뒤의 내용', 'S\n담당자'],
   ];
 
   for (const [name, value] of positiveCases) {
@@ -46,6 +47,12 @@ test('s 필터는 앞쪽 공백을 제거한 뒤 ASCII s/S 시작만 판독한�
     ['false', false],
     ['문장 중간의 s', '김경상 s 메신저'],
     ['대괄호 뒤의 s', '[s] 담당자'],
+    ['server 영단어', 'server 미운영'],
+    ['sunset 영단어', 'sunset 미운영'],
+    ['service 영단어', 'service 점검'],
+    ['공백 없이 이어진 S', 'S선셋 미운영'],
+    ['skip은 독립 s 규칙 아님', 'skip 처리'],
+    ['skip X도 독립 s 규칙 아님', 'skip X'],
     ['한글 스킵', '스킵 X 담당자'],
     ['전각 S', 'Ｓ 담당자'],
     ['악센트 s', 'ś 담당자'],
@@ -55,6 +62,53 @@ test('s 필터는 앞쪽 공백을 제거한 뒤 ASCII s/S 시작만 판독한�
   for (const [name, value] of negativeCases) {
     await t.test(name, () => {
       assert.equal(startsWithSConfirmationContent(value), false);
+    });
+  }
+});
+
+test('확인 필요 판독은 skip·스킵을 포함하고 x/X 부정 표기를 우선 제외한다', async (t) => {
+  const reviewCases = [
+    ['소문자 s 시작', 's 김경상 책임 메신저'],
+    ['대문자 S 시작', 'S 선셋 미운영'],
+    ['문장 중간 소문자 skip', '담당자 확인 후 skip 처리'],
+    ['문장 중간 대문자 SKIP', '담당자 확인 후 SKIP 처리'],
+    ['문장 중간 혼합 대소문자 Skip', '담당자 확인 후 Skip 처리'],
+    ['문장 중간 한글 스킵', '담당자 확인 후 스킵 처리'],
+    ['부정 표기 뒤 별도 skip', 'skip X 이후 실제 skip 처리'],
+    ['한글 부정 표기 뒤 별도 SKIP', '스킵X 이후 실제 SKIP 처리'],
+    ['x로 시작하는 영단어', '담당자 skip xylophone 처리'],
+    ['X로 시작하는 영단어', '담당자 skip XML 처리'],
+  ];
+
+  for (const [name, value] of reviewCases) {
+    await t.test(name, () => {
+      assert.equal(requiresPersistentRedirectReview(value), true);
+    });
+  }
+
+  const notReviewCases = [
+    ['스킵X', '스킵X'],
+    ['스킵 X', '스킵 X'],
+    ['스킵x', '스킵x'],
+    ['스킵 x', '스킵 x'],
+    ['skip X', 'skip X'],
+    ['skip x', 'skip x'],
+    ['SKIP X', '담당자 SKIP X 처리'],
+    ['Skip x', '담당자 Skip x 처리'],
+    ['탭으로 구분한 x', '담당자 skip\tX 처리'],
+    ['줄바꿈으로 구분한 x', '담당자 스킵\nx 처리'],
+    ['s 시작보다 부정 표기 우선', 's 담당자 skip X'],
+    ['S 시작보다 한글 부정 표기 우선', 'S 담당자 스킵 x'],
+    ['일반 확인내용', '김경상 책임 메신저'],
+    ['s로 시작하는 일반 영단어', 'server 미운영'],
+    ['대문자 S로 시작하는 일반 영단어', 'Service 점검'],
+    ['공백 없이 이어진 S', 'S선셋 미운영'],
+    ['빈 문자열', ''],
+  ];
+
+  for (const [name, value] of notReviewCases) {
+    await t.test(name, () => {
+      assert.equal(requiresPersistentRedirectReview(value), false);
     });
   }
 });
@@ -274,7 +328,7 @@ test('불완전한 단일 행도 손실 없이 반환하고 진단 상태를 남
   assert.equal(rows[0].data.ip, '');
 });
 
-test('파싱부터 s 필터 판독까지 전체 데이터 흐름을 통합 검증한다', () => {
+test('파싱부터 확인 필요 판독까지 전체 데이터 흐름을 통합 검증한다', () => {
   const input = [
     makeRow({
       host: 'HOST-S',
@@ -299,7 +353,12 @@ test('파싱부터 s 필터 판독까지 전체 데이터 흐름을 통합 검�
     makeRow({
       host: 'HOST-KOREAN-SKIP',
       event:
-        'Process warning [2026-07-30 10:04:00: 스킵 X 확인 UserName: 정지운]',
+        'Process warning [2026-07-30 10:04:00: 담당자 스킵 처리 확인 UserName: 정지운]',
+    }),
+    makeRow({
+      host: 'HOST-NOT-SKIP',
+      event:
+        'Batch warning [2026-07-30 10:05:00: skip X 확인 UserName: 정지운]',
     }),
     makeRow({
       host: 'HOST-NO-LOG',
@@ -309,23 +368,29 @@ test('파싱부터 s 필터 판독까지 전체 데이터 흐름을 통합 검�
 
   const messages = parsePersistentRedirectMessages(input);
   const filteredHosts = messages
-    .filter((message) => message.isSConfirmation)
+    .filter((message) => message.requiresReview)
     .map((message) => message.data.host);
 
-  assert.equal(messages.length, 6);
-  assert.deepEqual(filteredHosts, ['HOST-S', 'HOST-UPPER-S']);
+  assert.equal(messages.length, 7);
+  assert.deepEqual(filteredHosts, [
+    'HOST-S',
+    'HOST-UPPER-S',
+    'HOST-MIDDLE-SKIP',
+    'HOST-KOREAN-SKIP',
+  ]);
   assert.equal(messages[0].data.cleanEvent, 'Disk warning');
   assert.equal(
     messages[0].data.processingContent,
     's 김경상 책임 메신저',
   );
-  assert.equal(messages[2].isSConfirmation, false);
-  assert.equal(messages[3].isSConfirmation, false);
-  assert.equal(messages[4].isSConfirmation, false);
-  assert.equal(messages[5].data.processingLog, '');
+  assert.equal(messages[2].requiresReview, false);
+  assert.equal(messages[3].requiresReview, true);
+  assert.equal(messages[4].requiresReview, true);
+  assert.equal(messages[5].requiresReview, false);
+  assert.equal(messages[6].data.processingLog, '');
 });
 
-test('복구된 Event 안의 s 확인내용도 최종 필터 대상으로 유지한다', () => {
+test('복구된 Event 안의 확인 필요 내용도 최종 필터 대상으로 유지한다', () => {
   const input = [
     'HOST-01\tDisk\twarning continued',
     '[2026-07-30 10:00:00: s 김경상 책임 메신저 확인 UserName: 정지운]\t2026-07-30 09:00:00\t10.0.0.1',
@@ -343,8 +408,8 @@ test('복구된 Event 안의 s 확인내용도 최종 필터 대상으로 유지
   assert.equal(messages[0].physicalLineCount, 2);
   assert.equal(messages[0].extraEventColumns, 1);
   assert.equal(messages[0].data.cleanEvent, 'Disk warning continued');
-  assert.equal(messages[0].isSConfirmation, true);
-  assert.equal(messages[1].isSConfirmation, false);
+  assert.equal(messages[0].requiresReview, true);
+  assert.equal(messages[1].requiresReview, false);
 });
 
 test('개별 선택 토글은 다른 선택을 보존하며 재선택 시 해당 ID만 제거한다', () => {
@@ -412,7 +477,7 @@ test('선택→일괄 제외→확인됨 이동→복구 흐름의 상태 불변
     ].join('\n'),
   );
   const sIds = messages
-    .filter((message) => message.isSConfirmation)
+    .filter((message) => message.requiresReview)
     .map((message) => message.id);
 
   assert.deepEqual(sIds, [1, 2]);
@@ -435,7 +500,7 @@ test('선택→일괄 제외→확인됨 이동→복구 흐름의 상태 불변
   const restoredSIds = messages
     .filter(
       (message) =>
-        message.isSConfirmation && !restoredConfirmedIds.includes(message.id),
+        message.requiresReview && !restoredConfirmedIds.includes(message.id),
     )
     .map((message) => message.id);
 
@@ -464,7 +529,7 @@ test('대량 입력에서도 행 순서·고유 ID·필터 개수를 안정적�
 
   const messages = parsePersistentRedirectMessages(input);
   const filteredMessages = messages.filter(
-    (message) => message.isSConfirmation,
+    (message) => message.requiresReview,
   );
 
   assert.equal(messages.length, rowCount);

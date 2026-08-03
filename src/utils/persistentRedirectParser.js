@@ -9,7 +9,23 @@ export const DEFAULT_PERSISTENT_REDIRECT_ORDER =
   PERSISTENT_REDIRECT_FIELDS.map(({ key }) => key);
 
 export const startsWithSConfirmationContent = (value) =>
-  /^[sS]/u.test(String(value || '').trim());
+  /^[sS](?=$|\s)/u.test(String(value || '').trim());
+
+export const requiresPersistentRedirectReview = (value) => {
+  const content = String(value || '').trim();
+  if (!content) return false;
+
+  const contentWithoutNotSkipMarkers = content.replace(
+    /(?:skip|스킵)\s*[xX](?![A-Za-z])/giu,
+    '',
+  );
+  const hasNotSkipMarker = contentWithoutNotSkipMarkers !== content;
+
+  if (/(?:skip|스킵)/iu.test(contentWithoutNotSkipMarkers)) return true;
+  if (hasNotSkipMarker) return false;
+
+  return startsWithSConfirmationContent(content);
+};
 
 export const extractPersistentRedirectEvent = (value) => {
   const rawEvent = String(value || '');
@@ -271,7 +287,7 @@ export const parsePersistentRedirectMessages = (
         ...parsedRow.data,
         ...eventDetails,
       },
-      isSConfirmation: startsWithSConfirmationContent(
+      requiresReview: requiresPersistentRedirectReview(
         eventDetails.processingContent,
       ),
     };
