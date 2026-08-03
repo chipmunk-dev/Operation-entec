@@ -22,6 +22,8 @@
 
 - Host, Message, Date, IP가 포함된 데이터를 영문 장애 알림 메일로 변환
 - 입력 데이터의 열 순서 변경 지원
+- Message와 확인내역 내부의 탭·줄바꿈 자동 복구
+- Event 번호·TOTAL 전체 건수와 한 줄 간격으로 구분되는 메일 본문 생성
 - 완성된 메일 내용을 클립보드로 복사
 
 ### 자동 백업 에러 필터
@@ -37,7 +39,7 @@
 - 이벤트 원문과 처리 기록을 분리하여 표시
 - 독립된 `s/S` 시작 또는 `skip/스킵` 포함 확인내용을 별도 검토하고 `skip/스킵 + x/X`는 제외
 - 전달 대기 및 확인 완료 상태 관리
-- 국내 메신저, 해외 메신저, 해외메일 문구 생성
+- 국내 메신저, 해외 메신저, Resend 표기가 포함된 해외메일 문구 생성
 - 괄호가 포함된 처리 내용의 원본/괄호 제외 문구 제공
 
 ### 지속 메시지 엑셀 추출
@@ -76,6 +78,7 @@ npm run dev
 | `npm run build` | 프로덕션 빌드 생성 |
 | `npm run preview` | 프로덕션 빌드 미리보기 |
 | `npm run lint` | ESLint 코드 검사 |
+| `npm run test:foreign-mail` | 해외메일 입력 복구·포맷 테스트 |
 | `npm run test:backup-transfer` | 자동 백업 JSON 공유 테스트 |
 | `npm run test:persistent-event` | 지속 메시지 파싱·엑셀 테스트 |
 | `npm run test:persistent-redirect` | 지속 이벤트 파싱 테스트 |

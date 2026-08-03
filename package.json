@@ -8,6 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "test:foreign-mail": "node --test test/foreignMailFormatter.test.js",
     "test:backup-transfer": "node --test test/backupTransfer.test.js",
     "test:persistent-event": "node --test test/persistentEventParser.test.js",
     "test:persistent-redirect": "node --test test/persistentRedirectParser.test.js"

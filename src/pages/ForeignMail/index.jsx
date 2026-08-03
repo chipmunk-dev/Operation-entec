@@ -1,53 +1,29 @@
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { IoMdCheckmark, IoMdCopy } from 'react-icons/io';
 import { MdEmail, MdOutlineTune } from 'react-icons/md';
+import {
+  FOREIGN_MAIL_FIELDS,
+  formatForeignMail,
+  parseForeignMailRows,
+} from '../../utils/foreignMailFormatter';
 
-const dataTypes = ['host', 'message', 'date', 'ip'];
 const labels = { host: 'Host', message: 'Message', date: 'Date', ip: 'IP' };
 
 function ForeignMail() {
-  const [mails, setMails] = useState([]);
-  const [result, setResult] = useState('');
+  const [rawInput, setRawInput] = useState('');
   const [copied, setCopied] = useState(false);
-  const [inputColumnOrder, setInputColumnOrder] = useState(dataTypes);
+  const [inputColumnOrder, setInputColumnOrder] = useState(
+    FOREIGN_MAIL_FIELDS,
+  );
   const [showSettings, setShowSettings] = useState(false);
 
-  const validRowCount = mails.filter((mail) => mail.trim()).length;
-
-  useEffect(() => {
-    const messages = mails.reduce((acc, mail) => {
-      if (!mail.trim()) return acc;
-
-      const columns = mail.split('\t');
-      const parsedData = {};
-      inputColumnOrder.forEach((dataType, columnIndex) => {
-        parsedData[dataType] = columns[columnIndex] || '';
-      });
-
-      const cleanedMessage = (parsedData.message || '').replace(/\[202.*/g, '');
-      const separator =
-        '------------------------------------------------------------------------------------------';
-      const block = `${acc ? '' : `${separator}\n`}Date: ${parsedData.date} (Base On Korea Time)
-IP: ${parsedData.ip}
-Host: ${parsedData.host}
-Message: ${cleanedMessage}
-${separator}
-`;
-      return acc + block;
-    }, '');
-
-    setResult(
-      messages
-        ? `Dear!
-This is KIC Control office in Korea.
-Monitoring System detected warning message(s) from your server.
-Please check following message(s).
-
-${messages}
-Thank you.`
-        : '',
-    );
-  }, [mails, inputColumnOrder]);
+  const parsedRows = useMemo(
+    () => parseForeignMailRows(rawInput, inputColumnOrder),
+    [rawInput, inputColumnOrder],
+  );
+  const result = useMemo(() => formatForeignMail(parsedRows), [parsedRows]);
+  const validRowCount = parsedRows.length;
+  const recoveredRowCount = parsedRows.filter((row) => row.wasRecovered).length;
 
   const handleCopy = async () => {
     if (!result) return;
@@ -84,7 +60,7 @@ Thank you.`
         </p>
       </header>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(420px,0.85fr)]">
+      <div className="grid gap-6">
         <section className="panel overflow-hidden">
           <div className="panel-header">
             <div>
@@ -112,7 +88,7 @@ Thank you.`
                       onChange={handleColumnSelectChange(index)}
                       className="field-select mt-1.5"
                     >
-                      {dataTypes.map((type) => (
+                      {FOREIGN_MAIL_FIELDS.map((type) => (
                         <option key={type} value={type}>
                           {labels[type]}
                         </option>
@@ -127,15 +103,23 @@ Thank you.`
           <div className="panel-body">
             <textarea
               className="field-input min-h-72 resize-y font-mono leading-6"
-              onChange={(event) => setMails(event.target.value.split('\n'))}
+              value={rawInput}
+              onChange={(event) => setRawInput(event.target.value)}
               placeholder={'HOST-01\tDisk usage warning\t2026-07-26 09:00\t10.0.0.1'}
               spellCheck="false"
             />
-            <div className="mt-3 flex items-center justify-between text-xs">
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs">
               <span className="text-slate-500">탭(Tab)으로 구분된 4개 열을 인식합니다.</span>
-              <span className={`status-pill ${validRowCount ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-500'}`}>
-                {validRowCount}개 행
-              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                {recoveredRowCount > 0 && (
+                  <span className="status-pill bg-violet-50 text-violet-700">
+                    Message 탭·줄바꿈 자동 정리 {recoveredRowCount}건
+                  </span>
+                )}
+                <span className={`status-pill ${validRowCount ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-500'}`}>
+                  {validRowCount}개 행
+                </span>
+              </div>
             </div>
           </div>
         </section>
@@ -167,7 +151,7 @@ Thank you.`
                 <div>
                   <MdEmail className="mx-auto mb-3 text-4xl text-slate-300" />
                   <p className="text-sm font-semibold text-slate-600">완성된 메일이 여기에 표시됩니다.</p>
-                  <p className="mt-1 text-xs text-slate-400">왼쪽에 원본 데이터를 입력해 주세요.</p>
+                  <p className="mt-1 text-xs text-slate-400">위에 원본 데이터를 입력해 주세요.</p>
                 </div>
               </div>
             )}

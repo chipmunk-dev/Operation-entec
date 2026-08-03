@@ -77,6 +77,11 @@ const changeLogItems = [
     title: '이벤트 검토·엑셀 입력 보강',
     detail: 's 확인내용 일괄 제외와 지속 메시지 앞·뒤 빈 탭 자동 정리를 추가했습니다.',
   },
+  {
+    date: '2026.08.03',
+    title: '해외메일·재전달 개선',
+    detail: '해외메일 상하 배치와 탭·줄바꿈 복구, Event·TOTAL 형식 통일 및 재전달 Resend 표기를 반영했습니다.',
+  },
 ];
 
 const Navbar = ({ isOpen, setIsOpen }) => (

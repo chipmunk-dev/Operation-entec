@@ -8,6 +8,7 @@ import {
   toggleAllPersistentRedirectIds,
   togglePersistentRedirectId,
 } from '../../utils/persistentRedirectParser';
+import { formatForeignMail } from '../../utils/foreignMailFormatter';
 
 function PersistentRedirect() {
   const [rawInput, setRawInput] = useState('');
@@ -138,23 +139,9 @@ function PersistentRedirect() {
         formatted += '감사합니다.';
 
     } else if (outputMode === 'email') {
-        formatted = 'Dear!\n';
-        formatted += 'This is KIC Control office in Korea.\n';
-        formatted += 'Monitoring System detected warning message(s) from your server.\n';
-        formatted += 'Please check following message(s).\n\n';
-        
-        sortedSelected.forEach((message, index) => {
-            if (index === 0) {
-                formatted += '------------------------------------------------------------------------------------------\n';
-            }
-            formatted += `Date: ${message.data.date || ''} (Base On Korea Time)\n`;
-            formatted += `IP: ${message.data.ip || ''}\n`;
-            formatted += `Host: ${message.data.host || ''}\n`;
-            formatted += `Message: ${message.data.cleanEvent || ''}\n`;
-            formatted += '------------------------------------------------------------------------------------------\n';
+        formatted = formatForeignMail(sortedSelected, {
+            heading: '- Resend -',
         });
-        
-        formatted += '\nThank you.';
 
     } else if (outputMode === 'global') {
         formatted = '- Resend -\n\n';
