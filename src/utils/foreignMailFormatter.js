@@ -43,9 +43,9 @@ export const formatForeignMail = (rows, options = {}) => {
       const data = row?.data ?? {};
       const message = data.message ?? data.cleanEvent ?? '';
 
-      return `Date           : ${toMailText(data.date)} (Base On Korea Time)
-IP          : ${toMailText(data.ip)}
-Host           : ${toMailText(data.host)}
+      return `Date        : ${toMailText(data.date)} (Base On Korea Time)
+IP             : ${toMailText(data.ip)}
+Host        : ${toMailText(data.host)}
 Message : ${toMailText(message)}`;
     })
     // 각 이벤트 내용 앞뒤를 점선으로 감싸기 위해 조인 규칙 변경
