@@ -35,32 +35,36 @@ const toMailText = (value) => (value == null ? '' : String(value));
 export const formatForeignMail = (rows, options = {}) => {
   const safeRows = Array.isArray(rows) ? rows : [];
   const { heading = '' } = options ?? {};
-  const totalCount = String(safeRows.length).padStart(2, '0');
-  const messages = safeRows
-    .map(
-      (row, index) => {
-        const data = row?.data ?? {};
-        const message = data.message ?? data.cleanEvent ?? '';
+  const lineDivider = '-------------------------------------------------------';
 
-        return `[ EVENT ${String(index + 1).padStart(2, '0')} / TOTAL ${totalCount} ]
-Date    : ${toMailText(data.date)} (Base On Korea Time)
+  // 각 이벤트를 문자열로 변환
+  const messages = safeRows
+    .map((row) => {
+      const data = row?.data ?? {};
+      const message = data.message ?? data.cleanEvent ?? '';
+
+      return `Date    : ${toMailText(data.date)} (Base On Korea Time)
 IP      : ${toMailText(data.ip)}
 Host    : ${toMailText(data.host)}
 Message : ${toMailText(message)}`;
-      },
-    )
-    .join('\n\n');
+    })
+    // 각 이벤트 내용 앞뒤를 점선으로 감싸기 위해 조인 규칙 변경
+    .join(`\n${lineDivider}\n`);
 
   if (!messages) return '';
 
   const headingText = heading ? `${toMailText(heading)}\n\n` : '';
 
+  // 시작 점선과 끝 점선을 붙여서 최종 템플릿 완성
   return `${headingText}Dear!
 This is KIC Control office in Korea.
 Monitoring System detected warning message(s) from your server.
 Please check following message(s).
 
+${lineDivider}
 ${messages}
+${lineDivider}
 
 Thank you.`;
 };
+
