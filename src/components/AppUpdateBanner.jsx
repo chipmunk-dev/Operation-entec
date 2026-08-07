@@ -11,11 +11,11 @@ function AppUpdateBanner() {
   return (
     <div
       role="alert"
-      className="sticky top-0 z-30 border-b border-blue-200 bg-blue-50/95 px-4 py-3 shadow-sm backdrop-blur sm:px-6"
+      className="sticky top-3 z-30 mx-4 mt-3 rounded-2xl border border-blue-200/80 bg-white/90 px-4 py-3 shadow-[0_16px_40px_rgba(37,99,235,0.14)] backdrop-blur-xl sm:mx-6 lg:mx-8"
     >
       <div className="mx-auto flex max-w-[1440px] flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
-          <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-blue-100 text-blue-700">
+          <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 text-white shadow-md shadow-blue-200">
             <FaArrowsRotate aria-hidden="true" />
           </span>
           <div>

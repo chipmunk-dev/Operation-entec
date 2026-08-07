@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import {
   MdBackup,
+  MdBolt,
   MdEmail,
   MdHistory,
   MdMenu,
@@ -97,48 +98,68 @@ G-EMS 보고자 이름 브라우저 12시간 임시 저장
 
 const Navbar = ({ isOpen, setIsOpen }) => (
   <aside
-    className={`fixed inset-y-0 left-0 z-40 flex flex-col border-r border-slate-800 bg-slate-950 text-white transition-[width] duration-300 ${
-      isOpen ? 'w-64' : 'w-[72px]'
+    className={`fixed bottom-3 left-3 top-3 z-40 flex flex-col rounded-[28px] border border-white/10 bg-slate-950/95 text-white shadow-[0_28px_80px_rgba(15,23,42,0.28)] backdrop-blur-2xl transition-[width] duration-300 ${
+      isOpen ? 'w-[252px]' : 'w-[68px]'
     }`}
   >
-    <div className="flex h-20 items-center justify-between border-b border-slate-800 px-4">
-      <div className={`min-w-0 transition-opacity ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 overflow-hidden rounded-[28px]"
+    >
+      <span className="absolute -right-16 -top-20 h-52 w-52 rounded-full bg-blue-500/20 blur-3xl" />
+      <span className="absolute -bottom-20 -left-16 h-44 w-44 rounded-full bg-cyan-500/10 blur-3xl" />
+      <span className="absolute inset-0 bg-[linear-gradient(145deg,rgba(255,255,255,0.06),transparent_38%)]" />
+    </div>
+
+    <div className="relative z-10 flex h-20 items-center justify-between border-b border-white/10 px-3.5">
+      <div className={`min-w-0 items-center gap-3 ${isOpen ? 'flex' : 'hidden'}`}>
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-blue-400 via-blue-500 to-cyan-400 text-white shadow-lg shadow-blue-950/40 ring-1 ring-white/20">
+          <MdBolt size={23} aria-hidden="true" />
+        </span>
+        <div className="min-w-0">
         {isOpen && (
           <>
-            <p className="truncate text-base font-bold tracking-tight">Operation CNS Elect</p>
-            <p className="mt-0.5 text-[11px] font-medium text-slate-500">LG CNS ELECT TEAM</p>
+              <p className="truncate text-sm font-bold tracking-tight text-white">
+                Operation CNS Elect
+              </p>
+              <p className="mt-1 text-[10px] font-bold tracking-[0.16em] text-blue-300/70">
+                ELECT TEAM
+              </p>
           </>
         )}
+        </div>
       </div>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-slate-400 transition hover:bg-slate-800 hover:text-white"
+        className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white/5 bg-white/5 text-slate-400 transition hover:border-white/10 hover:bg-white/10 hover:text-white"
         aria-label={isOpen ? '메뉴 접기' : '메뉴 펼치기'}
       >
         {isOpen ? <MdOutlineChevronLeft size={22} /> : <MdMenu size={22} />}
       </button>
     </div>
 
-    <nav className="flex-1 space-y-2 overflow-x-hidden overflow-y-auto px-3 py-5">
+    <nav className="relative z-10 flex-1 space-y-2 overflow-x-hidden overflow-y-auto px-2.5 py-4">
       {menuItems.map(({ name, description, path, icon: Icon }) => (
         <NavLink
           key={path}
           to={path}
           title={!isOpen ? name : undefined}
           className={({ isActive }) =>
-            `group flex h-14 items-center rounded-xl transition ${
+            `group flex h-[58px] items-center rounded-2xl border transition-all duration-200 ${
               isActive
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-950/30'
-                : 'text-slate-400 hover:bg-slate-900 hover:text-white'
-            } ${isOpen ? 'gap-3 px-3' : 'justify-center'}`
+                ? 'border-blue-400/30 bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-950/40'
+                : 'border-transparent text-slate-400 hover:border-white/10 hover:bg-white/[0.07] hover:text-white'
+            } ${isOpen ? 'gap-3 px-3' : 'justify-center px-0'}`
           }
         >
-          <Icon className="shrink-0 text-xl" />
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/[0.06] text-lg ring-1 ring-white/[0.06] transition group-hover:bg-white/10">
+            <Icon />
+          </span>
           {isOpen && (
             <span className="min-w-0">
               <span className="block truncate text-sm font-semibold">{name}</span>
-              <span className="mt-0.5 block truncate text-[11px] text-slate-400 group-[.active]:text-blue-100">
+              <span className="mt-0.5 block truncate text-[10px] font-medium tracking-wide text-slate-400 transition group-hover:text-slate-300">
                 {description}
               </span>
             </span>
@@ -148,32 +169,36 @@ const Navbar = ({ isOpen, setIsOpen }) => (
     </nav>
 
     {isOpen && (
-      <div className="m-3 rounded-xl border border-slate-800 bg-slate-900/70 p-3">
-        <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400">
-          <span className="h-2 w-2 rounded-full bg-emerald-400" />
+      <div className="relative z-10 mx-3 mb-3 rounded-2xl border border-emerald-400/10 bg-emerald-400/[0.06] p-3.5">
+        <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-emerald-300">
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-50" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+          </span>
           Local processing
         </div>
-        <p className="mt-1.5 text-[11px] leading-4 text-slate-500">
+        <p className="mt-2 text-[11px] leading-4 text-slate-400">
           입력 데이터는 외부 서버로 전송되지 않습니다.
         </p>
       </div>
     )}
 
-    <div className="group relative flex justify-center px-3 pb-3">
+    <div className="group relative z-10 flex justify-center px-3 pb-3">
       <button
         type="button"
-        className="grid h-8 w-8 place-items-center rounded-lg border border-slate-800 bg-slate-900 text-slate-500 transition hover:border-slate-700 hover:text-slate-200 focus:border-blue-500 focus:text-white focus:outline-none"
+        className={`flex h-9 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 text-slate-400 transition hover:border-white/20 hover:bg-white/10 hover:text-white focus:border-blue-400 focus:text-white focus:outline-none ${isOpen ? 'w-full px-3' : 'w-9'}`}
         aria-label="간략 변경 내역"
         aria-describedby="operation-change-log"
       >
         <MdHistory size={17} />
+        {isOpen && <span className="text-[11px] font-semibold">업데이트 히스토리</span>}
       </button>
 
       <div
         id="operation-change-log"
         role="tooltip"
-        className={`pointer-events-none fixed bottom-3 z-50 max-h-[calc(100vh-1.5rem)] w-80 translate-x-1 overflow-y-auto rounded-2xl border border-slate-700 bg-slate-950/95 p-4 opacity-0 shadow-2xl shadow-slate-950/50 backdrop-blur transition duration-150 group-hover:pointer-events-auto group-hover:translate-x-0 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:translate-x-0 group-focus-within:opacity-100 ${
-          isOpen ? 'left-[268px]' : 'left-[84px]'
+        className={`pointer-events-none fixed bottom-3 z-50 max-h-[calc(100vh-1.5rem)] w-[min(20rem,calc(100vw-7rem))] translate-x-1 overflow-y-auto rounded-3xl border border-white/10 bg-slate-950/95 p-4 opacity-0 shadow-2xl shadow-slate-950/50 backdrop-blur-2xl transition duration-150 group-hover:pointer-events-auto group-hover:translate-x-0 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:translate-x-0 group-focus-within:opacity-100 ${
+          isOpen ? 'left-[276px]' : 'left-[92px]'
         }`}
       >
         <div className="mb-3 border-b border-slate-800 pb-3">
