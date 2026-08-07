@@ -9,6 +9,7 @@ G-EMS 메시지, 백업 오류 목록, 지속 메시지 엑셀 보고서 등 필
 
 각 메뉴 상단의 작업 순서 안내를 따라 입력부터 결과 복사·파일 추출까지 진행할 수
 있으며, 해외메일 작성은 입력과 결과를 위아래로 배치해 마우스 이동을 줄였습니다.
+새 버전이 배포되면 열려 있는 화면 상단에 새로고침 안내가 표시됩니다.
 
 > 모든 데이터 가공은 브라우저에서 처리됩니다. 자동 백업 에러 보고의 임시
 > 데이터는 현재 브라우저에 최대 7일 동안 저장되며, 다른 PC와 공유할 때는
@@ -67,6 +68,17 @@ G-EMS 메시지, 백업 오류 목록, 지속 메시지 엑셀 보고서 등 필
 
 ## 시작하기
 
+### 새 배포 알림
+
+프로덕션 빌드마다 `version.json`에 고유한 빌드 버전을 생성합니다. 열려 있는 앱은
+60초마다 최신 버전을 확인하며, 브라우저 탭으로 돌아오거나 네트워크가 다시
+연결됐을 때도 즉시 확인합니다.
+
+새 배포가 확인되면 화면 상단에 안내 배너와 `새로고침` 버튼이 나타납니다.
+작성 중인 입력이 사라지는 것을 막기 위해 자동으로 새로고침하지는 않습니다.
+`version.json`과 `index.html`은 Netlify의 `public/_headers` 설정을 통해 이전
+배포가 캐시되지 않도록 구성했습니다.
+
 ### 요구 사항
 
 - Node.js 18 이상
@@ -90,6 +102,7 @@ npm run dev
 | `npm run build` | 프로덕션 빌드 생성 |
 | `npm run preview` | 프로덕션 빌드 미리보기 |
 | `npm run lint` | ESLint 코드 검사 |
+| `npm run test:app-version` | 새 배포 버전 판독 테스트 |
 | `npm run test:foreign-mail` | 해외메일 입력 복구·포맷 테스트 |
 | `npm run test:gems-message` | G-EMS 메시지 파싱·포맷 테스트 |
 | `npm run test:backup-transfer` | 자동 백업 JSON 공유 테스트 |
@@ -213,8 +226,11 @@ No.    발생일시    지속시간    어드민    호스트명    내용    IP
 ```text
 src/
 ├── components/
+│   ├── AppUpdateBanner.jsx
 │   ├── Modal.jsx
 │   └── Navbar.jsx
+├── hooks/
+│   └── useAppUpdate.js
 ├── pages/
 │   ├── AutoBackupErrorFilter/
 │   ├── ForeignMail/
@@ -223,6 +239,7 @@ src/
 │   └── Redirect/
 ├── utils/
 │   ├── autoBackupStorage.js
+│   ├── appVersion.js
 │   ├── backupTransfer.js
 │   ├── persistentEventParser.js
 │   ├── persistentRedirectParser.js

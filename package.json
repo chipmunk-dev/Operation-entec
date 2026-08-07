@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+    "test:app-version": "node --test test/appVersion.test.js",
     "preview": "vite preview",
     "test:foreign-mail": "node --test test/foreignMailFormatter.test.js",
     "test:gems-message": "node --test test/gemsMessageFormatter.test.js test/gemsReporterStorage.test.js",

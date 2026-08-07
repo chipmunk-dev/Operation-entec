@@ -6,6 +6,7 @@ import {
   Navigate,
 } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import AppUpdateBanner from './components/AppUpdateBanner';
 import ForeignMail from './pages/ForeignMail';
 import GemsMessage from './pages/GemsMessage';
 import AutoBackupErrorFilter from './pages/AutoBackupErrorFilter';
@@ -24,6 +25,7 @@ function App() {
             isMenuOpen ? 'ml-64' : 'ml-[72px]'
           }`}
         >
+          <AppUpdateBanner />
           <main className="flex-1">
             <Routes>
               <Route path="/" element={<Navigate to="/foreign-mail" replace />} />
