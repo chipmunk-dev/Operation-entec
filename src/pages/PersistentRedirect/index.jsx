@@ -266,7 +266,7 @@ function PersistentRedirect() {
       </header>
 
       <WorkflowGuide
-        steps={['근무자·열 설정', '이벤트 입력·검토', '메시지 선택', '전달 문구 복사']}
+        steps={['근무자·열 설정', '이벤트 입력·검토', '전달 문구 확인·복사', '메시지 상태 관리']}
       />
 
       <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -557,10 +557,11 @@ function PersistentRedirect() {
         </section>
       )}
 
-      <section className="panel mb-6 overflow-hidden">
+      <div className="flex flex-col">
+        <section className="panel order-2 overflow-hidden">
         <div className="panel-header">
           <div>
-            <h2 className="font-bold text-slate-900">4. 재전달 메시지 선택</h2>
+            <h2 className="font-bold text-slate-900">재전달 메시지 선택</h2>
             <p className="mt-1 text-xs text-slate-500">
               대기 중 메시지를 전달 목록에 추가하거나 확인 완료로 이동하세요.
             </p>
@@ -705,12 +706,12 @@ function PersistentRedirect() {
           })
         )}
       </div>
-      </section>
+        </section>
 
-      <section id="persistent-redirect-output" className="panel scroll-mt-6 overflow-hidden">
+        <section id="persistent-redirect-output" className="panel order-1 mb-6 scroll-mt-6 overflow-hidden">
         <div className="panel-header">
           <div>
-            <h2 className="font-bold text-slate-900">5. 전달 문구 확인·복사</h2>
+            <h2 className="font-bold text-slate-900">4. 전달 문구 확인·복사</h2>
             <p className="mt-1 text-xs text-slate-500">
               선택한 메시지를 전달 채널에 맞는 형식으로 확인한 뒤 복사하세요.
             </p>
@@ -796,13 +797,14 @@ function PersistentRedirect() {
             ) : (
               formattedResult || (
                 <span className="select-none text-slate-500">
-                  위 목록에서 전달할 메시지를 추가하면 결과가 표시됩니다.
+                  아래 목록에서 전달할 메시지를 추가하면 결과가 표시됩니다.
                 </span>
               )
             )}
           </div>
         </div>
-      </section>
+        </section>
+      </div>
     </div>
   );
 }
