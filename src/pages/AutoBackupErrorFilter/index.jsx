@@ -9,6 +9,7 @@ import {
   MdOutlineCloudDone,
   MdOutlineTableView,
 } from 'react-icons/md';
+import WorkflowGuide from '../../components/WorkflowGuide';
 import {
   clearBackupDraft,
   createDefaultBackupState,
@@ -333,6 +334,10 @@ function AutoBackupErrorFilter() {
         </p>
       </header>
 
+      <WorkflowGuide
+        steps={['데이터 관리 확인', '백업존 데이터 입력', '오류 결과 복사']}
+      />
+
       {notice && (
         <div className="mb-6 flex items-start justify-between gap-4 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
           <p>{notice}</p>
@@ -458,11 +463,17 @@ function AutoBackupErrorFilter() {
             <button
               type="button"
               onClick={() => setShowColumnSettings(!showColumnSettings)}
+              aria-expanded={showColumnSettings}
               className="btn-secondary"
             >
-              열 순서 설정
+              {showColumnSettings ? '열 순서 닫기' : '열 순서 설정'}
             </button>
-            <button type="button" onClick={() => setShowGuide(!showGuide)} className="btn-ghost">
+            <button
+              type="button"
+              onClick={() => setShowGuide(!showGuide)}
+              aria-expanded={showGuide}
+              className="btn-ghost"
+            >
               <MdInfoOutline size={18} />
               입력 형식 {showGuide ? '닫기' : '보기'}
             </button>

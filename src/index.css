@@ -37,7 +37,7 @@
   }
 
   .page-header {
-    @apply mb-8 flex flex-col gap-2;
+    @apply mb-6 flex flex-col gap-2;
   }
 
   .page-eyebrow {
@@ -62,6 +62,22 @@
 
   .panel-body {
     @apply p-5;
+  }
+
+  .workflow-guide {
+    @apply panel mb-6 overflow-x-auto;
+  }
+
+  .workflow-guide-list {
+    @apply flex min-w-max divide-x divide-slate-100 lg:min-w-0;
+  }
+
+  .workflow-guide-item {
+    @apply flex min-w-[180px] flex-1 items-center gap-3 px-4 py-3;
+  }
+
+  .workflow-guide-number {
+    @apply grid h-7 w-7 shrink-0 place-items-center rounded-full bg-blue-50 text-xs font-bold text-blue-700 ring-1 ring-blue-100;
   }
 
   .field-label {

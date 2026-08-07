@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { IoMdCheckmark, IoMdCopy } from 'react-icons/io';
 import { MdOutlineMessage } from 'react-icons/md';
+import WorkflowGuide from '../../components/WorkflowGuide';
 import {
   formatGemsMessage,
   parseGemsMessageRows,
@@ -68,6 +69,10 @@ function GemsMessage() {
           형식으로 정리합니다.
         </p>
       </header>
+
+      <WorkflowGuide
+        steps={['보고 양식 설정', '메시지 입력', '결과 확인·복사']}
+      />
 
       <div className="grid gap-6">
         <section

@@ -11,6 +11,7 @@ import {
   MdWarningAmber,
 } from 'react-icons/md';
 import { FaFileExcel } from 'react-icons/fa';
+import WorkflowGuide from '../../components/WorkflowGuide';
 import {
   DEFAULT_PERSISTENT_EVENT_ORDER,
   PERSISTENT_EVENT_FIELDS,
@@ -474,6 +475,10 @@ function PersistentEventExcel() {
         </p>
       </header>
 
+      <WorkflowGuide
+        steps={['원본 데이터 입력', '담당자·특이사항 검토', '엑셀 추출']}
+      />
+
       <section className="panel mb-6 overflow-hidden">
         <div className="panel-header">
           <div>
@@ -485,10 +490,11 @@ function PersistentEventExcel() {
           <button
             type="button"
             onClick={() => setShowSettings((current) => !current)}
+            aria-expanded={showSettings}
             className="btn-secondary"
           >
             <MdOutlineTune size={18} />
-            열 순서 설정
+            {showSettings ? '열 순서 닫기' : '열 순서 설정'}
           </button>
         </div>
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { IoMdCopy } from 'react-icons/io';
 import { FaCheck, FaUndo, FaListUl, FaCheckDouble, FaPaperPlane, FaExclamationCircle, FaCommentDots, FaEnvelope, FaGlobe, FaInfoCircle } from 'react-icons/fa';
+import WorkflowGuide from '../../components/WorkflowGuide';
 import {
   DEFAULT_PERSISTENT_REDIRECT_ORDER,
   mergePersistentRedirectIds,
@@ -219,7 +220,10 @@ function PersistentRedirect() {
   };
   
   let displayMessages = activeTab === 'pending' ? pendingMessages : confirmedMessagesList;
-  const hasSelectedPendingMessages = selectedMessages.some(m => !confirmedIds.includes(m.id));
+  const selectedPendingMessageCount = selectedMessages.filter(
+    (message) => !confirmedIds.includes(message.id),
+  ).length;
+  const hasSelectedPendingMessages = selectedPendingMessageCount > 0;
 
   displayMessages = [...displayMessages].sort((a, b) => {
     if (sortOrder === 'content') {
@@ -261,18 +265,27 @@ function PersistentRedirect() {
         </p>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div className={`panel p-5 transition-colors ${!workerName.trim() ? 'border-rose-200 bg-rose-50/50' : ''}`}>
-          <h3 className={`text-sm font-bold mb-4 border-b pb-2 ${!workerName.trim() ? 'text-red-600 border-red-200' : 'text-gray-700 border-gray-200'}`}>
-            1. 근무자 정보 입력 { !workerName.trim() && <span className="text-xs font-normal text-red-500 ml-2">* 필수</span> }
-          </h3>
-          <div className="flex gap-2 items-end">
-             <div className="w-24 shrink-0">
-              <label className="block text-xs font-semibold text-gray-500 mb-1">소속 조</label>
+      <WorkflowGuide
+        steps={['근무자·열 설정', '이벤트 입력·검토', '메시지 선택', '전달 문구 복사']}
+      />
+
+      <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+        <section className={`panel overflow-hidden transition-colors ${!workerName.trim() ? 'border-rose-200 bg-rose-50/50' : ''}`}>
+          <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3">
+            <h2 className={`text-sm font-bold ${!workerName.trim() ? 'text-rose-700' : 'text-slate-900'}`}>
+              1. 근무자 정보
+            </h2>
+            {!workerName.trim() && (
+              <span className="status-pill bg-rose-100 text-rose-700">이름 필수</span>
+            )}
+          </div>
+          <div className="flex items-end gap-2 p-4">
+            <div className="w-24 shrink-0">
+              <label className="mb-1 block text-xs font-semibold text-slate-500">소속 조</label>
               <select
                 value={workerTeam}
                 onChange={(e) => setWorkerTeam(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500"
+                className="field-select px-3 py-2"
               >
                 <option value="1조">1조</option>
                 <option value="2조">2조</option>
@@ -281,21 +294,22 @@ function PersistentRedirect() {
               </select>
             </div>
             <div className="flex-1">
-              <label className={`block text-xs font-semibold mb-1 ${!workerName.trim() ? 'text-red-500' : 'text-gray-500'}`}>이름</label>
+              <label className={`mb-1 block text-xs font-semibold ${!workerName.trim() ? 'text-rose-600' : 'text-slate-500'}`}>이름</label>
               <input
                 type="text"
                 value={workerName}
                 onChange={(e) => setWorkerName(e.target.value)}
-                className={`w-full px-3 py-2 border rounded-md shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500 ${!workerName.trim() ? 'border-red-300 bg-white placeholder-red-300' : 'border-gray-300'}`}
+                aria-invalid={!workerName.trim() || undefined}
+                className={`field-input px-3 py-2 ${!workerName.trim() ? 'border-rose-300 bg-white placeholder:text-rose-300' : ''}`}
                 placeholder="홍길동"
               />
             </div>
             <div className="w-24 shrink-0">
-              <label className="block text-xs font-semibold text-gray-500 mb-1">직책</label>
+              <label className="mb-1 block text-xs font-semibold text-slate-500">직급</label>
               <select
                 value={workerPosition}
                 onChange={(e) => setWorkerPosition(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500"
+                className="field-select px-3 py-2"
               >
                 <option value="사원">사원</option>
                 <option value="선임">선임</option>
@@ -303,18 +317,20 @@ function PersistentRedirect() {
               </select>
             </div>
           </div>
-        </div>
+        </section>
 
-        <div className="panel border-blue-100 bg-blue-50/60 p-5">
-          <h3 className="text-sm font-bold text-blue-800 mb-4 border-b pb-2 border-blue-200">2. 입력 데이터 순서</h3>
-          <div className="flex justify-between gap-2">
+        <section className="panel overflow-hidden border-blue-100 bg-blue-50/60">
+          <div className="border-b border-blue-100 px-5 py-3">
+            <h2 className="text-sm font-bold text-blue-900">2. 입력 데이터 순서</h2>
+          </div>
+          <div className="flex justify-between gap-2 p-4">
             {inputColumnOrder.map((dataType, index) => (
               <div key={index} className="flex flex-col items-center flex-1">
                 <span className="text-xs text-blue-600 mb-1 font-medium">{index + 1}열</span>
                 <select
                   value={dataType}
                   onChange={handleColumnSelectChange(index)}
-                  className="w-full px-2 py-2 text-sm border-blue-200 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md text-gray-700 text-center shadow-sm"
+                  className="field-select px-2 py-2 text-center"
                 >
                   {['date', 'host', 'event', 'ip'].map(optionType => (
                     <option key={optionType} value={optionType}>{formatDataTypeLabel(optionType)}</option>
@@ -323,21 +339,13 @@ function PersistentRedirect() {
               </div>
             ))}
           </div>
-        </div>
+        </section>
       </div>
 
-      <div className="panel mb-6 p-5">
-        <label htmlFor="rawDataInput" className="block text-sm font-bold text-gray-700 mb-2">
-          3. 원본 데이터 붙여넣기
-        </label>
-        <textarea
-          id="rawDataInput"
-          value={rawInput}
-          className="field-input min-h-36 resize-y font-mono leading-6"
-          onChange={handleChange}
-          placeholder="엑셀이나 로그파일의 데이터를 복사해서 붙여넣으세요."
-        />
-        <div className="mt-3 flex flex-wrap justify-end gap-2 text-xs">
+      <section className="panel mb-6 overflow-hidden">
+        <div className="panel-header">
+          <h2 className="font-bold text-slate-900">3. 원본 데이터 입력</h2>
+          <div className="flex flex-wrap gap-2 text-xs">
           <span className="status-pill bg-blue-50 text-blue-700">
             {processedMessages.length}개 입력 행
           </span>
@@ -352,8 +360,19 @@ function PersistentRedirect() {
               Event 탭·줄바꿈 제거 {recoveredMessageCount}건
             </span>
           )}
+          </div>
         </div>
-      </div>
+        <div className="panel-body">
+          <textarea
+            id="rawDataInput"
+            value={rawInput}
+            className="field-input min-h-36 resize-y font-mono leading-6"
+            onChange={handleChange}
+            placeholder="엑셀이나 로그파일의 데이터를 복사해서 붙여넣으세요."
+            aria-label="원본 데이터"
+          />
+        </div>
+      </section>
 
       {allReviewMessages.length > 0 && isReviewFilterCollapsed && (
         <section className="panel mb-6 border-emerald-200 bg-emerald-50/70 p-4">
@@ -538,73 +557,42 @@ function PersistentRedirect() {
         </section>
       )}
 
-      <div className="panel mb-8 p-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start mb-4 gap-4">
-            <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-6">
-                    <h3 className="text-lg font-bold text-gray-800">4. 완성된 포맷 (전달용)</h3>
-                    <div className="flex bg-gray-100 p-1 rounded-lg">
-                        <button onClick={() => setOutputMode('messenger')} className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-bold transition-all ${outputMode === 'messenger' ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700'}`}>
-                            <FaCommentDots /> 메신저
-                        </button>
-                        <button onClick={() => setOutputMode('global')} className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-bold transition-all ${outputMode === 'global' ? 'bg-white text-purple-600 shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700'}`}>
-                            <FaGlobe /> 해외 메신저
-                        </button>
-                        <button onClick={() => setOutputMode('email')} className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-bold transition-all ${outputMode === 'email' ? 'bg-white text-green-600 shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700'}`}>
-                            <FaEnvelope /> 해외메일
-                        </button>
-                    </div>
-                </div>
-                
-                {/* [추가됨] 해외 메신저 모드일 때만 보이는 안내 문구 */}
-                {outputMode === 'global' && (
-                    <div className="flex items-center gap-1 text-xs text-gray-500 ml-36 animate-pulse-once">
-                        <FaInfoCircle className="text-purple-500" />
-                        <span>cicop, 해외법인 담당자에게 메신저로 재전달 필요시</span>
-                    </div>
-                )}
-            </div>
-
-            <button
-            onClick={handleFormattedCopy}
-            disabled={!formattedResult}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors shadow-sm text-sm font-medium ${formattedResult ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-300 text-white cursor-not-allowed'}`}
+      <section className="panel mb-6 overflow-hidden">
+        <div className="panel-header">
+          <div>
+            <h2 className="font-bold text-slate-900">4. 재전달 메시지 선택</h2>
+            <p className="mt-1 text-xs text-slate-500">
+              대기 중 메시지를 전달 목록에 추가하거나 확인 완료로 이동하세요.
+            </p>
+          </div>
+          <div className="flex w-full flex-wrap gap-2 sm:w-auto">
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value)}
+              className="field-select min-w-48 flex-1 py-2 sm:w-56"
+              aria-label="메시지 정렬 방식"
             >
-            <IoMdCopy />
-            {formattedCopied ? '복사됨' : '전체 복사'}
-            </button>
+              <option value="default">입력순</option>
+              <option value="content">확인 내용 가나다순</option>
+            </select>
+            {selectedPendingMessageCount > 0 && (
+              <a href="#persistent-redirect-output" className="btn-primary">
+                선택 {selectedPendingMessageCount}건 결과 보기
+              </a>
+            )}
+          </div>
         </div>
-        
-        <div className={`h-64 max-h-80 overflow-y-auto whitespace-pre-wrap rounded-xl border p-4 font-mono text-sm transition-colors ${!workerName.trim() && hasSelectedPendingMessages ? 'bg-red-50 border-red-200' : 'border-slate-200 bg-slate-950 text-slate-200'}`}>
-          {hasSelectedPendingMessages && !workerName.trim() ? (
-              <div className="flex flex-col items-center justify-center h-full text-red-500 gap-2">
-                  <FaExclamationCircle className="text-3xl" />
-                  <span className="font-bold">근무자 정보(이름)를 입력해주세요!</span>
-              </div>
-          ) : (
-              formattedResult || <span className="select-none text-slate-500">아래 목록에서 [+ 추가] 버튼을 누르면 내용이 생성됩니다.</span>
-          )}
-        </div>
-      </div>
 
-      <div className="flex flex-col sm:flex-row justify-between items-end border-b border-gray-200 mb-4 gap-2">
-        <div className="flex w-full sm:w-auto">
-          <button onClick={() => handleTabChange('pending')} className={`flex items-center gap-2 px-6 py-3 text-sm font-medium outline-none transition-colors border-b-2 ${activeTab === 'pending' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+        <div className="flex overflow-x-auto border-b border-slate-200 px-5">
+          <button type="button" onClick={() => handleTabChange('pending')} aria-pressed={activeTab === 'pending'} className={`flex items-center gap-2 px-6 py-3 text-sm font-medium outline-none transition-colors border-b-2 ${activeTab === 'pending' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
             <FaListUl /> 대기 중 ({pendingMessages.length})
           </button>
-          <button onClick={() => handleTabChange('confirmed')} className={`flex items-center gap-2 px-6 py-3 text-sm font-medium outline-none transition-colors border-b-2 ${activeTab === 'confirmed' ? 'border-green-600 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+          <button type="button" onClick={() => handleTabChange('confirmed')} aria-pressed={activeTab === 'confirmed'} className={`flex items-center gap-2 px-6 py-3 text-sm font-medium outline-none transition-colors border-b-2 ${activeTab === 'confirmed' ? 'border-green-600 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
             <FaCheckDouble /> 확인됨 ({confirmedMessagesList.length})
           </button>
         </div>
-        <div className="w-full sm:w-auto pb-2">
-            <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} className="w-full sm:w-48 px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm">
-                <option value="default">입력순</option>
-                <option value="content">확인 내용 정렬순 (가나다)</option>
-            </select>
-        </div>
-      </div>
 
-      <div className="space-y-3 pb-12">
+      <div className="space-y-3 p-5">
         {displayMessages.length === 0 ? (
           <div className="text-center py-10 text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-300">
             {activeTab === 'pending' ? '대기 중인 메시지가 없습니다.' : '확인된 메시지가 없습니다.'}
@@ -618,7 +606,7 @@ function PersistentRedirect() {
             let itemClass = 'p-4 rounded-lg border transition-all ';
             if (isConfirmedTab) {
                 if (isSelected) itemClass += 'bg-blue-50 border-blue-400 shadow-md';
-                else itemClass += 'bg-red-50 border-red-400 shadow-sm';
+                else itemClass += 'bg-emerald-50/50 border-emerald-200 shadow-sm';
             } else {
                 if (isSelected) itemClass += 'bg-blue-50 border-blue-400 shadow-md';
                 else itemClass += 'bg-white border-gray-200 hover:border-gray-300';
@@ -692,22 +680,22 @@ function PersistentRedirect() {
                   <div className="flex gap-2 shrink-0">
                     {!isConfirmedTab && (
                       <button onClick={() => handleToggleSelect(message)} className={`flex items-center gap-1 px-3 py-2 rounded text-xs font-bold transition-colors w-20 justify-center ${isSelected ? 'bg-white border border-red-400 text-red-500 hover:bg-red-50' : 'bg-white border border-blue-600 text-blue-600 hover:bg-blue-50'}`}>
-                        {isSelected ? '− 제외' : '+ 추가'}
+                        {isSelected ? '추가 취소' : '전달 추가'}
                       </button>
                     )}
                     {!isConfirmedTab && (
                       <button onClick={() => handleConfirmMessage(message.id)} className="flex items-center gap-1 px-3 py-2 rounded text-xs font-bold bg-green-600 text-white hover:bg-green-700 transition-colors">
-                        <FaCheck /> 확인
+                        <FaCheck /> 확인 완료
                       </button>
                     )}
                     {isConfirmedTab && (
                       <button onClick={() => handleToggleComplete(message.id)} className={`flex items-center gap-1 px-3 py-2 rounded text-xs font-bold transition-colors border ${isCompleted ? 'bg-teal-600 border-teal-600 text-white shadow-inner' : 'bg-white border-teal-500 text-teal-600 hover:bg-teal-50'}`}>
-                          <FaPaperPlane /> {isCompleted ? '전달 완료' : '전달 완료'}
+                          <FaPaperPlane /> {isCompleted ? '완료 취소' : '전달 완료'}
                       </button>
                     )}
                     {isConfirmedTab && (
                       <button onClick={() => handleRestoreMessage(message.id)} className="flex items-center gap-1 px-3 py-2 rounded text-xs font-bold bg-gray-500 text-white hover:bg-gray-600 transition-colors">
-                        <FaUndo /> 복구
+                        <FaUndo /> 대기로 복구
                       </button>
                     )}
                   </div>
@@ -717,6 +705,104 @@ function PersistentRedirect() {
           })
         )}
       </div>
+      </section>
+
+      <section id="persistent-redirect-output" className="panel scroll-mt-6 overflow-hidden">
+        <div className="panel-header">
+          <div>
+            <h2 className="font-bold text-slate-900">5. 전달 문구 확인·복사</h2>
+            <p className="mt-1 text-xs text-slate-500">
+              선택한 메시지를 전달 채널에 맞는 형식으로 확인한 뒤 복사하세요.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleFormattedCopy}
+            disabled={!formattedResult}
+            className={
+              formattedCopied
+                ? 'btn bg-emerald-600 text-white'
+                : 'btn-primary'
+            }
+          >
+            <IoMdCopy />
+            {formattedCopied ? '복사 완료' : '전체 복사'}
+          </button>
+        </div>
+
+        <div className="border-b border-slate-100 bg-slate-50 px-5 py-3">
+          <div
+            className="inline-flex max-w-full gap-1 overflow-x-auto rounded-xl bg-slate-200/70 p-1"
+            role="group"
+            aria-label="전달 형식"
+          >
+            <button
+              type="button"
+              onClick={() => setOutputMode('messenger')}
+              aria-pressed={outputMode === 'messenger'}
+              className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold transition ${
+                outputMode === 'messenger'
+                  ? 'bg-white text-blue-700 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <FaCommentDots /> 국내 메신저
+            </button>
+            <button
+              type="button"
+              onClick={() => setOutputMode('global')}
+              aria-pressed={outputMode === 'global'}
+              className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold transition ${
+                outputMode === 'global'
+                  ? 'bg-white text-violet-700 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <FaGlobe /> 해외 메신저
+            </button>
+            <button
+              type="button"
+              onClick={() => setOutputMode('email')}
+              aria-pressed={outputMode === 'email'}
+              className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold transition ${
+                outputMode === 'email'
+                  ? 'bg-white text-emerald-700 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <FaEnvelope /> 해외메일
+            </button>
+          </div>
+          {outputMode === 'global' && (
+            <p className="mt-2 flex items-center gap-1.5 text-xs text-violet-700">
+              <FaInfoCircle /> cicop 또는 해외법인 담당자에게 메신저로 재전달할 때 사용합니다.
+            </p>
+          )}
+        </div>
+
+        <div className="p-5">
+          <div
+            className={`grid min-h-64 overflow-y-auto whitespace-pre-wrap rounded-xl border p-5 font-mono text-sm transition-colors ${
+              !workerName.trim() && hasSelectedPendingMessages
+                ? 'place-items-center border-rose-200 bg-rose-50 text-rose-600'
+                : 'border-slate-200 bg-slate-950 text-slate-200'
+            }`}
+          >
+            {hasSelectedPendingMessages && !workerName.trim() ? (
+              <div className="flex flex-col items-center gap-2 text-center">
+                <FaExclamationCircle className="text-3xl" />
+                <span className="font-bold">근무자 이름을 입력해 주세요.</span>
+              </div>
+            ) : (
+              formattedResult || (
+                <span className="select-none text-slate-500">
+                  위 목록에서 전달할 메시지를 추가하면 결과가 표시됩니다.
+                </span>
+              )
+            )}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { IoMdCheckmark, IoMdCopy } from 'react-icons/io';
 import { MdEmail, MdOutlineTune } from 'react-icons/md';
+import WorkflowGuide from '../../components/WorkflowGuide';
 import {
   FOREIGN_MAIL_FIELDS,
   formatForeignMail,
@@ -60,6 +61,8 @@ function ForeignMail() {
         </p>
       </header>
 
+      <WorkflowGuide steps={['데이터 입력', '메일 확인·복사']} />
+
       <div className="grid gap-6">
         <section className="panel overflow-hidden">
           <div className="panel-header">
@@ -70,10 +73,11 @@ function ForeignMail() {
             <button
               type="button"
               onClick={() => setShowSettings(!showSettings)}
+              aria-expanded={showSettings}
               className="btn-secondary"
             >
               <MdOutlineTune size={18} />
-              열 순서 설정
+              {showSettings ? '열 순서 닫기' : '열 순서 설정'}
             </button>
           </div>
 
