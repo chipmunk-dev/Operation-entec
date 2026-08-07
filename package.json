@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test:foreign-mail": "node --test test/foreignMailFormatter.test.js",
-    "test:gems-message": "node --test test/gemsMessageFormatter.test.js",
+    "test:gems-message": "node --test test/gemsMessageFormatter.test.js test/gemsReporterStorage.test.js",
     "test:backup-transfer": "node --test test/backupTransfer.test.js",
     "test:persistent-event": "node --test test/persistentEventParser.test.js",
     "test:persistent-redirect": "node --test test/persistentRedirectParser.test.js"

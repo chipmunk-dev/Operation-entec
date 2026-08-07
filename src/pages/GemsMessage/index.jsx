@@ -5,6 +5,10 @@ import {
   formatGemsMessage,
   parseGemsMessageRows,
 } from '../../utils/gemsMessageFormatter';
+import {
+  loadGemsReporterName,
+  saveGemsReporterName,
+} from '../../utils/gemsReporterStorage';
 
 const outputModes = [
   {
@@ -18,7 +22,7 @@ const outputModes = [
 ];
 
 function GemsMessage() {
-  const [name, setName] = useState('');
+  const [name, setName] = useState(() => loadGemsReporterName());
   const [position, setPosition] = useState('사원');
   const [outputMode, setOutputMode] = useState('basic');
   const [rawInput, setRawInput] = useState('');
@@ -92,8 +96,13 @@ function GemsMessage() {
                 <input
                   type="text"
                   value={name}
-                  onChange={(event) => setName(event.target.value)}
+                  onChange={(event) => {
+                    const nextName = event.target.value;
+                    setName(nextName);
+                    saveGemsReporterName(nextName);
+                  }}
                   aria-invalid={isReporterNameRequired || undefined}
+                  maxLength={50}
                   className={`field-input min-w-0 py-2 ${
                     isReporterNameRequired ? 'border-rose-300 bg-rose-50' : ''
                   }`}
