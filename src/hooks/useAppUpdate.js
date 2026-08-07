@@ -4,7 +4,7 @@ import {
   hasAppVersionChanged,
 } from '../utils/appVersion';
 
-const APP_VERSION_CHECK_INTERVAL_MS = 60 * 1000;
+const APP_VERSION_CHECK_INTERVAL_MS = 15 * 60 * 1000;
 const CURRENT_APP_VERSION = import.meta.env.VITE_APP_VERSION;
 
 function useAppUpdate() {
