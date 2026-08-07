@@ -23,8 +23,11 @@ function AppUpdateBanner() {
               새 버전이 배포되었습니다.
             </p>
             <p className="mt-0.5 text-xs leading-5 text-blue-700">
-              최신 기능을 사용하려면 새로고침해 주세요. 작성 중인 내용은 먼저
-              확인해 주세요.
+              최신 기능을 사용하려면 새로고침해 주세요.
+            </p>
+            <p className="mt-1 text-[11px] font-semibold leading-4 text-rose-600">
+              * 주의: 지속 이벤트 재전달 작업 중에는 입력 데이터가 사라질 수
+              있으니 작업을 마친 뒤 새로고침하세요.
             </p>
           </div>
         </div>
