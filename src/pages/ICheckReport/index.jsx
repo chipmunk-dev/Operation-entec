@@ -1,6 +1,13 @@
 import { useMemo, useState } from 'react';
 import { IoMdCheckmark, IoMdCopy } from 'react-icons/io';
-import { MdFactCheck, MdOutlineWarningAmber } from 'react-icons/md';
+import {
+  MdContentPaste,
+  MdFactCheck,
+  MdGroups,
+  MdOutlineWarningAmber,
+} from 'react-icons/md';
+import { FaFileExcel } from 'react-icons/fa6';
+import HowToPopover from '../../components/HowToPopover';
 import WorkflowGuide from '../../components/WorkflowGuide';
 import {
   formatICheckReport,
@@ -14,6 +21,29 @@ import {
 
 const inputPlaceholder =
   '2026-06-13\tLG전자\tLGECCRP1 / LGEAETL1\tSA3E-36\tIBM\tServer\tPOWER 570\tN/A\t!점등\t2\t정유희\t김미경 책임\t\t○\t\t○ 06/13 김미경 책임 - 확인요청';
+
+const howToSteps = [
+  {
+    title: '엑셀 16열 복사',
+    description: '아이체크에서 보고할 장비 행과 16개 열을 그대로 복사합니다.',
+    icon: <FaFileExcel />,
+  },
+  {
+    title: '데이터 붙여넣기',
+    description: '원본 입력란에 붙여넣으면 빈 줄과 중복 행을 자동 정리합니다.',
+    icon: <MdContentPaste />,
+  },
+  {
+    title: '담당자별 자동 분류',
+    description: '12번째 열의 서버 담당자를 기준으로 장비를 한 번에 묶습니다.',
+    icon: <MdGroups />,
+  },
+  {
+    title: '보고 문구 복사',
+    description: '담당자별 완성 문구를 복사해 메신저로 전달합니다.',
+    icon: <IoMdCopy />,
+  },
+];
 
 function ICheckReport() {
   const [reporterName, setReporterName] = useState(() =>
@@ -52,7 +82,14 @@ function ICheckReport() {
   return (
     <div className="page-shell">
       <header className="page-header">
-        <span className="page-eyebrow">I-Check equipment report</span>
+        <div className="flex items-start justify-between gap-3">
+          <span className="page-eyebrow">I-Check equipment report</span>
+          <HowToPopover
+            title="아이체크 보고 사용방법"
+            summary="엑셀 데이터를 붙여넣고 담당자별 보고 문구를 바로 복사하세요."
+            steps={howToSteps}
+          />
+        </div>
         <div className="flex items-center gap-3">
           <span className="grid h-11 w-11 place-items-center rounded-2xl bg-cyan-100 text-cyan-700">
             <MdFactCheck size={25} />
