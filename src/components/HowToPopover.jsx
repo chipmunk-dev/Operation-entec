@@ -59,8 +59,8 @@ function HowToPopover({ title, summary, steps }) {
         aria-describedby={isOpen ? tooltipId : undefined}
         className={`btn gap-1.5 border px-3 py-2 text-xs shadow-sm ${
           isOpen
-            ? 'border-blue-300 bg-blue-50 text-blue-700'
-            : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-700'
+            ? 'border-blue-300 bg-blue-50/90 text-blue-700 shadow-blue-100'
+            : 'border-white/90 bg-white/80 text-slate-600 backdrop-blur hover:border-blue-200 hover:bg-white hover:text-blue-700'
         }`}
       >
         <MdHelpOutline size={18} aria-hidden="true" />
@@ -71,9 +71,9 @@ function HowToPopover({ title, summary, steps }) {
         <div
           id={tooltipId}
           role="tooltip"
-          className="howto-popover absolute right-0 top-[calc(100%+0.6rem)] z-50 max-h-[calc(100vh-7rem)] w-[min(24rem,calc(100vw-6rem))] overflow-x-hidden overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/20"
+          className="howto-popover absolute right-0 top-[calc(100%+0.6rem)] z-50 max-h-[calc(100vh-7rem)] w-[min(24rem,calc(100vw-6rem))] overflow-x-hidden overflow-y-auto rounded-3xl border border-white/80 bg-white/95 shadow-2xl shadow-slate-900/20 backdrop-blur-2xl"
         >
-          <div className="border-b border-blue-100 bg-gradient-to-br from-blue-50 via-white to-cyan-50 px-4 pb-4 pt-3.5">
+          <div className="border-b border-blue-100/80 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.18),transparent_42%),linear-gradient(145deg,#eff6ff,#ffffff_55%,#ecfeff)] px-4 pb-4 pt-3.5">
             <div className="mb-3">
               <p className="text-sm font-bold text-slate-900">{title}</p>
               <p className="mt-1 text-xs leading-5 text-slate-500">{summary}</p>
@@ -83,7 +83,7 @@ function HowToPopover({ title, summary, steps }) {
               {steps.map((step, index) => (
                 <div key={step.title} className="contents">
                   <div
-                    className="howto-step-icon grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-blue-100 bg-white text-lg text-blue-600 shadow-sm"
+                    className="howto-step-icon grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white bg-white/90 text-lg text-blue-600 shadow-md shadow-blue-100/70"
                     style={{ animationDelay: `${index * 180}ms` }}
                   >
                     {step.icon}
@@ -100,7 +100,7 @@ function HowToPopover({ title, summary, steps }) {
             {steps.map((step, index) => (
               <li
                 key={step.title}
-                className="group flex gap-3 rounded-xl px-2 py-2 transition hover:bg-slate-50"
+                className="group flex gap-3 rounded-2xl px-2 py-2 transition hover:bg-blue-50/60"
               >
                 <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-blue-50 text-[11px] font-bold text-blue-700 ring-1 ring-blue-100">
                   {index + 1}

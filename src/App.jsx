@@ -15,19 +15,23 @@ import ICheckReport from './pages/ICheckReport';
 import PersistentEventExcel from './pages/PersistentEventExcel';
 
 function App() {
-  const [isMenuOpen, setIsMenuOpen] = useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(() =>
+    typeof window === 'undefined'
+      ? true
+      : window.matchMedia('(min-width: 1024px)').matches,
+  );
 
   return (
     <Router>
-      <div className="min-h-screen bg-slate-50">
+      <div className="app-canvas min-h-screen">
         <Navbar isOpen={isMenuOpen} setIsOpen={setIsMenuOpen} />
         <div
-          className={`flex min-h-screen flex-col transition-[margin] duration-300 ${
-            isMenuOpen ? 'ml-64' : 'ml-[72px]'
+          className={`app-content flex min-h-screen flex-col transition-[margin] duration-300 ${
+            isMenuOpen ? 'ml-[92px] lg:ml-[276px]' : 'ml-[92px]'
           }`}
         >
           <AppUpdateBanner />
-          <main className="flex-1">
+          <main className="relative z-10 flex-1">
             <Routes>
               <Route path="/" element={<Navigate to="/foreign-mail" replace />} />
               <Route path="/foreign-mail" element={<ForeignMail />} />
@@ -40,7 +44,7 @@ function App() {
             </Routes>
           </main>
 
-          <footer className="border-t border-slate-200 bg-white px-6 py-6">
+          <footer className="app-footer relative z-10 mx-4 mb-4 rounded-2xl border border-white/80 bg-white/70 px-6 py-5 shadow-sm backdrop-blur-xl sm:mx-6 lg:mx-8">
             <div className="mx-auto flex max-w-[1440px] flex-col gap-4 text-xs text-slate-500 lg:flex-row lg:items-end lg:justify-between">
               <div className="space-y-1.5">
                 <p className="font-semibold text-slate-700">
