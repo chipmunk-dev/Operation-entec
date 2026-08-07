@@ -6,6 +6,13 @@ import {
   parseForeignMailRows,
 } from '../src/utils/foreignMailFormatter.js';
 
+const LINE_DIVIDER = '-------------------------------------------------------';
+
+const countLineDividers = (value) =>
+  String(value || '')
+    .split('\n')
+    .filter((line) => line === LINE_DIVIDER).length;
+
 test('표준 해외메일 입력을 파싱하고 메일 형식으로 변환한다', () => {
   const rows = parseForeignMailRows(
     [
@@ -17,19 +24,17 @@ test('표준 해외메일 입력을 파싱하고 메일 형식으로 변환한�
 
   assert.equal(rows.length, 2);
   assert.equal(rows[0].data.message, 'Disk warning');
-  assert.match(result, /\[ EVENT 01 \/ TOTAL 02 \]/u);
-  assert.match(result, /\[ EVENT 02 \/ TOTAL 02 \]/u);
   assert.match(result, /Date\s+: 2026-08-03 09:00:00 \(Base On Korea Time\)/u);
   assert.match(result, /Host\s+: HOST-01/u);
   assert.match(result, /Message\s+: Disk warning/u);
   assert.match(result, /Host\s+: HOST-02/u);
-  assert.doesNotMatch(result, /-{20,}/u);
-  assert.doesNotMatch(result, /\[ EVENT[^\]]*HOST/u);
+  assert.equal(countLineDividers(result), 3);
+  assert.doesNotMatch(result, /^\[ EVENT \d+ \/ TOTAL \d+ \]$/mu);
   assert.match(
     result,
-    /\[ EVENT 01 \/ TOTAL 02 \]\nDate[\s\S]*Message\s+: Disk warning\n\n\[ EVENT 02 \/ TOTAL 02 \]\nDate/u,
+    /Message\s+: Disk warning\n-{55}\nDate[\s\S]*Message\s+: CPU warning/u,
   );
-  assert.doesNotMatch(result, /Message\s+: Disk warning\n\n\n\[ EVENT/u);
+  assert.doesNotMatch(result, /Message\s+: Disk warning\n\n+-{55}/u);
   assert.match(result, /Thank you\./u);
 });
 
@@ -114,7 +119,7 @@ test('입력이 없으면 빈 메일 결과를 반환한다', () => {
   assert.equal(formatForeignMail(null), '');
 });
 
-test('재전달 해외메일은 상단 Resend 문구와 동일한 이벤트 양식을 사용한다', () => {
+test('재전달 해외메일은 상단 Resend 문구와 동일한 구분선 양식을 사용한다', () => {
   const result = formatForeignMail(
     [
       {
@@ -132,9 +137,10 @@ test('재전달 해외메일은 상단 Resend 문구와 동일한 이벤트 양�
   assert.match(result, /^- Resend -\n\nDear!\n/u);
   assert.match(
     result,
-    /\[ EVENT 01 \/ TOTAL 01 \]\nDate\s+: 2026-08-03 09:00:00 \(Base On Korea Time\)\nIP\s+: 10\.0\.0\.1\nHost\s+: HOST-01\nMessage\s+: Disk warning/u,
+    /-{55}\nDate\s+: 2026-08-03 09:00:00 \(Base On Korea Time\)\nIP\s+: 10\.0\.0\.1\nHost\s+: HOST-01\nMessage\s+: Disk warning\n-{55}/u,
   );
-  assert.doesNotMatch(result, /-{20,}/u);
+  assert.equal(countLineDividers(result), 2);
+  assert.doesNotMatch(result, /^\[ EVENT \d+ \/ TOTAL \d+ \]$/mu);
 });
 
 test('일반 해외메일과 재전달 해외메일은 Resend 머리말 외에 완전히 같은 본문을 사용한다', () => {
@@ -162,12 +168,14 @@ test('일반 해외메일과 재전달 해외메일은 Resend 머리말 외에 �
   assert.equal(resendResult, `- Resend -\n\n${normalResult}`);
   assert.match(
     resendResult,
-    /Message\s+: Disk warning\n\n\[ EVENT 02 \/ TOTAL 02 \]\nDate/u,
+    /Message\s+: Disk warning\n-{55}\nDate/u,
   );
-  assert.doesNotMatch(resendResult, /Message\s+: Disk warning\n\n\n/u);
+  assert.equal(countLineDividers(normalResult), 3);
+  assert.equal(countLineDividers(resendResult), 3);
+  assert.doesNotMatch(resendResult, /Message\s+: Disk warning\n\n+-{55}/u);
 });
 
-test('100건을 넘어가도 이벤트 번호와 전체 건수를 잘림 없이 표시한다', () => {
+test('100건을 넘어가도 모든 이벤트를 구분선으로 빠짐없이 분리한다', () => {
   const rows = Array.from({ length: 105 }, (_, index) => ({
     data: {
       date: `2026-08-03 09:${String(index % 60).padStart(2, '0')}:00`,
@@ -177,14 +185,11 @@ test('100건을 넘어가도 이벤트 번호와 전체 건수를 잘림 없이 
     },
   }));
   const result = formatForeignMail(rows);
-  const eventHeaders =
-    result.match(/^\[ EVENT \d+ \/ TOTAL 105 \]$/gmu) ?? [];
 
-  assert.equal(eventHeaders.length, 105);
-  assert.equal(eventHeaders[0], '[ EVENT 01 / TOTAL 105 ]');
-  assert.equal(eventHeaders[98], '[ EVENT 99 / TOTAL 105 ]');
-  assert.equal(eventHeaders[99], '[ EVENT 100 / TOTAL 105 ]');
-  assert.equal(eventHeaders[104], '[ EVENT 105 / TOTAL 105 ]');
+  assert.equal(countLineDividers(result), 106);
+  assert.match(result, /Host\s+: HOST-1\nMessage\s+: Warning 1/u);
+  assert.match(result, /Host\s+: HOST-105\nMessage\s+: Warning 105/u);
+  assert.doesNotMatch(result, /^\[ EVENT \d+ \/ TOTAL \d+ \]$/mu);
 });
 
 test('누락되거나 비정상적인 행도 undefined·null 노출 없이 안전하게 출력한다', () => {
@@ -202,13 +207,13 @@ test('누락되거나 비정상적인 행도 undefined·null 노출 없이 안�
     },
   ]);
 
-  assert.match(result, /\[ EVENT 01 \/ TOTAL 04 \]/u);
-  assert.match(result, /\[ EVENT 04 \/ TOTAL 04 \]/u);
+  assert.equal(countLineDividers(result), 5);
   assert.match(result, /Message\s+: Fallback warning/u);
   assert.doesNotMatch(result, /undefined|null/u);
+  assert.doesNotMatch(result, /^\[ EVENT \d+ \/ TOTAL \d+ \]$/mu);
 });
 
-test('한 건일 때 불필요한 이벤트 간격을 만들지 않고 특수문자를 보존한다', () => {
+test('한 건일 때 앞뒤 구분선과 특수문자를 보존한다', () => {
   const message = 'DB [PRIMARY] → CPU 99.9% / 확인: O&K <retry>';
   const result = formatForeignMail([
     {
@@ -221,9 +226,9 @@ test('한 건일 때 불필요한 이벤트 간격을 만들지 않고 특수문
     },
   ]);
 
-  assert.match(result, /\[ EVENT 01 \/ TOTAL 01 \]\nDate/u);
+  assert.match(result, /-{55}\nDate/u);
   assert.match(result, /IP\s+: 2001:db8::1/u);
   assert.ok(result.includes(`Message : ${message}`));
-  assert.equal((result.match(/^\[ EVENT/gmu) ?? []).length, 1);
-  assert.doesNotMatch(result, /Message[^\n]*\n\n\[ EVENT/u);
+  assert.equal(countLineDividers(result), 2);
+  assert.doesNotMatch(result, /^\[ EVENT \d+ \/ TOTAL \d+ \]$/mu);
 });

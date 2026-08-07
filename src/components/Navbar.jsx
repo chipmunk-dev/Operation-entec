@@ -94,6 +94,11 @@ const changeLogItems = [
     title: '담당자 제거·메신저 최적화',
     detail: 'G-EMS 메시지의 확인 담당자를 제거하고 기본·보고용 전달 문구로 정리하는 기능을 추가했습니다.',
   },
+  {
+    date: '2026.08.07',
+    title: '해외메일 구분선 양식 복원',
+    detail: 'Event·TOTAL 표기 대신 하이픈 구분선으로 이벤트를 나누는 기존 해외메일 양식을 복원했습니다.',
+  },
 ];
 
 const Navbar = ({ isOpen, setIsOpen }) => (
