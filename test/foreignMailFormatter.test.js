@@ -3,8 +3,10 @@ import assert from 'node:assert/strict';
 import {
   FOREIGN_MAIL_FIELDS,
   formatForeignMail,
+  formatForeignResendMail,
   parseForeignMailRows,
 } from '../src/utils/foreignMailFormatter.js';
+import { parsePersistentRedirectMessages } from '../src/utils/persistentRedirectParser.js';
 
 const LINE_DIVIDER = '-------------------------------------------------------';
 
@@ -120,19 +122,16 @@ test('입력이 없으면 빈 메일 결과를 반환한다', () => {
 });
 
 test('재전달 해외메일은 상단 Resend 문구와 동일한 구분선 양식을 사용한다', () => {
-  const result = formatForeignMail(
-    [
-      {
-        data: {
-          date: '2026-08-03 09:00:00',
-          ip: '10.0.0.1',
-          host: 'HOST-01',
-          cleanEvent: 'Disk warning',
-        },
+  const result = formatForeignResendMail([
+    {
+      data: {
+        date: '2026-08-03 09:00:00',
+        ip: '10.0.0.1',
+        host: 'HOST-01',
+        cleanEvent: 'Disk warning',
       },
-    ],
-    { heading: '- Resend -' },
-  );
+    },
+  ]);
 
   assert.match(result, /^- Resend -\n\nDear!\n/u);
   assert.match(
@@ -141,6 +140,40 @@ test('재전달 해외메일은 상단 Resend 문구와 동일한 구분선 양�
   );
   assert.equal(countLineDividers(result), 2);
   assert.doesNotMatch(result, /^\[ EVENT \d+ \/ TOTAL \d+ \]$/mu);
+});
+
+test('지속 이벤트 재전달의 해외메일에도 공통 구분선과 아웃룩용 공백을 적용한다', () => {
+  const rows = parsePersistentRedirectMessages(
+    [
+      'HOST-01\tDisk warning\t2026-08-07 09:00:00\t10.0.0.1',
+      'HOST-02\tCPU warning\t2026-08-07 09:10:00\t10.0.0.2',
+    ].join('\n'),
+  );
+  const result = formatForeignResendMail(rows);
+
+  assert.equal(
+    result,
+    `- Resend -
+
+Dear!
+This is KIC Control office in Korea.
+Monitoring System detected warning message(s) from your server.
+Please check following message(s).
+
+${LINE_DIVIDER}
+Date        : 2026-08-07 09:00:00 (Base On Korea Time)
+IP             : 10.0.0.1
+Host        : HOST-01
+Message : Disk warning
+${LINE_DIVIDER}
+Date        : 2026-08-07 09:10:00 (Base On Korea Time)
+IP             : 10.0.0.2
+Host        : HOST-02
+Message : CPU warning
+${LINE_DIVIDER}
+
+Thank you.`,
+  );
 });
 
 test('일반 해외메일과 재전달 해외메일은 Resend 머리말 외에 완전히 같은 본문을 사용한다', () => {
@@ -163,7 +196,7 @@ test('일반 해외메일과 재전달 해외메일은 Resend 머리말 외에 �
     },
   ];
   const normalResult = formatForeignMail(rows);
-  const resendResult = formatForeignMail(rows, { heading: '- Resend -' });
+  const resendResult = formatForeignResendMail(rows);
 
   assert.equal(resendResult, `- Resend -\n\n${normalResult}`);
   assert.match(

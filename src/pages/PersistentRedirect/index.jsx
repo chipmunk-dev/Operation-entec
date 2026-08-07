@@ -8,7 +8,7 @@ import {
   toggleAllPersistentRedirectIds,
   togglePersistentRedirectId,
 } from '../../utils/persistentRedirectParser';
-import { formatForeignMail } from '../../utils/foreignMailFormatter';
+import { formatForeignResendMail } from '../../utils/foreignMailFormatter';
 
 function PersistentRedirect() {
   const [rawInput, setRawInput] = useState('');
@@ -139,9 +139,7 @@ function PersistentRedirect() {
         formatted += '감사합니다.';
 
     } else if (outputMode === 'email') {
-        formatted = formatForeignMail(sortedSelected, {
-            heading: '- Resend -',
-        });
+        formatted = formatForeignResendMail(sortedSelected);
 
     } else if (outputMode === 'global') {
         formatted = '- Resend -\n\n';

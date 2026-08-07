@@ -68,3 +68,5 @@ ${lineDivider}
 Thank you.`;
 };
 
+export const formatForeignResendMail = (rows) =>
+  formatForeignMail(rows, { heading: '- Resend -' });
