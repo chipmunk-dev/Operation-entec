@@ -72,7 +72,7 @@
   }
 
   .page-header {
-    @apply relative mb-5 flex flex-col gap-2 overflow-visible rounded-[28px] border border-white/90 bg-white/80 p-5 shadow-[0_18px_55px_rgba(15,23,42,0.07)] backdrop-blur-xl sm:p-6;
+    @apply relative z-20 mb-5 flex flex-col gap-2 overflow-visible rounded-[28px] border border-white/90 bg-white/80 p-5 shadow-[0_18px_55px_rgba(15,23,42,0.07)] backdrop-blur-xl sm:p-6;
     background-image:
       radial-gradient(circle at 92% 12%, rgb(34 211 238 / 0.13), transparent 17rem),
       radial-gradient(circle at 74% 120%, rgb(59 130 246 / 0.1), transparent 22rem),
