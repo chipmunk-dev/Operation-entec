@@ -4,6 +4,7 @@ import {
   MdEmail,
   MdHistory,
   MdMenu,
+  MdFactCheck,
   MdOutlineChevronLeft,
   MdOutlineMessage,
 } from 'react-icons/md';
@@ -34,6 +35,12 @@ const menuItems = [
     description: 'Event Redirect',
     path: '/persistent-redirect',
     icon: FaArrowsRotate,
+  },
+  {
+    name: '아이체크 보고',
+    description: 'I-Check Report',
+    path: '/icheck-report',
+    icon: MdFactCheck,
   },
   {
     name: '지속 메시지 엑셀',
@@ -82,7 +89,8 @@ G-EMS 보고자 정보·출력 방식 한 줄형 설정으로 간소화
 G-EMS 보고자 이름 브라우저 12시간 임시 저장
 전체 메뉴 작업 순서 안내 추가 및 기능별 상태·버튼 명칭 정리
 새 배포 감지 및 상단 새로고침 안내 추가
-서비스 표시명 Operation CNS Elect로 변경`,
+서비스 표시명 Operation CNS Elect로 변경
+아이체크 16열 파싱 및 서버 담당자별 메신저 보고 문구 생성 추가`,
   },
 ];
 

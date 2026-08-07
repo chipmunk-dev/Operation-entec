@@ -11,6 +11,7 @@ import ForeignMail from './pages/ForeignMail';
 import GemsMessage from './pages/GemsMessage';
 import AutoBackupErrorFilter from './pages/AutoBackupErrorFilter';
 import PersistentRedirect from './pages/PersistentRedirect';
+import ICheckReport from './pages/ICheckReport';
 import PersistentEventExcel from './pages/PersistentEventExcel';
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
               <Route path="/foreign-mail" element={<ForeignMail />} />
               <Route path="/gems-message" element={<GemsMessage />} />
               <Route path="/persistent-redirect" element={<PersistentRedirect />} />
+              <Route path="/icheck-report" element={<ICheckReport />} />
               <Route path="/persistent-event-excel" element={<PersistentEventExcel />} />
               <Route path="/auto-backup-error-filter" element={<AutoBackupErrorFilter />} />
               <Route path="*" element={<Navigate to="/" replace />} />

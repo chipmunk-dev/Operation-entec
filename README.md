@@ -55,6 +55,15 @@ G-EMS 메시지, 백업 오류 목록, 지속 메시지 엑셀 보고서 등 필
 - 국내·해외 메신저와 공통 구분선·아웃룩 정렬용 공백이 적용된 Resend 해외메일 문구 생성
 - 괄호가 포함된 처리 내용의 원본/괄호 제외 문구 제공
 
+### 아이체크 보고
+
+- 아이체크 엑셀의 16열 데이터를 복사해 붙여넣는 방식으로 입력
+- 확인일·고객사·호스트명·장비 위치·제조사·유형·모델·이상 상태 등 열 판독
+- 엑셀의 따옴표 포함 여러 줄 내역 복구 및 완전히 동일한 행 중복 제거
+- 장비 위치·호스트명·이상 상태를 서버 담당자별로 자동 그룹화
+- 보고자 이름·직급이 포함된 담당자별 메신저 보고 문구 생성 및 개별 복사
+- 보고자 이름을 G-EMS 메신저 도구와 공유해 브라우저에 12시간 임시 저장
+
 ### 지속 메시지 엑셀 추출
 
 - 입력 데이터의 발생일시를 계산이나 변환 없이 그대로 사용
@@ -107,6 +116,7 @@ npm run dev
 | `npm run test:app-version` | 새 배포 버전 판독 테스트 |
 | `npm run test:foreign-mail` | 해외메일 입력 복구·포맷 테스트 |
 | `npm run test:gems-message` | G-EMS 메시지 파싱·포맷 테스트 |
+| `npm run test:icheck-report` | 아이체크 16열 파싱·담당자별 보고 테스트 |
 | `npm run test:backup-transfer` | 자동 백업 JSON 공유 테스트 |
 | `npm run test:persistent-event` | 지속 메시지 파싱·엑셀 테스트 |
 | `npm run test:persistent-redirect` | 지속 이벤트 파싱 테스트 |
@@ -144,6 +154,21 @@ Job Policy    Start Time
 ```
 
 화면의 열 순서 설정에서 각 필드의 위치를 입력 데이터에 맞게 변경할 수 있습니다.
+
+### 아이체크 보고
+
+아이체크 엑셀에서 다음 16개 열을 순서대로 복사해 붙여넣습니다.
+
+```text
+확인일    고객사    호스트명(서버명)    장비 위치    제조사    유형
+장비 모델명    기타값    이상 상태    확인 근무자 조    확인 근무자 이름
+서버 담당자(어드민)    미처리    유지중    소등    내역
+```
+
+보고 문구에는 장비 위치, 호스트명, 이상 상태를 사용하며 12번째 열의 서버
+담당자를 기준으로 여러 장비를 한 메시지에 묶습니다. 헤더와 빈 줄은 제외하고,
+16개 열이 완전히 같은 중복 행은 한 건만 유지합니다. 내역 셀 안의 줄바꿈은
+엑셀의 따옴표 범위를 판독해 같은 행으로 복구합니다.
 
 ### 지속 메시지 엑셀
 
@@ -236,6 +261,7 @@ src/
 ├── pages/
 │   ├── AutoBackupErrorFilter/
 │   ├── ForeignMail/
+│   ├── ICheckReport/
 │   ├── PersistentEventExcel/
 │   ├── PersistentRedirect/
 │   └── Redirect/
@@ -243,6 +269,7 @@ src/
 │   ├── autoBackupStorage.js
 │   ├── appVersion.js
 │   ├── backupTransfer.js
+│   ├── iCheckReportFormatter.js
 │   ├── persistentEventParser.js
 │   ├── persistentRedirectParser.js
 │   └── xlsxExport.js
