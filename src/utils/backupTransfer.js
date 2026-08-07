@@ -62,7 +62,7 @@ export const parseBackupTransfer = (serialized, zones) => {
     throw new Error('공유 JSON 파일의 구조가 올바르지 않습니다.');
   }
   if (candidate.type !== BACKUP_TRANSFER_TYPE) {
-    throw new Error('Operation Entec 자동 백업 공유 파일이 아닙니다.');
+    throw new Error('Operation CNS Elect 자동 백업 공유 파일이 아닙니다.');
   }
   if (candidate.version !== BACKUP_TRANSFER_VERSION) {
     throw new Error('지원하지 않는 공유 JSON 파일 버전입니다.');

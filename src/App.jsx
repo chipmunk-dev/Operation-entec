@@ -42,16 +42,16 @@ function App() {
             <div className="mx-auto flex max-w-[1440px] flex-col gap-4 text-xs text-slate-500 lg:flex-row lg:items-end lg:justify-between">
               <div className="space-y-1.5">
                 <p className="font-semibold text-slate-700">
-                  Operation Entec
+                  Operation CNS Elect
                   <span className="ml-2 font-normal text-slate-400">
-                    OP 업무의 반복 작업을 줄이기 위한 내부 업무 지원 도구
+                    LG CNS 전자팀의 반복 작업을 줄이기 위한 내부 업무 지원 도구
                   </span>
                 </p>
                 <p className="leading-5">
                   데이터 가공과 JSON 파일 공유는 브라우저에서 수행되며 외부 서버에
                   백업 데이터를 저장하지 않습니다.
                 </p>
-                <p className="text-slate-400">© 2026 Operation Entec</p>
+                <p className="text-slate-400">© 2026 Operation CNS Elect</p>
               </div>
               <div className="flex flex-wrap items-center gap-x-5 gap-y-2 font-medium">
                 <a

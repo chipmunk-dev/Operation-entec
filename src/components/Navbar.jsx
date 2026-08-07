@@ -81,7 +81,8 @@ Event·TOTAL 표기 대신 하이픈 구분선과 아웃룩 정렬용 공백을 
 G-EMS 보고자 정보와 출력 방식을 항상 표시되는 한 줄형 설정으로 간소화했습니다.
 G-EMS 보고자 이름을 브라우저에 12시간 동안 임시 저장하도록 개선했습니다.
 모든 메뉴에 작업 순서 안내를 추가하고 기능별 상태와 버튼 명칭을 더 명확하게 정리했습니다.
-새 배포를 감지하면 화면 상단에서 새로고침을 안내하도록 개선했습니다.`,
+새 배포를 감지하면 화면 상단에서 새로고침을 안내하도록 개선했습니다.
+서비스 표시명을 LG CNS 전자팀에 맞춰 Operation CNS Elect로 변경했습니다.`,
   },
 ];
 
@@ -95,8 +96,8 @@ const Navbar = ({ isOpen, setIsOpen }) => (
       <div className={`min-w-0 transition-opacity ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
         {isOpen && (
           <>
-            <p className="truncate text-base font-bold tracking-tight">Operation Entec</p>
-            <p className="mt-0.5 text-[11px] font-medium text-slate-500">OP WORKSPACE</p>
+            <p className="truncate text-base font-bold tracking-tight">Operation CNS Elect</p>
+            <p className="mt-0.5 text-[11px] font-medium text-slate-500">LG CNS ELECT TEAM</p>
           </>
         )}
       </div>
@@ -167,7 +168,7 @@ const Navbar = ({ isOpen, setIsOpen }) => (
         }`}
       >
         <div className="mb-3 border-b border-slate-800 pb-3">
-          <p className="text-sm font-bold text-white">Operation Entec 히스토리</p>
+          <p className="text-sm font-bold text-white">Operation CNS Elect 히스토리</p>
           <p className="mt-1 text-[11px] text-slate-500">
             2025년 이후 주요 기능·커밋 기준
           </p>
