@@ -1,10 +1,6 @@
 import { useMemo, useState } from 'react';
 import { IoMdCheckmark, IoMdCopy } from 'react-icons/io';
-import {
-  MdExpandLess,
-  MdExpandMore,
-  MdOutlineMessage,
-} from 'react-icons/md';
+import { MdOutlineMessage } from 'react-icons/md';
 import {
   formatGemsMessage,
   parseGemsMessageRows,
@@ -13,11 +9,11 @@ import {
 const outputModes = [
   {
     value: 'basic',
-    title: '기본 정리',
+    title: '확인 내역만 제거',
   },
   {
     value: 'report',
-    title: '메신저 보고용',
+    title: '메신저 보고 양식 자동완성',
   },
 ];
 
@@ -27,7 +23,6 @@ function GemsMessage() {
   const [outputMode, setOutputMode] = useState('basic');
   const [rawInput, setRawInput] = useState('');
   const [copied, setCopied] = useState(false);
-  const [isSettingsExpanded, setIsSettingsExpanded] = useState(false);
 
   const rows = useMemo(() => parseGemsMessageRows(rawInput), [rawInput]);
   const result = useMemo(
@@ -44,8 +39,6 @@ function GemsMessage() {
     (row) => row.confirmationText,
   ).length;
   const isReporterNameRequired = outputMode === 'report' && !name.trim();
-  const hasCollapsedReporterError =
-    !isSettingsExpanded && isReporterNameRequired;
   const canCopy =
     Boolean(result) && !isReporterNameRequired && incompleteRowCount === 0;
 
@@ -74,80 +67,45 @@ function GemsMessage() {
 
       <div className="grid gap-6">
         <section
-          aria-invalid={hasCollapsedReporterError || undefined}
-          className={`panel overflow-hidden transition-colors ${
-            hasCollapsedReporterError
+          aria-invalid={isReporterNameRequired || undefined}
+          className={`panel px-4 py-3 transition-colors ${
+            isReporterNameRequired
               ? 'border-rose-400 bg-rose-50/50 ring-2 ring-rose-100'
               : ''
           }`}
         >
-          <div className="flex items-center justify-between gap-3 px-4 py-3">
-            <div>
-              <h2
-                className={`text-sm font-bold ${
-                  hasCollapsedReporterError
-                    ? 'text-rose-700'
-                    : 'text-slate-900'
-                }`}
-              >
-                1. 보고자 정보와 출력 방식
-              </h2>
-              <p
-                role={hasCollapsedReporterError ? 'alert' : undefined}
-                className={`mt-0.5 text-xs ${
-                  hasCollapsedReporterError
-                    ? 'font-semibold text-rose-600'
-                    : 'text-slate-500'
-                }`}
-              >
-                {hasCollapsedReporterError
-                  ? '메신저 보고용 복사를 위해 이름 입력이 필요합니다.'
-                  : '보고용 문구에 이름과 직급을 반영합니다.'}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setIsSettingsExpanded((current) => !current)}
-              aria-expanded={isSettingsExpanded}
-              aria-controls="gems-message-settings"
-              className={`btn-secondary shrink-0 px-3 py-2 text-xs ${
-                hasCollapsedReporterError
-                  ? 'border-rose-300 text-rose-700 hover:bg-rose-100'
-                  : ''
+          <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
+            <h2
+              className={`shrink-0 text-sm font-bold ${
+                isReporterNameRequired ? 'text-rose-700' : 'text-slate-900'
               }`}
             >
-              {isSettingsExpanded ? (
-                <MdExpandLess size={18} />
-              ) : (
-                <MdExpandMore size={18} />
-              )}
-              {isSettingsExpanded ? '설정 감추기' : '설정 펼치기'}
-            </button>
-          </div>
+              1. 보고자 정보와 출력 방식
+            </h2>
 
-          {isSettingsExpanded && (
             <div
               id="gems-message-settings"
-              className="grid items-end gap-3 border-t border-slate-100 px-4 py-3 sm:grid-cols-[minmax(180px,1fr)_120px] xl:grid-cols-[minmax(180px,1fr)_120px_minmax(320px,1.4fr)]"
+              className="grid min-w-0 flex-1 gap-2 lg:grid-cols-[minmax(180px,0.8fr)_150px_minmax(430px,1.6fr)]"
             >
-              <label className="mb-0 text-xs font-semibold text-slate-700">
-                이름
+              <label className="mb-0 flex items-center gap-2 text-xs font-semibold text-slate-700">
+                <span className="shrink-0">이름</span>
                 <input
                   type="text"
                   value={name}
                   onChange={(event) => setName(event.target.value)}
-                  className={`field-input mt-1.5 py-2 ${
+                  aria-invalid={isReporterNameRequired || undefined}
+                  className={`field-input min-w-0 py-2 ${
                     isReporterNameRequired ? 'border-rose-300 bg-rose-50' : ''
                   }`}
                   placeholder="홍길동"
                 />
               </label>
-              <label className="mb-0 text-xs font-semibold text-slate-700">
-                직급
+              <label className="mb-0 flex items-center gap-2 text-xs font-semibold text-slate-700">
+                <span className="shrink-0">직급</span>
                 <select
                   value={position}
                   onChange={(event) => setPosition(event.target.value)}
-                  className="field-select mt-1.5 py-2"
+                  className="field-select min-w-0 py-2"
                 >
                   <option value="사원">사원</option>
                   <option value="선임">선임</option>
@@ -155,10 +113,8 @@ function GemsMessage() {
                 </select>
               </label>
 
-              <fieldset className="sm:col-span-2 xl:col-span-1">
-                <legend className="mb-1.5 text-xs font-semibold text-slate-700">
-                  출력 방식
-                </legend>
+              <fieldset className="min-w-0">
+                <legend className="sr-only">출력 방식</legend>
                 <div className="grid grid-cols-2 gap-2">
                   {outputModes.map(({ value, title }) => {
                     const isSelected = outputMode === value;
@@ -166,7 +122,7 @@ function GemsMessage() {
                     return (
                       <label
                         key={value}
-                        className={`flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2.5 transition ${
+                        className={`flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 transition ${
                           isSelected
                             ? 'border-violet-500 bg-violet-50 ring-2 ring-violet-100'
                             : 'border-slate-200 hover:border-violet-300 hover:bg-violet-50/40'
@@ -191,17 +147,12 @@ function GemsMessage() {
                 </div>
               </fieldset>
             </div>
-          )}
+          </div>
         </section>
 
         <section className="panel overflow-hidden">
           <div className="panel-header">
-            <div>
-              <h2 className="font-bold text-slate-900">2. 원본 데이터 입력</h2>
-              <p className="mt-1 text-xs text-slate-500">
-                한 줄에 호스트와 메시지를 입력하고 첫 번째 탭으로 구분합니다.
-              </p>
-            </div>
+            <h2 className="font-bold text-slate-900">2. 원본 데이터 입력</h2>
           </div>
 
           <div className="panel-body">
@@ -246,12 +197,7 @@ function GemsMessage() {
 
         <section className="panel flex min-h-[420px] flex-col overflow-hidden">
           <div className="panel-header">
-            <div>
-              <h2 className="font-bold text-slate-900">3. 완성된 메시지</h2>
-              <p className="mt-1 text-xs text-slate-500">
-                정리 결과를 확인한 뒤 전체 복사하세요.
-              </p>
-            </div>
+            <h2 className="font-bold text-slate-900">3. 완성된 메시지</h2>
             <button
               type="button"
               onClick={handleCopy}
@@ -266,7 +212,7 @@ function GemsMessage() {
           <div className="flex-1 p-5">
             {isReporterNameRequired && result && (
               <p className="mb-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-semibold text-rose-700">
-                메신저 보고용을 복사하려면 상단에 이름을 입력해 주세요.
+                메신저 보고 양식을 자동완성하려면 이름을 입력해 주세요.
               </p>
             )}
             {incompleteRowCount > 0 && (
