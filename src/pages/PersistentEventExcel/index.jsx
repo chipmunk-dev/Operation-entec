@@ -11,6 +11,7 @@ import {
   MdWarningAmber,
 } from 'react-icons/md';
 import { FaFileExcel } from 'react-icons/fa';
+import HowToPopover from '../../components/HowToPopover';
 import WorkflowGuide from '../../components/WorkflowGuide';
 import {
   DEFAULT_PERSISTENT_EVENT_ORDER,
@@ -29,6 +30,29 @@ const buildFileName = () => {
   )}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
   return `지속메시지_${compactDate}.xlsx`;
 };
+
+const howToSteps = [
+  {
+    title: '원본 데이터 입력',
+    description: '지속시간·그룹·호스트·내용·발생일시·IP 열을 붙여넣습니다.',
+    icon: <MdOutlineTune />,
+  },
+  {
+    title: '담당자 확인',
+    description: '자동 판독된 담당자를 확인하고 복수·미검출 항목을 확정합니다.',
+    icon: <MdOutlineVisibility />,
+  },
+  {
+    title: '제외 항목 정리',
+    description: '엑셀에 포함하지 않을 특이사항 행을 개별 또는 일괄 제외합니다.',
+    icon: <MdBlock />,
+  },
+  {
+    title: '엑셀 다운로드',
+    description: '검토가 끝난 데이터를 담당자 필터가 적용된 파일로 저장합니다.',
+    icon: <MdOutlineFileDownload />,
+  },
+];
 
 const getReviewMeta = (row) => {
   const adminIssue =
@@ -462,7 +486,14 @@ function PersistentEventExcel() {
   return (
     <div className="page-shell">
       <header className="page-header">
-        <span className="page-eyebrow">Event report</span>
+        <div className="flex items-start justify-between gap-3">
+          <span className="page-eyebrow">Event report</span>
+          <HowToPopover
+            title="지속 메시지 엑셀 추출 사용방법"
+            summary="지속 메시지의 담당자를 검토하고 보고용 엑셀을 생성합니다."
+            steps={howToSteps}
+          />
+        </div>
         <div className="flex items-center gap-3">
           <span className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-100 text-emerald-600">
             <FaFileExcel size={21} />

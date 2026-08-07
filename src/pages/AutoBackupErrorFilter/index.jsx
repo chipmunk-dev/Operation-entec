@@ -9,6 +9,7 @@ import {
   MdOutlineCloudDone,
   MdOutlineTableView,
 } from 'react-icons/md';
+import HowToPopover from '../../components/HowToPopover';
 import WorkflowGuide from '../../components/WorkflowGuide';
 import {
   clearBackupDraft,
@@ -30,6 +31,29 @@ const columnFields = [
   { key: 'status', label: 'Status' },
   { key: 'policyName', label: 'Policy' },
   { key: 'startTime', label: 'Start Time' },
+];
+
+const howToSteps = [
+  {
+    title: '데이터 관리 확인',
+    description: '기존 임시 저장값을 사용하거나 공유 JSON 파일을 불러옵니다.',
+    icon: <MdFileUpload />,
+  },
+  {
+    title: '백업존 데이터 입력',
+    description: '백업존을 선택하고 작업 목록과 필요한 열 위치를 확인합니다.',
+    icon: <MdOutlineTableView />,
+  },
+  {
+    title: '오류 자동 추출',
+    description: '정상 상태를 제외하고 확인이 필요한 백업 오류만 모읍니다.',
+    icon: <MdBackup />,
+  },
+  {
+    title: '결과 복사·공유',
+    description: '오류 보고를 복사하거나 입력 상태를 JSON 파일로 공유합니다.',
+    icon: <IoMdCopy />,
+  },
 ];
 
 const pad = (number) => number.toString().padStart(2, '0');
@@ -321,7 +345,14 @@ function AutoBackupErrorFilter() {
   return (
     <div className="page-shell">
       <header className="page-header">
-        <span className="page-eyebrow">Backup operations</span>
+        <div className="flex items-start justify-between gap-3">
+          <span className="page-eyebrow">Backup operations</span>
+          <HowToPopover
+            title="자동 백업 에러 필터 사용방법"
+            summary="백업 작업에서 정상 건을 제외하고 오류 보고를 정리합니다."
+            steps={howToSteps}
+          />
+        </div>
         <div className="flex items-center gap-3">
           <span className="grid h-11 w-11 place-items-center rounded-2xl bg-violet-100 text-violet-600">
             <MdBackup size={25} />

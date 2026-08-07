@@ -55,6 +55,7 @@ function HowToPopover({ title, summary, steps }) {
         type="button"
         onClick={() => setIsOpen(true)}
         aria-expanded={isOpen}
+        aria-haspopup="true"
         aria-describedby={isOpen ? tooltipId : undefined}
         className={`btn gap-1.5 border px-3 py-2 text-xs shadow-sm ${
           isOpen
@@ -70,7 +71,7 @@ function HowToPopover({ title, summary, steps }) {
         <div
           id={tooltipId}
           role="tooltip"
-          className="howto-popover absolute right-0 top-[calc(100%+0.6rem)] z-50 w-[min(24rem,calc(100vw-6rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/20"
+          className="howto-popover absolute right-0 top-[calc(100%+0.6rem)] z-50 max-h-[calc(100vh-7rem)] w-[min(24rem,calc(100vw-6rem))] overflow-x-hidden overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/20"
         >
           <div className="border-b border-blue-100 bg-gradient-to-br from-blue-50 via-white to-cyan-50 px-4 pb-4 pt-3.5">
             <div className="mb-3">

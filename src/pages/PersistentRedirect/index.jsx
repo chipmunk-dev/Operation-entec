@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { IoMdCopy } from 'react-icons/io';
 import { FaCheck, FaUndo, FaListUl, FaCheckDouble, FaPaperPlane, FaExclamationCircle, FaCommentDots, FaEnvelope, FaGlobe, FaInfoCircle } from 'react-icons/fa';
+import HowToPopover from '../../components/HowToPopover';
 import WorkflowGuide from '../../components/WorkflowGuide';
 import {
   DEFAULT_PERSISTENT_REDIRECT_ORDER,
@@ -10,6 +11,29 @@ import {
   togglePersistentRedirectId,
 } from '../../utils/persistentRedirectParser';
 import { formatForeignResendMail } from '../../utils/foreignMailFormatter';
+
+const howToSteps = [
+  {
+    title: '근무자·열 설정',
+    description: '근무자 정보와 원본 데이터의 Date·Host·Event·IP 순서를 맞춥니다.',
+    icon: <FaInfoCircle />,
+  },
+  {
+    title: '이벤트 입력·검토',
+    description: '원본을 붙여넣고 확인 필요 메시지를 검토해 제외할 항목을 정리합니다.',
+    icon: <FaListUl />,
+  },
+  {
+    title: '전달 문구 복사',
+    description: '국내·해외 메신저 또는 해외메일 형식을 선택해 전체 복사합니다.',
+    icon: <FaEnvelope />,
+  },
+  {
+    title: '메시지 상태 관리',
+    description: '대기·확인 완료·전달 완료 상태를 업무 진행에 맞춰 변경합니다.',
+    icon: <FaCheckDouble />,
+  },
+];
 
 function PersistentRedirect() {
   const [rawInput, setRawInput] = useState('');
@@ -252,7 +276,14 @@ function PersistentRedirect() {
   return (
     <div className="page-shell">
       <header className="page-header">
-        <span className="page-eyebrow">Event operations</span>
+        <div className="flex items-start justify-between gap-3">
+          <span className="page-eyebrow">Event operations</span>
+          <HowToPopover
+            title="지속 이벤트 재전달 사용방법"
+            summary="지속 이벤트를 검토하고 채널별 전달 문구와 상태를 관리합니다."
+            steps={howToSteps}
+          />
+        </div>
         <div className="flex items-center gap-3">
           <span className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-100 text-emerald-600">
             <FaPaperPlane size={20} />

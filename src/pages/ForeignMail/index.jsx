@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { IoMdCheckmark, IoMdCopy } from 'react-icons/io';
-import { MdEmail, MdOutlineTune } from 'react-icons/md';
+import { MdContentPaste, MdEmail, MdOutlineTune } from 'react-icons/md';
+import HowToPopover from '../../components/HowToPopover';
 import WorkflowGuide from '../../components/WorkflowGuide';
 import {
   FOREIGN_MAIL_FIELDS,
@@ -9,6 +10,24 @@ import {
 } from '../../utils/foreignMailFormatter';
 
 const labels = { host: 'Host', message: 'Message', date: 'Date', ip: 'IP' };
+
+const howToSteps = [
+  {
+    title: '원본 데이터 붙여넣기',
+    description: 'Host·Message·Date·IP 데이터 행을 입력란에 붙여넣습니다.',
+    icon: <MdContentPaste />,
+  },
+  {
+    title: '열 순서 확인',
+    description: '입력 순서가 다르면 열 설정에서 네 필드의 위치를 맞춥니다.',
+    icon: <MdOutlineTune />,
+  },
+  {
+    title: '영문 메일 복사',
+    description: '자동 완성된 해외메일을 확인하고 전체 복사해 전달합니다.',
+    icon: <IoMdCopy />,
+  },
+];
 
 function ForeignMail() {
   const [rawInput, setRawInput] = useState('');
@@ -48,7 +67,14 @@ function ForeignMail() {
   return (
     <div className="page-shell">
       <header className="page-header">
-        <span className="page-eyebrow">Message formatter</span>
+        <div className="flex items-start justify-between gap-3">
+          <span className="page-eyebrow">Message formatter</span>
+          <HowToPopover
+            title="해외메일 작성 사용방법"
+            summary="모니터링 데이터를 표준 영문 장애 메일로 변환합니다."
+            steps={howToSteps}
+          />
+        </div>
         <div className="flex items-center gap-3">
           <span className="grid h-11 w-11 place-items-center rounded-2xl bg-blue-100 text-blue-600">
             <MdEmail size={25} />

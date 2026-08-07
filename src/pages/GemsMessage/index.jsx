@@ -1,6 +1,12 @@
 import { useMemo, useState } from 'react';
 import { IoMdCheckmark, IoMdCopy } from 'react-icons/io';
-import { MdOutlineMessage } from 'react-icons/md';
+import {
+  MdBadge,
+  MdContentPaste,
+  MdOutlineMessage,
+  MdTune,
+} from 'react-icons/md';
+import HowToPopover from '../../components/HowToPopover';
 import WorkflowGuide from '../../components/WorkflowGuide';
 import {
   formatGemsMessage,
@@ -19,6 +25,29 @@ const outputModes = [
   {
     value: 'report',
     title: '메신저 보고 양식 자동완성',
+  },
+];
+
+const howToSteps = [
+  {
+    title: '보고 방식 설정',
+    description: '확인 내역 제거 또는 메신저 보고 자동완성 방식을 선택합니다.',
+    icon: <MdTune />,
+  },
+  {
+    title: '보고자 입력',
+    description: '보고 양식을 사용할 때 이름과 직급을 확인합니다.',
+    icon: <MdBadge />,
+  },
+  {
+    title: '메시지 붙여넣기',
+    description: '호스트와 메시지 행을 붙여넣으면 확인 내역을 자동 정리합니다.',
+    icon: <MdContentPaste />,
+  },
+  {
+    title: '결과 복사',
+    description: '정리된 메시지를 확인하고 전체 복사해 전달합니다.',
+    icon: <IoMdCopy />,
   },
 ];
 
@@ -57,7 +86,14 @@ function GemsMessage() {
   return (
     <div className="page-shell">
       <header className="page-header">
-        <span className="page-eyebrow">G-EMS message formatter</span>
+        <div className="flex items-start justify-between gap-3">
+          <span className="page-eyebrow">G-EMS message formatter</span>
+          <HowToPopover
+            title="담당자 제거·메신저 최적화 사용방법"
+            summary="G-EMS 확인 내역을 제거하고 전달용 메시지를 완성합니다."
+            steps={howToSteps}
+          />
+        </div>
         <div className="flex items-center gap-3">
           <span className="grid h-11 w-11 place-items-center rounded-2xl bg-violet-100 text-violet-600">
             <MdOutlineMessage size={25} />
