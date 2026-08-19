@@ -7,6 +7,7 @@ import {
   MdMenu,
   MdFactCheck,
   MdOutlineChevronLeft,
+  MdOutlineLightbulb,
   MdOutlineMessage,
 } from 'react-icons/md';
 import { FaArrowsRotate, FaFileExcel } from 'react-icons/fa6';
@@ -42,6 +43,12 @@ const menuItems = [
     description: 'I-Check Report',
     path: '/icheck-report',
     icon: MdFactCheck,
+  },
+  {
+    name: '점등 내역 편집',
+    description: 'Light Log Editor',
+    path: '/light-log',
+    icon: MdOutlineLightbulb,
   },
   {
     name: '지속 메시지 엑셀',
@@ -92,7 +99,8 @@ G-EMS 보고자 이름 브라우저 12시간 임시 저장
 새 배포 감지 및 상단 새로고침 안내 추가
 서비스 표시명 Operation CNS Elect로 변경
 아이체크 16열 파싱 및 서버 담당자별 메신저 보고 문구 생성 추가
-전체 메뉴 인터랙티브 사용방법 팝오버 적용`,
+전체 메뉴 인터랙티브 사용방법 팝오버 적용
+아이체크 결과를 반영하는 점등 내역 편집 추가`,
   },
 ];
 
