@@ -13,6 +13,7 @@ import AutoBackupErrorFilter from './pages/AutoBackupErrorFilter';
 import PersistentRedirect from './pages/PersistentRedirect';
 import ICheckReport from './pages/ICheckReport';
 import PersistentEventExcel from './pages/PersistentEventExcel';
+import LightLogEditor from './pages/LightLog';
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(() =>
@@ -38,6 +39,7 @@ function App() {
               <Route path="/gems-message" element={<GemsMessage />} />
               <Route path="/persistent-redirect" element={<PersistentRedirect />} />
               <Route path="/icheck-report" element={<ICheckReport />} />
+              <Route path="/light-log" element={<LightLogEditor />} />
               <Route path="/persistent-event-excel" element={<PersistentEventExcel />} />
               <Route path="/auto-backup-error-filter" element={<AutoBackupErrorFilter />} />
               <Route path="*" element={<Navigate to="/" replace />} />

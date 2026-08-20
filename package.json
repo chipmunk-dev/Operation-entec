@@ -14,7 +14,8 @@
     "test:icheck-report": "node --test test/iCheckReportFormatter.test.js",
     "test:backup-transfer": "node --test test/backupTransfer.test.js",
     "test:persistent-event": "node --test test/persistentEventParser.test.js",
-    "test:persistent-redirect": "node --test test/persistentRedirectParser.test.js"
+    "test:persistent-redirect": "node --test test/persistentRedirectParser.test.js",
+    "test:light-log": "node --test test/lightLogFormatter.test.js"
   },
   "dependencies": {
     "clsx": "^2.1.1",
