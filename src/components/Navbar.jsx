@@ -21,7 +21,7 @@ const menuItems = [
     icon: MdEmail,
   },
   {
-    name: '담당자 제거·메신저 최적화',
+    name: 'G-EMS 메세지 담당자 제거 / 메신저 보고양식 자동완성',
     description: 'G-EMS Message Helper',
     path: '/gems-message',
     icon: MdOutlineMessage,
@@ -152,7 +152,7 @@ const Navbar = ({ isOpen, setIsOpen }) => (
           to={path}
           title={!isOpen ? name : undefined}
           className={({ isActive }) =>
-            `group flex h-[58px] items-center rounded-2xl border transition-all duration-200 ${
+            `group flex min-h-[58px] items-center rounded-2xl border py-2 transition-all duration-200 ${
               isActive
                 ? 'border-blue-400/30 bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-950/40'
                 : 'border-transparent text-slate-400 hover:border-white/10 hover:bg-white/[0.07] hover:text-white'
@@ -164,7 +164,7 @@ const Navbar = ({ isOpen, setIsOpen }) => (
           </span>
           {isOpen && (
             <span className="min-w-0">
-              <span className="block truncate text-sm font-semibold">{name}</span>
+              <span className="block text-[13px] font-semibold leading-4">{name}</span>
               <span className="mt-0.5 block truncate text-[10px] font-medium tracking-wide text-slate-400 transition group-hover:text-slate-300">
                 {description}
               </span>

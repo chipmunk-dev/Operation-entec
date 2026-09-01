@@ -23,10 +23,12 @@ const outputModes = [
   {
     value: 'basic',
     title: '확인 내역만 제거',
+    description: '기존 메시지에서 담당자 확인 내역만 정리합니다.',
   },
   {
     value: 'report',
     title: '메신저 보고 양식 자동완성',
+    description: '보고자 인사말을 포함한 전달 문구까지 완성합니다.',
   },
 ];
 
@@ -88,11 +90,11 @@ function GemsMessage() {
   return (
     <div className="page-shell">
       <PageHeader
-        title="담당자 제거·메신저 최적화"
+        title="G-EMS 메세지 담당자 제거 / 메신저 보고양식 자동완성"
         description="확인 내역을 제거하고 전달하기 좋은 메신저 형식으로 정리합니다."
         icon={<MdOutlineMessage size={21} />}
         iconClassName="bg-violet-50 text-violet-600"
-        helpTitle="담당자 제거·메신저 최적화 사용방법"
+        helpTitle="G-EMS 메세지 담당자 제거 / 메신저 보고양식 자동완성 사용방법"
         helpSummary="G-EMS 확인 내역을 제거하고 전달용 메시지를 완성합니다."
         helpSteps={howToSteps}
       />
@@ -110,7 +112,7 @@ function GemsMessage() {
               : ''
           }`}
         >
-          <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
+          <div className="grid gap-3 xl:grid-cols-[auto_minmax(0,1fr)] xl:items-start">
             <h2
               className={`shrink-0 text-sm font-bold ${
                 isReporterNameRequired ? 'text-rose-700' : 'text-slate-900'
@@ -119,54 +121,55 @@ function GemsMessage() {
               1. 보고자 정보와 출력 방식
             </h2>
 
-            <div
-              id="gems-message-settings"
-              className="grid min-w-0 flex-1 gap-2 lg:grid-cols-[minmax(180px,0.8fr)_150px_minmax(430px,1.6fr)]"
-            >
-              <label className="mb-0 flex items-center gap-2 text-xs font-semibold text-slate-700">
-                <span className="shrink-0">이름</span>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(event) => {
-                    const nextName = event.target.value;
-                    setName(nextName);
-                    saveGemsReporterName(nextName);
-                  }}
-                  aria-invalid={isReporterNameRequired || undefined}
-                  maxLength={50}
-                  className={`field-input min-w-0 py-2 ${
-                    isReporterNameRequired ? 'border-rose-300 bg-rose-50' : ''
-                  }`}
-                  placeholder="홍길동"
-                />
-              </label>
-              <label className="mb-0 flex items-center gap-2 text-xs font-semibold text-slate-700">
-                <span className="shrink-0">직급</span>
-                <select
-                  value={position}
-                  onChange={(event) => setPosition(event.target.value)}
-                  className="field-select min-w-0 py-2"
-                >
-                  <option value="사원">사원</option>
-                  <option value="선임">선임</option>
-                  <option value="책임">책임</option>
-                </select>
-              </label>
+            <div id="gems-message-settings" className="min-w-0 space-y-3">
+              <div className="grid gap-2 sm:grid-cols-[minmax(200px,1fr)_160px]">
+                <label className="mb-0 flex items-center gap-2 text-xs font-semibold text-slate-700">
+                  <span className="shrink-0">이름</span>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(event) => {
+                      const nextName = event.target.value;
+                      setName(nextName);
+                      saveGemsReporterName(nextName);
+                    }}
+                    aria-invalid={isReporterNameRequired || undefined}
+                    maxLength={50}
+                    className={`field-input min-w-0 py-2 ${
+                      isReporterNameRequired ? 'border-rose-300 bg-rose-50' : ''
+                    }`}
+                    placeholder="홍길동"
+                  />
+                </label>
+                <label className="mb-0 flex items-center gap-2 text-xs font-semibold text-slate-700">
+                  <span className="shrink-0">직급</span>
+                  <select
+                    value={position}
+                    onChange={(event) => setPosition(event.target.value)}
+                    className="field-select min-w-0 py-2"
+                  >
+                    <option value="사원">사원</option>
+                    <option value="선임">선임</option>
+                    <option value="책임">책임</option>
+                  </select>
+                </label>
+              </div>
 
-              <fieldset className="min-w-0">
-                <legend className="sr-only">출력 방식</legend>
-                <div className="grid grid-cols-2 gap-2">
-                  {outputModes.map(({ value, title }) => {
+              <fieldset className="min-w-0 border-t border-slate-200 pt-3">
+                <legend className="mb-2 px-1 text-xs font-bold text-slate-700">
+                  출력 방식 선택
+                </legend>
+                <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                  {outputModes.map(({ value, title, description }) => {
                     const isSelected = outputMode === value;
 
                     return (
                       <label
                         key={value}
-                        className={`flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 transition ${
+                        className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition ${
                           isSelected
-                            ? 'border-violet-500 bg-violet-50 ring-2 ring-violet-100'
-                            : 'border-slate-200 hover:border-violet-300 hover:bg-violet-50/40'
+                            ? 'border-violet-500 bg-violet-50 shadow-sm ring-1 ring-violet-200'
+                            : 'border-slate-200 bg-white hover:border-violet-300 hover:bg-violet-50/40'
                         }`}
                       >
                         <input
@@ -179,10 +182,15 @@ function GemsMessage() {
                             setOutputMode(nextMode);
                             saveGemsOutputMode(nextMode);
                           }}
-                          className="h-4 w-4 shrink-0 border-slate-300 text-violet-600 focus:ring-violet-500"
+                          className="mt-0.5 h-4 w-4 shrink-0 border-slate-300 text-violet-600 focus:ring-violet-500"
                         />
-                        <span className="text-sm font-bold text-slate-800">
-                          {title}
+                        <span className="min-w-0">
+                          <span className="block text-sm font-bold text-slate-900">
+                            {title}
+                          </span>
+                          <span className="mt-1 block text-xs leading-5 text-slate-500">
+                            {description}
+                          </span>
                         </span>
                       </label>
                     );

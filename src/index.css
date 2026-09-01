@@ -80,6 +80,10 @@
     @apply min-w-0 flex-1 sm:flex sm:items-baseline sm:gap-3;
   }
 
+  .page-header-copy-long {
+    @apply sm:flex-col sm:items-start sm:gap-0 xl:flex-row xl:items-baseline xl:gap-3;
+  }
+
   .page-title {
     @apply shrink-0 text-lg font-extrabold tracking-[-0.02em] text-slate-950 sm:text-xl;
   }

@@ -10,13 +10,17 @@ function PageHeader({
   helpSummary,
   helpSteps,
 }) {
+  const hasLongTitle = title.length >= 30;
+
   return (
     <header className="page-header">
       <div className="page-header-main">
         <span className={`page-header-icon ${iconClassName}`} aria-hidden="true">
           {icon}
         </span>
-        <div className="page-header-copy">
+        <div
+          className={`page-header-copy ${hasLongTitle ? 'page-header-copy-long' : ''}`}
+        >
           <h1 className="page-title">{title}</h1>
           <p className="page-description">{description}</p>
         </div>
