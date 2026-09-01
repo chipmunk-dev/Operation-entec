@@ -1,29 +1,25 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { IoMdCheckmark, IoMdCopy } from 'react-icons/io';
 import {
   MdBackup,
   MdDeleteOutline,
+  MdExpandMore,
   MdFileDownload,
-  MdFileUpload,
   MdInfoOutline,
   MdOutlineCloudDone,
   MdOutlineTableView,
 } from 'react-icons/md';
-import HowToPopover from '../../components/HowToPopover';
-import WorkflowGuide from '../../components/WorkflowGuide';
+import PageHeader from '../../components/PageHeader';
 import {
-  clearBackupDraft,
   createDefaultBackupState,
   DEFAULT_COLUMN_POSITIONS,
   loadBackupDraft,
   saveBackupDraft,
 } from '../../utils/autoBackupStorage';
 import {
-  createBackupTransferFileName,
-  MAX_BACKUP_TRANSFER_SIZE,
-  parseBackupTransfer,
-  serializeBackupTransfer,
-} from '../../utils/backupTransfer';
+  createBackupNotepadFileName,
+  formatBackupNotepad,
+} from '../../utils/backupNotepad';
 
 const zones = ['P-EUBKMST', 'NBUMASTER', 'EXTMASTER'];
 const columnOptions = Array.from({ length: 40 }, (_, index) => index + 1);
@@ -35,9 +31,9 @@ const columnFields = [
 
 const howToSteps = [
   {
-    title: '데이터 관리 확인',
-    description: '기존 임시 저장값을 사용하거나 공유 JSON 파일을 불러옵니다.',
-    icon: <MdFileUpload />,
+    title: '저장 상태 확인',
+    description: '브라우저 임시 저장 상태를 확인하거나 오류 결과를 메모장으로 내보냅니다.',
+    icon: <MdFileDownload />,
   },
   {
     title: '백업존 데이터 입력',
@@ -50,8 +46,8 @@ const howToSteps = [
     icon: <MdBackup />,
   },
   {
-    title: '결과 복사·공유',
-    description: '오류 보고를 복사하거나 입력 상태를 JSON 파일로 공유합니다.',
+    title: '결과 복사·저장',
+    description: '오류 보고를 복사하거나 세 백업존의 오류 결과를 메모장으로 저장합니다.',
     icon: <IoMdCopy />,
   },
 ];
@@ -179,6 +175,7 @@ function AutoBackupErrorFilter() {
   const initialDraft = useMemo(() => loadBackupDraft(zones), []);
   const [activeZone, setActiveZone] = useState(initialDraft.state.activeZone);
   const [inputs, setInputs] = useState(initialDraft.state.inputs);
+  const [showDataManagement, setShowDataManagement] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [showColumnSettings, setShowColumnSettings] = useState(false);
   const [columnPositions, setColumnPositions] = useState(initialDraft.state.columnPositions);
@@ -188,8 +185,6 @@ function AutoBackupErrorFilter() {
   );
   const [lastSavedAt, setLastSavedAt] = useState(initialDraft.restoredAt);
   const [notice, setNotice] = useState(initialDraft.notice || '');
-  const fileInputRef = useRef(null);
-
   const summaries = useMemo(
     () =>
       Object.fromEntries(
@@ -236,77 +231,52 @@ function AutoBackupErrorFilter() {
     }
   };
 
-  const resetReport = () => {
-    if (!window.confirm('세 백업존의 입력과 열 설정을 모두 초기화할까요?')) return;
-    const defaults = createDefaultBackupState(zones);
-    clearBackupDraft();
-    setInputs(defaults.inputs);
-    setColumnPositions(defaults.columnPositions);
-    setActiveZone(defaults.activeZone);
-    setLastSavedAt(null);
-    setNotice('저장된 에러 보고 데이터를 초기화했습니다.');
+  const resetAllInputs = () => {
+    if (!window.confirm('입력된 데이터를 모두 초기화하시겠습니까?')) return;
+    setInputs(createDefaultBackupState(zones).inputs);
+    setNotice('세 백업존의 입력 데이터를 모두 초기화했습니다.');
   };
 
-  const handleJsonExport = () => {
+  const handleNotepadExport = async () => {
     try {
       const exportedAt = new Date();
-      const serialized = serializeBackupTransfer(
-        { inputs, columnPositions, activeZone },
-        zones,
-        exportedAt,
-      );
-      const blob = new Blob([serialized], {
-        type: 'application/json;charset=utf-8',
-      });
+      const fileName = createBackupNotepadFileName(exportedAt);
+      const content = `\uFEFF${formatBackupNotepad(summaries, zones)}`;
+
+      if (typeof window.showSaveFilePicker === 'function') {
+        const fileHandle = await window.showSaveFilePicker({
+          suggestedName: fileName,
+          startIn: 'downloads',
+          types: [
+            {
+              description: '텍스트 문서',
+              accept: { 'text/plain': ['.txt'] },
+            },
+          ],
+        });
+        const writable = await fileHandle.createWritable();
+        await writable.write(content);
+        await writable.close();
+        setNotice('오류 내역을 메모장 파일로 저장했습니다.');
+        return;
+      }
+
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = createBackupTransferFileName(exportedAt);
+      link.download = fileName;
       document.body.appendChild(link);
       link.click();
       link.remove();
       URL.revokeObjectURL(url);
-      setNotice('현재 백업 데이터를 공유 JSON 파일로 내보냈습니다.');
+      setNotice('오류 내역 메모장 파일을 다운로드했습니다.');
     } catch (error) {
+      if (error?.name === 'AbortError') return;
       setNotice(
         error instanceof Error
           ? error.message
-          : '공유 JSON 파일을 만들지 못했습니다.',
-      );
-    }
-  };
-
-  const handleJsonImport = async (event) => {
-    const file = event.target.files?.[0];
-    event.target.value = '';
-    if (!file) return;
-    if (file.size > MAX_BACKUP_TRANSFER_SIZE) {
-      setNotice('공유 JSON 파일이 허용 크기(4MB)를 초과했습니다.');
-      return;
-    }
-
-    try {
-      const parsed = parseBackupTransfer(await file.text(), zones);
-      if (
-        !window.confirm(
-          '불러온 JSON 데이터로 현재 백업 입력과 열 설정을 교체할까요?',
-        )
-      ) {
-        return;
-      }
-
-      setInputs(parsed.state.inputs);
-      setColumnPositions(parsed.state.columnPositions);
-      setActiveZone(parsed.state.activeZone);
-      setNotice(
-        `${file.name} 파일을 불러왔습니다. ` +
-          `내보낸 시각: ${new Date(parsed.exportedAt).toLocaleString('ko-KR')}`,
-      );
-    } catch (error) {
-      setNotice(
-        error instanceof Error
-          ? error.message
-          : '공유 JSON 파일을 불러오지 못했습니다.',
+          : '메모장 파일을 저장하지 못했습니다.',
       );
     }
   };
@@ -344,29 +314,14 @@ function AutoBackupErrorFilter() {
 
   return (
     <div className="page-shell">
-      <header className="page-header">
-        <div className="flex items-start justify-between gap-3">
-          <span className="page-eyebrow">Backup operations</span>
-          <HowToPopover
-            title="자동 백업 에러 필터 사용방법"
-            summary="백업 작업에서 정상 건을 제외하고 오류 보고를 정리합니다."
-            steps={howToSteps}
-          />
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-violet-100 text-violet-600">
-            <MdBackup size={25} />
-          </span>
-          <h1 className="page-title">자동 백업 에러 필터</h1>
-        </div>
-        <p className="page-description">
-          백업존에서 복사한 작업 목록을 붙여넣으면 정상 작업을 제외하고 확인이 필요한
-          오류만 모아 보여줍니다.
-        </p>
-      </header>
-
-      <WorkflowGuide
-        steps={['데이터 관리 확인', '백업존 데이터 입력', '오류 결과 복사']}
+      <PageHeader
+        title="자동 백업 에러 필터"
+        description="백업 작업 목록에서 정상 건을 제외하고 확인이 필요한 오류만 추출합니다."
+        icon={<MdBackup size={21} />}
+        iconClassName="bg-violet-50 text-violet-600"
+        helpTitle="자동 백업 에러 필터 사용방법"
+        helpSummary="백업 작업에서 정상 건을 제외하고 오류 보고를 정리합니다."
+        helpSteps={howToSteps}
       />
 
       {notice && (
@@ -383,91 +338,116 @@ function AutoBackupErrorFilter() {
         </div>
       )}
 
-      <section className="mb-6 grid gap-4 lg:grid-cols-2">
-        <div className="panel overflow-hidden">
-          <div className="border-b border-slate-100 bg-blue-50/60 px-5 py-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-bold text-slate-900">JSON 파일 공유</p>
-                <p className="mt-1 text-xs text-slate-500">
-                  서버 전송 없이 파일로 다른 PC와 데이터를 공유합니다.
-                </p>
-              </div>
-              <span className="status-pill bg-blue-100 text-blue-700">
-                오프라인 공유
-              </span>
-            </div>
-          </div>
-          <div className="p-5">
-            <p className="min-h-10 text-xs leading-5 text-slate-500">
-              내보낸 파일에는 세 백업존의 원본 입력과 열 설정이 포함됩니다. 파일을
-              전달받은 사용자가 불러오면 현재 화면의 데이터를 교체합니다.
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".json,application/json"
-                onChange={handleJsonImport}
-                className="hidden"
+      <section className="panel mb-6 overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setShowDataManagement((current) => !current)}
+          aria-expanded={showDataManagement}
+          aria-controls="auto-backup-data-management"
+          className={`group flex w-full cursor-pointer items-center justify-between gap-4 px-5 py-4 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500 ${
+            showDataManagement
+              ? 'bg-slate-50/70'
+              : 'hover:bg-blue-50/80 hover:shadow-[inset_4px_0_0_#3b82f6]'
+          }`}
+        >
+          <span className="min-w-0">
+            <span className="block text-sm font-bold text-slate-900 transition-colors group-hover:text-blue-700">
+              데이터 관리
+            </span>
+            <span className="mt-1 block truncate text-xs text-slate-500">
+              데이터 메모장 저장 · 현재 PC 임시 저장
+            </span>
+          </span>
+          <span className="flex shrink-0 items-center gap-2">
+            <span className="status-pill bg-emerald-50 text-emerald-700">
+              <MdOutlineCloudDone size={16} />
+              {storageStatus === 'saving' ? '저장 중' : '자동 저장'}
+            </span>
+            <span className="hidden text-xs font-bold text-slate-400 transition-colors group-hover:text-blue-700 sm:inline">
+              {showDataManagement ? '접기' : '펼치기'}
+            </span>
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-slate-100 text-slate-500 transition-all duration-200 group-hover:translate-y-0.5 group-hover:bg-blue-100 group-hover:text-blue-700">
+              <MdExpandMore
+                size={22}
+                aria-hidden="true"
+                className={`transition-transform duration-200 ${
+                  showDataManagement ? 'rotate-180' : ''
+                }`}
               />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="btn-secondary"
-              >
-                <MdFileUpload size={18} />
-                JSON 파일 불러오기
-              </button>
-              <button
-                type="button"
-                onClick={handleJsonExport}
-                className="btn-primary"
-              >
-                <MdFileDownload size={18} />
-                공유 JSON 내보내기
-              </button>
-            </div>
-          </div>
-        </div>
+            </span>
+          </span>
+        </button>
 
-        <div className="panel overflow-hidden">
-          <div className="border-b border-slate-100 bg-emerald-50/60 px-5 py-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-bold text-slate-900">현재 PC 임시 저장</p>
-                <p className="mt-1 text-xs text-slate-500">
-                  입력할 때마다 이 브라우저에 자동 저장합니다.
-                </p>
+        {showDataManagement && (
+          <div
+            id="auto-backup-data-management"
+            className="grid gap-4 border-t border-slate-100 bg-slate-50/50 p-4 lg:grid-cols-2"
+          >
+            <div className="overflow-hidden rounded-2xl border border-blue-100 bg-white">
+              <div className="border-b border-blue-100 bg-blue-50/60 px-5 py-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-bold text-slate-900">
+                      데이터 메모장으로 저장하기
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      입력된 오류값을 메모장으로 저장하여 내보냅니다.
+                    </p>
+                  </div>
+                  <span className="status-pill bg-blue-100 text-blue-700">
+                    TXT 저장
+                  </span>
+                </div>
               </div>
-              <span className="status-pill bg-emerald-100 text-emerald-700">
-                <MdOutlineCloudDone size={16} />
-                {storageStatus === 'saving' ? '저장 중' : '자동 저장'}
-              </span>
+              <div className="p-5">
+                <p className="min-h-10 text-xs leading-5 text-slate-500">
+                  세 백업존의 오류 Policy, Start Time, Status를 구분선과 함께
+                  저장합니다. 오류가 없는 백업존도 함께 표시합니다.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={handleNotepadExport}
+                    className="btn-primary"
+                  >
+                    <MdFileDownload size={18} />
+                    메모장으로 내보내기
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-2xl border border-emerald-100 bg-white">
+              <div className="border-b border-emerald-100 bg-emerald-50/60 px-5 py-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-bold text-slate-900">
+                      현재 PC 임시 저장
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      입력할 때마다 이 브라우저에 자동 저장합니다.
+                    </p>
+                  </div>
+                  <span className="status-pill bg-emerald-100 text-emerald-700">
+                    <MdOutlineCloudDone size={16} />
+                    {storageStatus === 'saving' ? '저장 중' : '자동 저장'}
+                  </span>
+                </div>
+              </div>
+              <div className="flex h-[154px] flex-col justify-between p-5">
+                <p className="text-xs leading-5 text-slate-500">
+                  새로고침해도 복원되며 마지막 수정 후 7일이 지나면 삭제됩니다.
+                  이 데이터는 다른 PC에서는 볼 수 없습니다.
+                </p>
+                <span className="text-xs font-semibold text-emerald-700">
+                  {lastSavedAt
+                    ? `최근 저장 · ${new Date(lastSavedAt).toLocaleString('ko-KR')}`
+                    : '저장된 임시 데이터 없음'}
+                </span>
+              </div>
             </div>
           </div>
-          <div className="flex h-[154px] flex-col justify-between p-5">
-            <p className="text-xs leading-5 text-slate-500">
-              새로고침해도 복원되며 마지막 수정 후 7일이 지나면 삭제됩니다. 이 데이터는
-              다른 PC에서는 볼 수 없습니다.
-            </p>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <span className="text-xs font-semibold text-emerald-700">
-                {lastSavedAt
-                  ? `최근 저장 · ${new Date(lastSavedAt).toLocaleString('ko-KR')}`
-                  : '저장된 임시 데이터 없음'}
-              </span>
-              <button
-                type="button"
-                onClick={resetReport}
-                className="btn-ghost px-3 py-2 text-rose-600 hover:bg-rose-50"
-              >
-                <MdDeleteOutline size={18} />
-                현재 PC 데이터 초기화
-              </button>
-            </div>
-          </div>
-        </div>
+        )}
       </section>
 
       <section className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -491,6 +471,15 @@ function AutoBackupErrorFilter() {
             <p className="mt-1 text-xs text-slate-500">백업존을 선택하고 데이터를 붙여넣으세요.</p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              disabled={!zones.some((zone) => inputs[zone].trim())}
+              onClick={resetAllInputs}
+              className="btn-ghost text-rose-600 hover:bg-rose-50"
+            >
+              <MdDeleteOutline size={18} />
+              전체 초기화
+            </button>
             <button
               type="button"
               onClick={() => setShowColumnSettings(!showColumnSettings)}
@@ -609,7 +598,7 @@ function AutoBackupErrorFilter() {
             onChange={(event) =>
               setInputs((current) => ({ ...current, [activeZone]: event.target.value }))
             }
-            className="field-input min-h-52 resize-y font-mono leading-6"
+            className="field-input source-input-compact"
             placeholder={`${activeZone} 백업 작업 목록을 여기에 붙여넣으세요.`}
             spellCheck="false"
           />
@@ -639,7 +628,7 @@ function AutoBackupErrorFilter() {
               className="btn-ghost text-rose-600 hover:bg-rose-50"
             >
               <MdDeleteOutline size={18} />
-              현재 입력 지우기
+              현재 백업존 데이터 지우기
             </button>
           </div>
         </div>

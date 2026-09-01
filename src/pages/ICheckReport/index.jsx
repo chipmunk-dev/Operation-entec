@@ -7,9 +7,9 @@ import {
   MdOutlineWarningAmber,
 } from 'react-icons/md';
 import { FaFileExcel } from 'react-icons/fa6';
-import HowToPopover from '../../components/HowToPopover';
-import WorkflowGuide from '../../components/WorkflowGuide';
+import PageHeader from '../../components/PageHeader';
 import {
+  ICHECK_COLUMN_COUNT,
   formatICheckReport,
   groupICheckReportsByAdmin,
   parseICheckReportRows,
@@ -20,12 +20,12 @@ import {
 } from '../../utils/gemsReporterStorage';
 
 const inputPlaceholder =
-  '2026-06-13\tLG전자\tLGECCRP1 / LGEAETL1\tSA3E-36\tIBM\tServer\tPOWER 570\tN/A\t!점등\t2\t정유희\t김미경 책임\t\t○\t\t○ 06/13 김미경 책임 - 확인요청';
+  '2026-06-13\tLG전자\tLGECCRP1 / LGEAETL1\tSA3E-36\tIBM\tServer\tPOWER 570\tN/A\t!점등\t2\t정지운\t김미경 책임\t○ 06/13 김미경 책임 - 확인요청';
 
 const howToSteps = [
   {
-    title: '엑셀 16열 복사',
-    description: '아이체크에서 보고할 장비 행과 16개 열을 그대로 복사합니다.',
+    title: `엑셀 ${ICHECK_COLUMN_COUNT}열 복사`,
+    description: `아이체크에서 보고할 장비 행과 ${ICHECK_COLUMN_COUNT}개 열을 그대로 복사합니다.`,
     icon: <FaFileExcel />,
   },
   {
@@ -81,29 +81,14 @@ function ICheckReport() {
 
   return (
     <div className="page-shell">
-      <header className="page-header">
-        <div className="flex items-start justify-between gap-3">
-          <span className="page-eyebrow">I-Check equipment report</span>
-          <HowToPopover
-            title="아이체크 보고 사용방법"
-            summary="엑셀 데이터를 붙여넣고 담당자별 보고 문구를 바로 복사하세요."
-            steps={howToSteps}
-          />
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-cyan-100 text-cyan-700">
-            <MdFactCheck size={25} />
-          </span>
-          <h1 className="page-title">아이체크 보고</h1>
-        </div>
-        <p className="page-description">
-          아이체크 엑셀의 장비 이상·점등 내역을 서버 담당자별로 묶어 메신저
-          보고 문구를 생성합니다.
-        </p>
-      </header>
-
-      <WorkflowGuide
-        steps={['보고자 입력', '엑셀 데이터 붙여넣기', '담당자별 확인·복사']}
+      <PageHeader
+        title="아이체크 보고"
+        description="장비 이상·점등 내역을 서버 담당자별 메신저 보고 문구로 변환합니다."
+        icon={<MdFactCheck size={21} />}
+        iconClassName="bg-cyan-50 text-cyan-700"
+        helpTitle="아이체크 보고 사용방법"
+        helpSummary="엑셀 데이터를 붙여넣고 담당자별 보고 문구를 바로 복사하세요."
+        helpSteps={howToSteps}
       />
 
       <div className="grid gap-6">
@@ -139,7 +124,7 @@ function ICheckReport() {
                   className={`field-input min-w-0 py-2 ${
                     isReporterNameRequired ? 'border-rose-300 bg-rose-50' : ''
                   }`}
-                  placeholder="홍길동"
+                  placeholder="정지운"
                 />
               </label>
               <label className="mb-0 flex items-center gap-2 text-xs font-semibold text-slate-700">
@@ -187,14 +172,15 @@ function ICheckReport() {
             <textarea
               value={rawInput}
               onChange={(event) => setRawInput(event.target.value)}
-              className="field-input min-h-52 resize-y font-mono leading-6"
+              className="field-input source-input-compact"
               placeholder={inputPlaceholder}
               aria-label="아이체크 엑셀 원본 데이터"
               spellCheck="false"
             />
             <p className="mt-3 text-xs leading-5 text-slate-500">
-              엑셀의 16개 열을 그대로 복사해 붙여넣으세요. 헤더·빈 줄은 자동
-              제외하고, 완전히 동일한 행은 한 건으로 처리합니다.
+              엑셀의 {ICHECK_COLUMN_COUNT}개 열을 그대로 복사해 붙여넣으세요.
+              헤더·빈 줄은 자동 제외하고, 완전히 동일한 행은 한 건으로
+              처리합니다.
             </p>
 
             {incompleteRows.length > 0 && (
@@ -207,8 +193,8 @@ function ICheckReport() {
                   {incompleteRows.map((row) => (
                     <li key={row.id}>
                       {row.lineNumber}행 ·{' '}
-                      {row.columnCount !== 16
-                        ? `${row.columnCount}열 입력 (16열 필요)`
+                      {row.columnCount !== ICHECK_COLUMN_COUNT
+                        ? `${row.columnCount}열 입력 (${ICHECK_COLUMN_COUNT}열 필요)`
                         : `${row.missingFields.join(', ')} 누락`}
                     </li>
                   ))}

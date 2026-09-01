@@ -57,21 +57,22 @@ function HowToPopover({ title, summary, steps }) {
         aria-expanded={isOpen}
         aria-haspopup="true"
         aria-describedby={isOpen ? tooltipId : undefined}
-        className={`btn gap-1.5 border px-3 py-2 text-xs shadow-sm ${
+        aria-label="사용방법 열기"
+        className={`btn gap-1.5 border px-2.5 py-2 text-xs shadow-sm sm:px-3 ${
           isOpen
             ? 'border-blue-300 bg-blue-50/90 text-blue-700 shadow-blue-100'
             : 'border-white/90 bg-white/80 text-slate-600 backdrop-blur hover:border-blue-200 hover:bg-white hover:text-blue-700'
         }`}
       >
         <MdHelpOutline size={18} aria-hidden="true" />
-        사용방법
+        <span className="hidden sm:inline">사용방법</span>
       </button>
 
       {isOpen && (
         <div
           id={tooltipId}
           role="tooltip"
-          className="howto-popover absolute right-0 top-[calc(100%+0.6rem)] z-50 max-h-[calc(100vh-7rem)] w-[min(24rem,calc(100vw-6rem))] overflow-x-hidden overflow-y-auto rounded-3xl border border-white/80 bg-white/95 shadow-2xl shadow-slate-900/20 backdrop-blur-2xl"
+          className="howto-popover absolute right-0 top-[calc(100%+0.6rem)] z-50 max-h-[calc(100vh-7rem)] w-[min(24rem,calc(100vw-6rem))] overflow-x-hidden overflow-y-auto rounded-2xl border border-slate-200 bg-white/95 shadow-xl shadow-slate-900/15 backdrop-blur-xl"
         >
           <div className="border-b border-blue-100/80 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.18),transparent_42%),linear-gradient(145deg,#eff6ff,#ffffff_55%,#ecfeff)] px-4 pb-4 pt-3.5">
             <div className="mb-3">
