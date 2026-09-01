@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { IoMdCopy } from 'react-icons/io';
 import { FaCheck, FaUndo, FaListUl, FaCheckDouble, FaPaperPlane, FaExclamationCircle, FaCommentDots, FaEnvelope, FaGlobe, FaInfoCircle } from 'react-icons/fa';
-import HowToPopover from '../../components/HowToPopover';
-import WorkflowGuide from '../../components/WorkflowGuide';
+import PageHeader from '../../components/PageHeader';
 import {
   DEFAULT_PERSISTENT_REDIRECT_ORDER,
   mergePersistentRedirectIds,
@@ -275,29 +274,14 @@ function PersistentRedirect() {
 
   return (
     <div className="page-shell">
-      <header className="page-header">
-        <div className="flex items-start justify-between gap-3">
-          <span className="page-eyebrow">Event operations</span>
-          <HowToPopover
-            title="지속 이벤트 재전달 사용방법"
-            summary="지속 이벤트를 검토하고 채널별 전달 문구와 상태를 관리합니다."
-            steps={howToSteps}
-          />
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-100 text-emerald-600">
-            <FaPaperPlane size={20} />
-          </span>
-          <h1 className="page-title">지속 이벤트 재전달</h1>
-        </div>
-        <p className="page-description">
-          지속 중인 이벤트를 정리하고 담당자별 전달 문구와 처리 기록을 한 화면에서
-          관리합니다.
-        </p>
-      </header>
-
-      <WorkflowGuide
-        steps={['근무자·열 설정', '이벤트 입력·검토', '전달 문구 확인·복사', '메시지 상태 관리']}
+      <PageHeader
+        title="지속 이벤트 재전달"
+        description="지속 이벤트의 담당자별 전달 문구와 처리 상태를 한 화면에서 관리합니다."
+        icon={<FaPaperPlane size={18} />}
+        iconClassName="bg-emerald-50 text-emerald-600"
+        helpTitle="지속 이벤트 재전달 사용방법"
+        helpSummary="지속 이벤트를 검토하고 채널별 전달 문구와 상태를 관리합니다."
+        helpSteps={howToSteps}
       />
 
       <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -332,7 +316,7 @@ function PersistentRedirect() {
                 onChange={(e) => setWorkerName(e.target.value)}
                 aria-invalid={!workerName.trim() || undefined}
                 className={`field-input px-3 py-2 ${!workerName.trim() ? 'border-rose-300 bg-white placeholder:text-rose-300' : ''}`}
-                placeholder="홍길동"
+                placeholder="정지운"
               />
             </div>
             <div className="w-24 shrink-0">
@@ -397,7 +381,7 @@ function PersistentRedirect() {
           <textarea
             id="rawDataInput"
             value={rawInput}
-            className="field-input min-h-36 resize-y font-mono leading-6"
+            className="field-input source-input-compact"
             onChange={handleChange}
             placeholder="엑셀이나 로그파일의 데이터를 복사해서 붙여넣으세요."
             aria-label="원본 데이터"

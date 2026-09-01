@@ -6,14 +6,15 @@ import {
   MdOutlineMessage,
   MdTune,
 } from 'react-icons/md';
-import HowToPopover from '../../components/HowToPopover';
-import WorkflowGuide from '../../components/WorkflowGuide';
+import PageHeader from '../../components/PageHeader';
 import {
   formatGemsMessage,
   parseGemsMessageRows,
 } from '../../utils/gemsMessageFormatter';
 import {
+  loadGemsOutputMode,
   loadGemsReporterName,
+  saveGemsOutputMode,
   saveGemsReporterName,
 } from '../../utils/gemsReporterStorage';
 
@@ -21,10 +22,12 @@ const outputModes = [
   {
     value: 'basic',
     title: '확인 내역만 제거',
+    description: '기존 메시지에서 담당자 확인 내역만 정리합니다.',
   },
   {
     value: 'report',
     title: '메신저 보고 양식 자동완성',
+    description: '보고자 인사말을 포함한 전달 문구까지 완성합니다.',
   },
 ];
 
@@ -54,7 +57,7 @@ const howToSteps = [
 function GemsMessage() {
   const [name, setName] = useState(() => loadGemsReporterName());
   const [position, setPosition] = useState('사원');
-  const [outputMode, setOutputMode] = useState('basic');
+  const [outputMode, setOutputMode] = useState(() => loadGemsOutputMode());
   const [rawInput, setRawInput] = useState('');
   const [copied, setCopied] = useState(false);
 
@@ -85,29 +88,14 @@ function GemsMessage() {
 
   return (
     <div className="page-shell">
-      <header className="page-header">
-        <div className="flex items-start justify-between gap-3">
-          <span className="page-eyebrow">G-EMS message formatter</span>
-          <HowToPopover
-            title="담당자 제거·메신저 최적화 사용방법"
-            summary="G-EMS 확인 내역을 제거하고 전달용 메시지를 완성합니다."
-            steps={howToSteps}
-          />
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-violet-100 text-violet-600">
-            <MdOutlineMessage size={25} />
-          </span>
-          <h1 className="page-title">담당자 제거·메신저 최적화</h1>
-        </div>
-        <p className="page-description">
-          확인 처리된 여러 메시지의 확인 내역을 일괄 제거하고, 전달하기 좋은
-          형식으로 정리합니다.
-        </p>
-      </header>
-
-      <WorkflowGuide
-        steps={['보고 양식 설정', '메시지 입력', '결과 확인·복사']}
+      <PageHeader
+        title="G-EMS 메세지 담당자 제거 · 메신저 보고양식 자동완성"
+        description="확인 내역을 제거하고 전달하기 좋은 메신저 형식으로 정리합니다."
+        icon={<MdOutlineMessage size={21} />}
+        iconClassName="bg-violet-50 text-violet-600"
+        helpTitle="G-EMS 메세지 담당자 제거 · 메신저 보고양식 자동완성 사용방법"
+        helpSummary="G-EMS 확인 내역을 제거하고 전달용 메시지를 완성합니다."
+        helpSteps={howToSteps}
       />
 
       <div className="grid gap-6">
@@ -119,7 +107,7 @@ function GemsMessage() {
               : ''
           }`}
         >
-          <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
+          <div className="grid gap-3 xl:grid-cols-[auto_minmax(0,1fr)] xl:items-start">
             <h2
               className={`shrink-0 text-sm font-bold ${
                 isReporterNameRequired ? 'text-rose-700' : 'text-slate-900'
@@ -128,54 +116,55 @@ function GemsMessage() {
               1. 보고자 정보와 출력 방식
             </h2>
 
-            <div
-              id="gems-message-settings"
-              className="grid min-w-0 flex-1 gap-2 lg:grid-cols-[minmax(180px,0.8fr)_150px_minmax(430px,1.6fr)]"
-            >
-              <label className="mb-0 flex items-center gap-2 text-xs font-semibold text-slate-700">
-                <span className="shrink-0">이름</span>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(event) => {
-                    const nextName = event.target.value;
-                    setName(nextName);
-                    saveGemsReporterName(nextName);
-                  }}
-                  aria-invalid={isReporterNameRequired || undefined}
-                  maxLength={50}
-                  className={`field-input min-w-0 py-2 ${
-                    isReporterNameRequired ? 'border-rose-300 bg-rose-50' : ''
-                  }`}
-                  placeholder="홍길동"
-                />
-              </label>
-              <label className="mb-0 flex items-center gap-2 text-xs font-semibold text-slate-700">
-                <span className="shrink-0">직급</span>
-                <select
-                  value={position}
-                  onChange={(event) => setPosition(event.target.value)}
-                  className="field-select min-w-0 py-2"
-                >
-                  <option value="사원">사원</option>
-                  <option value="선임">선임</option>
-                  <option value="책임">책임</option>
-                </select>
-              </label>
+            <div id="gems-message-settings" className="min-w-0 space-y-3">
+              <div className="grid gap-2 sm:grid-cols-[minmax(200px,1fr)_160px]">
+                <label className="mb-0 flex items-center gap-2 text-xs font-semibold text-slate-700">
+                  <span className="shrink-0">이름</span>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(event) => {
+                      const nextName = event.target.value;
+                      setName(nextName);
+                      saveGemsReporterName(nextName);
+                    }}
+                    aria-invalid={isReporterNameRequired || undefined}
+                    maxLength={50}
+                    className={`field-input min-w-0 py-2 ${
+                      isReporterNameRequired ? 'border-rose-300 bg-rose-50' : ''
+                    }`}
+                    placeholder="정지운"
+                  />
+                </label>
+                <label className="mb-0 flex items-center gap-2 text-xs font-semibold text-slate-700">
+                  <span className="shrink-0">직급</span>
+                  <select
+                    value={position}
+                    onChange={(event) => setPosition(event.target.value)}
+                    className="field-select min-w-0 py-2"
+                  >
+                    <option value="사원">사원</option>
+                    <option value="선임">선임</option>
+                    <option value="책임">책임</option>
+                  </select>
+                </label>
+              </div>
 
-              <fieldset className="min-w-0">
-                <legend className="sr-only">출력 방식</legend>
-                <div className="grid grid-cols-2 gap-2">
-                  {outputModes.map(({ value, title }) => {
+              <fieldset className="min-w-0 border-t border-slate-200 pt-3">
+                <legend className="mb-2 px-1 text-xs font-bold text-slate-700">
+                  출력 방식 선택
+                </legend>
+                <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                  {outputModes.map(({ value, title, description }) => {
                     const isSelected = outputMode === value;
 
                     return (
                       <label
                         key={value}
-                        className={`flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 transition ${
+                        className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition ${
                           isSelected
-                            ? 'border-violet-500 bg-violet-50 ring-2 ring-violet-100'
-                            : 'border-slate-200 hover:border-violet-300 hover:bg-violet-50/40'
+                            ? 'border-violet-500 bg-violet-50 shadow-sm ring-1 ring-violet-200'
+                            : 'border-slate-200 bg-white hover:border-violet-300 hover:bg-violet-50/40'
                         }`}
                       >
                         <input
@@ -183,13 +172,20 @@ function GemsMessage() {
                           name="gems-output-mode"
                           value={value}
                           checked={isSelected}
-                          onChange={(event) =>
-                            setOutputMode(event.target.value)
-                          }
-                          className="h-4 w-4 shrink-0 border-slate-300 text-violet-600 focus:ring-violet-500"
+                          onChange={(event) => {
+                            const nextMode = event.target.value;
+                            setOutputMode(nextMode);
+                            saveGemsOutputMode(nextMode);
+                          }}
+                          className="mt-0.5 h-4 w-4 shrink-0 border-slate-300 text-violet-600 focus:ring-violet-500"
                         />
-                        <span className="text-sm font-bold text-slate-800">
-                          {title}
+                        <span className="min-w-0">
+                          <span className="block text-sm font-bold text-slate-900">
+                            {title}
+                          </span>
+                          <span className="mt-1 block text-xs leading-5 text-slate-500">
+                            {description}
+                          </span>
                         </span>
                       </label>
                     );
@@ -209,7 +205,7 @@ function GemsMessage() {
             <textarea
               value={rawInput}
               onChange={(event) => setRawInput(event.target.value)}
-              className="field-input min-h-32 resize-y font-mono leading-6"
+              className="field-input source-input-compact"
               placeholder={
                 'HOST-01\tCPU Utilization MAJOR occurred\nHOST-02\tDisk Utilization MAJOR occurred'
               }

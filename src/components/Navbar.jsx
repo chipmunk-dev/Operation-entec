@@ -21,7 +21,7 @@ const menuItems = [
     icon: MdEmail,
   },
   {
-    name: '담당자 제거·메신저 최적화',
+    name: 'G-EMS 메세지 담당자 제거\n메신저 보고양식 자동완성',
     description: 'G-EMS Message Helper',
     path: '/gems-message',
     icon: MdOutlineMessage,
@@ -51,7 +51,7 @@ const menuItems = [
     icon: MdOutlineLightbulb,
   },
   {
-    name: '지속 메시지 엑셀',
+    name: '지속 메시지 엑셀 추출',
     description: 'Event Excel Report',
     path: '/persistent-event-excel',
     icon: FaFileExcel,
@@ -60,47 +60,45 @@ const menuItems = [
 
 const changeLogItems = [
   {
-    date: '2025.05',
-    title: '업무 변환 도구 시작',
-    detail: '해외메일 작성 및 자동 백업 오류 필터·열 설정 추가',
-  },
-  {
-    date: '2025.07',
-    title: '백업 오류 판독 보강',
-    detail: 'Context Error Code 형식 반영 및 오류 추출 정확도 개선',
-  },
-  {
-    date: '2025.12',
-    title: '지속 이벤트 재전달 개선',
-    detail: `대기·확인 관리 및 국내·해외 전달 문구 생성 추가
-시간 표시·괄호 제외 문구·해외 담당자 전달 방식 보강`,
-  },
-  {
-    date: '2026.01',
-    title: '해외메일 형식 개선',
-    detail: '메일 본문 줄 간격 및 출력 형식 개선',
-  },
-  {
-    date: '2026.07',
-    title: '운영 화면·이벤트 처리 개선',
-    detail: `전체 UI·직접 경로 접속 개선 및 백업 JSON 파일 공유 추가
-엑셀 보고서·담당자 판독·Event 탭·줄바꿈 자동 정리 추가
-s 확인내용 일괄 제외 및 지속 메시지 앞·뒤 빈 탭 자동 정리 추가`,
+    date: '2026.09',
+    title: '입력 양식·화면 개선',
+    detail: `아이체크 13열 입력·G-EMS 설정 저장
+백업 데이터 관리·TXT 내보내기 개선
+공통 헤더·입력 영역·작업 안내 간소화
+입력 예시 근무자명 통일`,
   },
   {
     date: '2026.08',
-    title: '업무 양식·사용 흐름 개선',
-    detail: `해외메일 파싱 및 재전달 Resend 출력 개선
-G-EMS 확인 담당자 제거 및 기본·보고용 전달 문구 생성 추가
-해외메일 작성·재전달에 하이픈 구분선·아웃룩 정렬용 공백 적용
-G-EMS 보고자 정보·출력 방식 한 줄형 설정으로 간소화
-G-EMS 보고자 이름 브라우저 12시간 임시 저장
-전체 메뉴 작업 순서 안내 추가 및 기능별 상태·버튼 명칭 정리
-새 배포 감지 및 상단 새로고침 안내 추가
-서비스 표시명 Operation CNS Elect로 변경
-아이체크 16열 파싱 및 서버 담당자별 메신저 보고 문구 생성 추가
-전체 메뉴 인터랙티브 사용방법 팝오버 적용
-아이체크 결과를 반영하는 점등 내역 편집 추가`,
+    title: '업무 양식·신규 도구',
+    detail: `해외메일·재전달·G-EMS 개선
+아이체크 보고·점등 내역 편집 추가
+사용방법·배포 알림·화면 개선`,
+  },
+  {
+    date: '2026.07',
+    title: '운영 화면·이벤트 처리',
+    detail: `백업 JSON·엑셀 보고 추가
+담당자 판독·Event 처리 개선`,
+  },
+  {
+    date: '2026.01',
+    title: '해외메일 개선',
+    detail: '본문 간격·출력 형식 개선',
+  },
+  {
+    date: '2025.12',
+    title: '지속 이벤트 재전달',
+    detail: '대기·확인 관리 및 국내·해외 전달 문구 추가',
+  },
+  {
+    date: '2025.07',
+    title: '백업 오류 판독',
+    detail: 'Context Error Code 판독 개선',
+  },
+  {
+    date: '2025.05',
+    title: '업무 도구 시작',
+    detail: '해외메일·백업 오류 필터 추가',
   },
 ];
 
@@ -154,7 +152,7 @@ const Navbar = ({ isOpen, setIsOpen }) => (
           to={path}
           title={!isOpen ? name : undefined}
           className={({ isActive }) =>
-            `group flex h-[58px] items-center rounded-2xl border transition-all duration-200 ${
+            `group flex min-h-[58px] items-center rounded-2xl border py-2 transition-all duration-200 ${
               isActive
                 ? 'border-blue-400/30 bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-950/40'
                 : 'border-transparent text-slate-400 hover:border-white/10 hover:bg-white/[0.07] hover:text-white'
@@ -166,7 +164,9 @@ const Navbar = ({ isOpen, setIsOpen }) => (
           </span>
           {isOpen && (
             <span className="min-w-0">
-              <span className="block truncate text-sm font-semibold">{name}</span>
+              <span className="block whitespace-pre-line text-[13px] font-semibold leading-4">
+                {name}
+              </span>
               <span className="mt-0.5 block truncate text-[10px] font-medium tracking-wide text-slate-400 transition group-hover:text-slate-300">
                 {description}
               </span>
@@ -199,43 +199,40 @@ const Navbar = ({ isOpen, setIsOpen }) => (
         aria-describedby="operation-change-log"
       >
         <MdHistory size={17} />
-        {isOpen && <span className="text-[11px] font-semibold">업데이트 히스토리</span>}
+        {isOpen && <span className="text-[11px] font-semibold">히스토리</span>}
       </button>
 
       <div
         id="operation-change-log"
         role="tooltip"
-        className={`pointer-events-none fixed bottom-3 z-50 max-h-[calc(100vh-1.5rem)] w-[min(20rem,calc(100vw-7rem))] translate-x-1 overflow-y-auto rounded-3xl border border-white/10 bg-slate-950/95 p-4 opacity-0 shadow-2xl shadow-slate-950/50 backdrop-blur-2xl transition duration-150 group-hover:pointer-events-auto group-hover:translate-x-0 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:translate-x-0 group-focus-within:opacity-100 ${
+        className={`pointer-events-none fixed bottom-3 z-50 max-h-[calc(100vh-1.5rem)] w-[min(18rem,calc(100vw-7rem))] translate-x-1 overflow-y-auto rounded-3xl border border-white/10 bg-slate-950/95 p-3.5 opacity-0 shadow-2xl shadow-slate-950/50 backdrop-blur-2xl transition duration-150 group-hover:pointer-events-auto group-hover:translate-x-0 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:translate-x-0 group-focus-within:opacity-100 ${
           isOpen ? 'left-[276px]' : 'left-[92px]'
         }`}
       >
-        <div className="mb-3 border-b border-slate-800 pb-3">
-          <p className="text-sm font-bold text-white">Operation CNS Elect 히스토리</p>
-          <p className="mt-1 text-[11px] text-slate-500">
-            2025년 이후 주요 기능·커밋 기준
-          </p>
+        <div className="mb-2.5 flex items-center justify-between border-b border-white/10 px-1 pb-3">
+          <p className="text-sm font-bold text-white">업데이트 히스토리</p>
+          <span className="rounded-full bg-blue-500/10 px-2 py-1 text-[9px] font-bold tracking-wider text-blue-300">
+            최신순
+          </span>
         </div>
 
-        <ol className="space-y-3">
-          {changeLogItems.map(({ date, title, detail }, index) => (
+        <ol className="space-y-1.5">
+          {changeLogItems.map(({ date, title, detail }) => (
             <li
               key={`${date}-${title}`}
-              className="relative pl-4 before:absolute before:left-0 before:top-1.5 before:h-1.5 before:w-1.5 before:rounded-full before:bg-blue-500"
+              className="grid grid-cols-[3.25rem_1fr] gap-2.5 rounded-xl px-2.5 py-2.5 transition-colors hover:bg-white/[0.05]"
             >
-              {index < changeLogItems.length - 1 && (
-                <span className="absolute left-[2.5px] top-3.5 h-[calc(100%+0.25rem)] w-px bg-slate-800" />
-              )}
-              <div className="flex items-baseline gap-2">
-                <span className="shrink-0 text-[10px] font-bold text-blue-400">
-                  {date}
-                </span>
-                <span className="text-xs font-semibold text-slate-200">
+              <span className="mt-0.5 h-fit rounded-lg bg-white/[0.06] px-1.5 py-1 text-center text-[9px] font-bold text-blue-300">
+                {date}
+              </span>
+              <span className="min-w-0">
+                <span className="block text-[11px] font-bold text-slate-200">
                   {title}
                 </span>
-              </div>
-              <p className="mt-1 whitespace-pre-line text-[11px] leading-4 text-slate-500">
-                {detail}
-              </p>
+                <span className="mt-1 block whitespace-pre-line text-[10px] leading-4 text-slate-500">
+                  {detail}
+                </span>
+              </span>
             </li>
           ))}
         </ol>

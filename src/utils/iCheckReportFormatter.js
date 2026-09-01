@@ -1,21 +1,18 @@
-export const ICHECK_COLUMN_COUNT = 16;
+export const ICHECK_COLUMN_COUNT = 13;
 
 export const ICHECK_COLUMNS = [
   { key: 'checkedAt', label: '확인일' },
   { key: 'customer', label: '고객사' },
   { key: 'host', label: '호스트명(서버명)' },
   { key: 'location', label: '장비 위치' },
-  { key: 'manufacturer', label: '제조사' },
-  { key: 'type', label: '유형' },
+  { key: 'manufacturer', label: '제조사(Vendor)' },
+  { key: 'type', label: '구분(유형)' },
   { key: 'model', label: '장비 모델명' },
-  { key: 'etcValue', label: '기타값' },
-  { key: 'status', label: '이상 상태' },
-  { key: 'workerTeam', label: '확인 근무자 조' },
+  { key: 'etcValue', label: '기타값(파트명)' },
+  { key: 'status', label: '점등상태(이상상태)' },
+  { key: 'workerTeam', label: '근무자 조' },
   { key: 'workerName', label: '확인 근무자 이름' },
   { key: 'serverAdmin', label: '서버 담당자(어드민)' },
-  { key: 'unprocessed', label: '미처리' },
-  { key: 'maintaining', label: '유지중' },
-  { key: 'lightOff', label: '소등' },
   { key: 'history', label: '내역' },
 ];
 

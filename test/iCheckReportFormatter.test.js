@@ -27,18 +27,15 @@ const createRow = ({
     '2',
     '정유희',
     admin,
-    '',
-    '○',
-    '',
     history,
   ].join('\t');
 
-test('16열 아이체크 행에서 보고용 필드를 정확히 추출한다', () => {
+test('13열 아이체크 행에서 보고용 필드를 정확히 추출한다', () => {
   const { rows, duplicateCount } = parseICheckReportRows(createRow());
 
   assert.equal(rows.length, 1);
   assert.equal(duplicateCount, 0);
-  assert.equal(rows[0].columnCount, 16);
+  assert.equal(rows[0].columnCount, 13);
   assert.equal(rows[0].location, 'SA3E-36');
   assert.equal(rows[0].host, 'LGECCRP1 / LGEAETL1');
   assert.equal(rows[0].status, '!점등');
@@ -52,17 +49,14 @@ test('엑셀 헤더와 빈 줄을 제외한다', () => {
     '고객사',
     '호스트명(서버명)',
     '장비 위치',
-    '제조사',
-    '유형',
+    '제조사(Vendor)',
+    '구분(유형)',
     '장비 모델명',
-    '기타값',
-    '이상 상태',
-    '확인 근무자 조',
+    '기타값(파트명)',
+    '점등상태(이상상태)',
+    '근무자 조',
     '확인 근무자 이름',
     '서버 담당자(어드민)',
-    '미처리',
-    '유지중',
-    '소등',
     '내역',
   ].join('\t');
   const result = parseICheckReportRows(`${header}\n\n${createRow()}`);
@@ -71,14 +65,14 @@ test('엑셀 헤더와 빈 줄을 제외한다', () => {
   assert.equal(result.rows.length, 1);
 });
 
-test('따옴표 안 여러 줄 내역을 하나의 16열 행으로 복구한다', () => {
+test('따옴표 안 여러 줄 내역을 하나의 13열 행으로 복구한다', () => {
   const rawInput = `${createRow({
     history: '"○ 08/04 김창준 선임 - 확인요청\n\n(전병호 책임 출장)"',
   })}\n${createRow({ host: 'NEXT-HOST', admin: '김민철 책임' })}`;
   const { rows } = parseICheckReportRows(rawInput);
 
   assert.equal(rows.length, 2);
-  assert.equal(rows[0].columnCount, 16);
+  assert.equal(rows[0].columnCount, 13);
   assert.equal(
     rows[0].history,
     '○ 08/04 김창준 선임 - 확인요청\n\n(전병호 책임 출장)',
@@ -86,7 +80,7 @@ test('따옴표 안 여러 줄 내역을 하나의 16열 행으로 복구한다'
   assert.equal(rows[1].host, 'NEXT-HOST');
 });
 
-test('완전히 동일한 16열 행만 중복 제거한다', () => {
+test('완전히 동일한 13열 행만 중복 제거한다', () => {
   const first = createRow();
   const changedStatus = createRow({ status: '주황 점등' });
   const result = parseICheckReportRows(
@@ -137,13 +131,13 @@ test('제공된 아이체크 목록 패턴을 중복 없이 9명의 담당자로
 });
 
 test('열 개수 또는 보고 필수값이 잘못된 행을 확인 필요로 표시한다', () => {
-  const shortRow = createRow().split('\t').slice(0, 15).join('\t');
+  const shortRow = createRow().split('\t').slice(0, 12).join('\t');
   const missingAdmin = createRow({ admin: '' });
   const { rows } = parseICheckReportRows(`${shortRow}\n${missingAdmin}`);
 
-  assert.equal(rows[0].columnCount, 15);
+  assert.equal(rows[0].columnCount, 12);
   assert.equal(rows[0].isComplete, false);
-  assert.equal(rows[1].columnCount, 16);
+  assert.equal(rows[1].columnCount, 13);
   assert.deepEqual(rows[1].missingFields, ['서버 담당자']);
   assert.equal(rows[1].isComplete, false);
 });
