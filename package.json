@@ -12,7 +12,7 @@
     "test:foreign-mail": "node --test test/foreignMailFormatter.test.js",
     "test:gems-message": "node --test test/gemsMessageFormatter.test.js test/gemsReporterStorage.test.js",
     "test:icheck-report": "node --test test/iCheckReportFormatter.test.js",
-    "test:backup-transfer": "node --test test/backupTransfer.test.js",
+    "test:backup-notepad": "node --test test/backupNotepad.test.js",
     "test:persistent-event": "node --test test/persistentEventParser.test.js",
     "test:persistent-redirect": "node --test test/persistentRedirectParser.test.js",
     "test:light-log": "node --test test/lightLogFormatter.test.js test/lightLogStorage.test.js"

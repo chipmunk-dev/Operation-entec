@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { IoMdCheckmark, IoMdCopy } from 'react-icons/io';
 import {
   MdBackup,
   MdDeleteOutline,
   MdExpandMore,
   MdFileDownload,
-  MdFileUpload,
   MdInfoOutline,
   MdOutlineCloudDone,
   MdOutlineTableView,
@@ -20,11 +19,9 @@ import {
   saveBackupDraft,
 } from '../../utils/autoBackupStorage';
 import {
-  createBackupTransferFileName,
-  MAX_BACKUP_TRANSFER_SIZE,
-  parseBackupTransfer,
-  serializeBackupTransfer,
-} from '../../utils/backupTransfer';
+  createBackupNotepadFileName,
+  formatBackupNotepad,
+} from '../../utils/backupNotepad';
 
 const zones = ['P-EUBKMST', 'NBUMASTER', 'EXTMASTER'];
 const columnOptions = Array.from({ length: 40 }, (_, index) => index + 1);
@@ -36,9 +33,9 @@ const columnFields = [
 
 const howToSteps = [
   {
-    title: '데이터 관리 확인',
-    description: '기존 임시 저장값을 사용하거나 공유 JSON 파일을 불러옵니다.',
-    icon: <MdFileUpload />,
+    title: '저장 상태 확인',
+    description: '브라우저 임시 저장 상태를 확인하거나 오류 결과를 메모장으로 내보냅니다.',
+    icon: <MdFileDownload />,
   },
   {
     title: '백업존 데이터 입력',
@@ -51,8 +48,8 @@ const howToSteps = [
     icon: <MdBackup />,
   },
   {
-    title: '결과 복사·공유',
-    description: '오류 보고를 복사하거나 입력 상태를 JSON 파일로 공유합니다.',
+    title: '결과 복사·저장',
+    description: '오류 보고를 복사하거나 세 백업존의 오류 결과를 메모장으로 저장합니다.',
     icon: <IoMdCopy />,
   },
 ];
@@ -190,8 +187,6 @@ function AutoBackupErrorFilter() {
   );
   const [lastSavedAt, setLastSavedAt] = useState(initialDraft.restoredAt);
   const [notice, setNotice] = useState(initialDraft.notice || '');
-  const fileInputRef = useRef(null);
-
   const summaries = useMemo(
     () =>
       Object.fromEntries(
@@ -249,66 +244,46 @@ function AutoBackupErrorFilter() {
     setNotice('저장된 에러 보고 데이터를 초기화했습니다.');
   };
 
-  const handleJsonExport = () => {
+  const handleNotepadExport = async () => {
     try {
       const exportedAt = new Date();
-      const serialized = serializeBackupTransfer(
-        { inputs, columnPositions, activeZone },
-        zones,
-        exportedAt,
-      );
-      const blob = new Blob([serialized], {
-        type: 'application/json;charset=utf-8',
-      });
+      const fileName = createBackupNotepadFileName(exportedAt);
+      const content = `\uFEFF${formatBackupNotepad(summaries, zones)}`;
+
+      if (typeof window.showSaveFilePicker === 'function') {
+        const fileHandle = await window.showSaveFilePicker({
+          suggestedName: fileName,
+          startIn: 'downloads',
+          types: [
+            {
+              description: '텍스트 문서',
+              accept: { 'text/plain': ['.txt'] },
+            },
+          ],
+        });
+        const writable = await fileHandle.createWritable();
+        await writable.write(content);
+        await writable.close();
+        setNotice('오류 내역을 메모장 파일로 저장했습니다.');
+        return;
+      }
+
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = createBackupTransferFileName(exportedAt);
+      link.download = fileName;
       document.body.appendChild(link);
       link.click();
       link.remove();
       URL.revokeObjectURL(url);
-      setNotice('현재 백업 데이터를 공유 JSON 파일로 내보냈습니다.');
+      setNotice('오류 내역 메모장 파일을 다운로드했습니다.');
     } catch (error) {
+      if (error?.name === 'AbortError') return;
       setNotice(
         error instanceof Error
           ? error.message
-          : '공유 JSON 파일을 만들지 못했습니다.',
-      );
-    }
-  };
-
-  const handleJsonImport = async (event) => {
-    const file = event.target.files?.[0];
-    event.target.value = '';
-    if (!file) return;
-    if (file.size > MAX_BACKUP_TRANSFER_SIZE) {
-      setNotice('공유 JSON 파일이 허용 크기(4MB)를 초과했습니다.');
-      return;
-    }
-
-    try {
-      const parsed = parseBackupTransfer(await file.text(), zones);
-      if (
-        !window.confirm(
-          '불러온 JSON 데이터로 현재 백업 입력과 열 설정을 교체할까요?',
-        )
-      ) {
-        return;
-      }
-
-      setInputs(parsed.state.inputs);
-      setColumnPositions(parsed.state.columnPositions);
-      setActiveZone(parsed.state.activeZone);
-      setNotice(
-        `${file.name} 파일을 불러왔습니다. ` +
-          `내보낸 시각: ${new Date(parsed.exportedAt).toLocaleString('ko-KR')}`,
-      );
-    } catch (error) {
-      setNotice(
-        error instanceof Error
-          ? error.message
-          : '공유 JSON 파일을 불러오지 못했습니다.',
+          : '메모장 파일을 저장하지 못했습니다.',
       );
     }
   };
@@ -398,7 +373,7 @@ function AutoBackupErrorFilter() {
               데이터 관리
             </span>
             <span className="mt-1 block truncate text-xs text-slate-500">
-              JSON 파일 공유 · 현재 PC 임시 저장
+              데이터 메모장 저장 · 현재 PC 임시 저장
             </span>
           </span>
           <span className="flex shrink-0 items-center gap-2">
@@ -426,46 +401,30 @@ function AutoBackupErrorFilter() {
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-sm font-bold text-slate-900">
-                      JSON 파일 공유
+                      데이터 메모장으로 저장하기
                     </p>
                     <p className="mt-1 text-xs text-slate-500">
-                      서버 전송 없이 파일로 다른 PC와 데이터를 공유합니다.
+                      입력된 오류값을 메모장으로 저장하여 내보냅니다.
                     </p>
                   </div>
                   <span className="status-pill bg-blue-100 text-blue-700">
-                    오프라인 공유
+                    TXT 저장
                   </span>
                 </div>
               </div>
               <div className="p-5">
                 <p className="min-h-10 text-xs leading-5 text-slate-500">
-                  내보낸 파일에는 세 백업존의 원본 입력과 열 설정이 포함됩니다.
-                  파일을 전달받은 사용자가 불러오면 현재 화면의 데이터를
-                  교체합니다.
+                  세 백업존의 오류 Policy, Start Time, Status를 구분선과 함께
+                  저장합니다. 오류가 없는 백업존도 함께 표시합니다.
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".json,application/json"
-                    onChange={handleJsonImport}
-                    className="hidden"
-                  />
                   <button
                     type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="btn-secondary"
-                  >
-                    <MdFileUpload size={18} />
-                    JSON 파일 불러오기
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleJsonExport}
+                    onClick={handleNotepadExport}
                     className="btn-primary"
                   >
                     <MdFileDownload size={18} />
-                    공유 JSON 내보내기
+                    메모장으로 내보내기
                   </button>
                 </div>
               </div>
