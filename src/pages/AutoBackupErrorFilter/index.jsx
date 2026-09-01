@@ -603,7 +603,7 @@ function AutoBackupErrorFilter() {
             onChange={(event) =>
               setInputs((current) => ({ ...current, [activeZone]: event.target.value }))
             }
-            className="field-input min-h-52 resize-y font-mono leading-6"
+            className="field-input source-input-compact"
             placeholder={`${activeZone} 백업 작업 목록을 여기에 붙여넣으세요.`}
             spellCheck="false"
           />

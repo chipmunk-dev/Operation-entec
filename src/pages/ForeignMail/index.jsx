@@ -121,7 +121,7 @@ function ForeignMail() {
 
           <div className="panel-body">
             <textarea
-              className="field-input min-h-72 resize-y font-mono leading-6"
+              className="field-input source-input-compact"
               value={rawInput}
               onChange={(event) => setRawInput(event.target.value)}
               placeholder={'HOST-01\tDisk usage warning\t2026-07-26 09:00\t10.0.0.1'}

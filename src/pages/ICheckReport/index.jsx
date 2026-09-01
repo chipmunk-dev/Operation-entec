@@ -177,7 +177,7 @@ function ICheckReport() {
             <textarea
               value={rawInput}
               onChange={(event) => setRawInput(event.target.value)}
-              className="field-input min-h-52 resize-y font-mono leading-6"
+              className="field-input source-input-compact"
               placeholder={inputPlaceholder}
               aria-label="아이체크 엑셀 원본 데이터"
               spellCheck="false"

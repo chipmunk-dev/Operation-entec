@@ -128,6 +128,10 @@
     @apply field-input cursor-pointer py-2.5;
   }
 
+  .source-input-compact {
+    @apply h-32 min-h-32 resize-y font-mono leading-6;
+  }
+
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2.5 text-sm font-bold transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50;
   }

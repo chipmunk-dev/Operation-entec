@@ -386,7 +386,7 @@ function PersistentRedirect() {
           <textarea
             id="rawDataInput"
             value={rawInput}
-            className="field-input min-h-36 resize-y font-mono leading-6"
+            className="field-input source-input-compact"
             onChange={handleChange}
             placeholder="엑셀이나 로그파일의 데이터를 복사해서 붙여넣으세요."
             aria-label="원본 데이터"

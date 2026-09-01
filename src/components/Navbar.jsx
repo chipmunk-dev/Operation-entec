@@ -51,7 +51,7 @@ const menuItems = [
     icon: MdOutlineLightbulb,
   },
   {
-    name: '지속 메시지 엑셀',
+    name: '지속 메시지 엑셀 추출',
     description: 'Event Excel Report',
     path: '/persistent-event-excel',
     icon: FaFileExcel,
@@ -65,7 +65,7 @@ const changeLogItems = [
     detail: `아이체크 13열 입력·G-EMS 설정 저장
 백업 데이터 접기·초기화 동선 개선
 오류 결과 TXT 메모장 저장 추가
-공통 헤더·화면 디자인 간소화`,
+공통 헤더·입력 영역 디자인 간소화`,
   },
   {
     date: '2026.08',

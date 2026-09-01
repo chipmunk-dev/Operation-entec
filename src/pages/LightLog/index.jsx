@@ -270,7 +270,7 @@ function LightLogEditor() {
             <textarea
               value={floor.base}
               onChange={handleFieldChange('base')}
-              className="field-input min-h-28 resize-y font-mono leading-6"
+              className="field-input source-input-compact"
               placeholder={'점등(95ea) : A-15(3),21/B-01-3,15,18'}
               spellCheck="false"
             />

@@ -202,7 +202,7 @@ function GemsMessage() {
             <textarea
               value={rawInput}
               onChange={(event) => setRawInput(event.target.value)}
-              className="field-input min-h-32 resize-y font-mono leading-6"
+              className="field-input source-input-compact"
               placeholder={
                 'HOST-01\tCPU Utilization MAJOR occurred\nHOST-02\tDisk Utilization MAJOR occurred'
               }
