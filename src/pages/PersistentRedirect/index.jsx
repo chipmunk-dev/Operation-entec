@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { IoMdCopy } from 'react-icons/io';
 import { FaCheck, FaUndo, FaListUl, FaCheckDouble, FaPaperPlane, FaExclamationCircle, FaCommentDots, FaEnvelope, FaGlobe, FaInfoCircle } from 'react-icons/fa';
-import HowToPopover from '../../components/HowToPopover';
+import PageHeader from '../../components/PageHeader';
 import WorkflowGuide from '../../components/WorkflowGuide';
 import {
   DEFAULT_PERSISTENT_REDIRECT_ORDER,
@@ -275,26 +275,15 @@ function PersistentRedirect() {
 
   return (
     <div className="page-shell">
-      <header className="page-header">
-        <div className="flex items-start justify-between gap-3">
-          <span className="page-eyebrow">Event operations</span>
-          <HowToPopover
-            title="지속 이벤트 재전달 사용방법"
-            summary="지속 이벤트를 검토하고 채널별 전달 문구와 상태를 관리합니다."
-            steps={howToSteps}
-          />
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-100 text-emerald-600">
-            <FaPaperPlane size={20} />
-          </span>
-          <h1 className="page-title">지속 이벤트 재전달</h1>
-        </div>
-        <p className="page-description">
-          지속 중인 이벤트를 정리하고 담당자별 전달 문구와 처리 기록을 한 화면에서
-          관리합니다.
-        </p>
-      </header>
+      <PageHeader
+        title="지속 이벤트 재전달"
+        description="지속 이벤트의 담당자별 전달 문구와 처리 상태를 한 화면에서 관리합니다."
+        icon={<FaPaperPlane size={18} />}
+        iconClassName="bg-emerald-50 text-emerald-600"
+        helpTitle="지속 이벤트 재전달 사용방법"
+        helpSummary="지속 이벤트를 검토하고 채널별 전달 문구와 상태를 관리합니다."
+        helpSteps={howToSteps}
+      />
 
       <WorkflowGuide
         steps={['근무자·열 설정', '이벤트 입력·검토', '전달 문구 확인·복사', '메시지 상태 관리']}

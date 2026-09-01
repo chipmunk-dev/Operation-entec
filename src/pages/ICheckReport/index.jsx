@@ -7,7 +7,7 @@ import {
   MdOutlineWarningAmber,
 } from 'react-icons/md';
 import { FaFileExcel } from 'react-icons/fa6';
-import HowToPopover from '../../components/HowToPopover';
+import PageHeader from '../../components/PageHeader';
 import WorkflowGuide from '../../components/WorkflowGuide';
 import {
   ICHECK_COLUMN_COUNT,
@@ -82,26 +82,15 @@ function ICheckReport() {
 
   return (
     <div className="page-shell">
-      <header className="page-header">
-        <div className="flex items-start justify-between gap-3">
-          <span className="page-eyebrow">I-Check equipment report</span>
-          <HowToPopover
-            title="아이체크 보고 사용방법"
-            summary="엑셀 데이터를 붙여넣고 담당자별 보고 문구를 바로 복사하세요."
-            steps={howToSteps}
-          />
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-cyan-100 text-cyan-700">
-            <MdFactCheck size={25} />
-          </span>
-          <h1 className="page-title">아이체크 보고</h1>
-        </div>
-        <p className="page-description">
-          아이체크 엑셀의 장비 이상·점등 내역을 서버 담당자별로 묶어 메신저
-          보고 문구를 생성합니다.
-        </p>
-      </header>
+      <PageHeader
+        title="아이체크 보고"
+        description="장비 이상·점등 내역을 서버 담당자별 메신저 보고 문구로 변환합니다."
+        icon={<MdFactCheck size={21} />}
+        iconClassName="bg-cyan-50 text-cyan-700"
+        helpTitle="아이체크 보고 사용방법"
+        helpSummary="엑셀 데이터를 붙여넣고 담당자별 보고 문구를 바로 복사하세요."
+        helpSteps={howToSteps}
+      />
 
       <WorkflowGuide
         steps={['보고자 입력', '엑셀 데이터 붙여넣기', '담당자별 확인·복사']}

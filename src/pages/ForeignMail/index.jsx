@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { IoMdCheckmark, IoMdCopy } from 'react-icons/io';
 import { MdContentPaste, MdEmail, MdOutlineTune } from 'react-icons/md';
-import HowToPopover from '../../components/HowToPopover';
+import PageHeader from '../../components/PageHeader';
 import WorkflowGuide from '../../components/WorkflowGuide';
 import {
   FOREIGN_MAIL_FIELDS,
@@ -66,26 +66,15 @@ function ForeignMail() {
 
   return (
     <div className="page-shell">
-      <header className="page-header">
-        <div className="flex items-start justify-between gap-3">
-          <span className="page-eyebrow">Message formatter</span>
-          <HowToPopover
-            title="해외메일 작성 사용방법"
-            summary="모니터링 데이터를 표준 영문 장애 메일로 변환합니다."
-            steps={howToSteps}
-          />
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-blue-100 text-blue-600">
-            <MdEmail size={25} />
-          </span>
-          <h1 className="page-title">해외메일 포맷 변환기</h1>
-        </div>
-        <p className="page-description">
-          모니터링 데이터를 붙여넣으면 해외 담당자에게 전달할 표준 영문 메일을
-          자동으로 완성합니다.
-        </p>
-      </header>
+      <PageHeader
+        title="해외메일 포맷 변환기"
+        description="모니터링 데이터를 표준 영문 장애 메일로 자동 변환합니다."
+        icon={<MdEmail size={21} />}
+        iconClassName="bg-blue-50 text-blue-600"
+        helpTitle="해외메일 작성 사용방법"
+        helpSummary="모니터링 데이터를 표준 영문 장애 메일로 변환합니다."
+        helpSteps={howToSteps}
+      />
 
       <WorkflowGuide steps={['데이터 입력', '메일 확인·복사']} />
 

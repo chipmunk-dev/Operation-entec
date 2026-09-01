@@ -7,7 +7,7 @@ import {
   MdOutlineLightbulb,
   MdOutlineViewList,
 } from 'react-icons/md';
-import HowToPopover from '../../components/HowToPopover';
+import PageHeader from '../../components/PageHeader';
 import WorkflowGuide from '../../components/WorkflowGuide';
 import { buildLightLog, splitLabel } from '../../utils/lightLogFormatter';
 import {
@@ -196,27 +196,15 @@ function LightLogEditor() {
 
   return (
     <div className="page-shell">
-      <header className="page-header">
-        <div className="flex items-start justify-between gap-3">
-          <span className="page-eyebrow">Light log editor</span>
-          <HowToPopover
-            title="점등 내역 편집 사용방법"
-            summary="기존 내역에 점등·소등을 반영해 원래 형태로 되돌립니다."
-            steps={howToSteps}
-          />
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-amber-100 text-amber-600">
-            <MdOutlineLightbulb size={25} />
-          </span>
-          <h1 className="page-title">점등 내역 편집</h1>
-        </div>
-        <p className="page-description">
-          기존 내역에 아이체크 결과를 반영합니다. 바뀐 항목만 손대고 나머지
-          글자와 줄 구조는 원문 그대로 두기 때문에, 결과를 그대로 엑셀에
-          붙여넣을 수 있습니다.
-        </p>
-      </header>
+      <PageHeader
+        title="점등 내역 편집"
+        description="기존 내역의 형식을 유지하며 아이체크 점등·소등 결과를 반영합니다."
+        icon={<MdOutlineLightbulb size={21} />}
+        iconClassName="bg-amber-50 text-amber-600"
+        helpTitle="점등 내역 편집 사용방법"
+        helpSummary="기존 내역에 점등·소등을 반영해 원래 형태로 되돌립니다."
+        helpSteps={howToSteps}
+      />
 
       <WorkflowGuide
         steps={['층 선택·기존 내역 입력', '점등·소등 입력', '결과 확인·복사']}

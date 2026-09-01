@@ -11,7 +11,7 @@ import {
   MdWarningAmber,
 } from 'react-icons/md';
 import { FaFileExcel } from 'react-icons/fa';
-import HowToPopover from '../../components/HowToPopover';
+import PageHeader from '../../components/PageHeader';
 import WorkflowGuide from '../../components/WorkflowGuide';
 import {
   DEFAULT_PERSISTENT_EVENT_ORDER,
@@ -485,26 +485,15 @@ function PersistentEventExcel() {
 
   return (
     <div className="page-shell">
-      <header className="page-header">
-        <div className="flex items-start justify-between gap-3">
-          <span className="page-eyebrow">Event report</span>
-          <HowToPopover
-            title="지속 메시지 엑셀 추출 사용방법"
-            summary="지속 메시지의 담당자를 검토하고 보고용 엑셀을 생성합니다."
-            steps={howToSteps}
-          />
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-100 text-emerald-600">
-            <FaFileExcel size={21} />
-          </span>
-          <h1 className="page-title">지속 메시지 엑셀 추출</h1>
-        </div>
-        <p className="page-description">
-          오래 지속 중인 메시지에서 처리 담당자를 찾아 검토한 뒤, 담당자 필터가
-          포함된 엑셀 보고서를 생성합니다.
-        </p>
-      </header>
+      <PageHeader
+        title="지속 메시지 엑셀 추출"
+        description="지속 메시지의 담당자를 검토하고 필터가 포함된 보고용 엑셀을 생성합니다."
+        icon={<FaFileExcel size={19} />}
+        iconClassName="bg-emerald-50 text-emerald-600"
+        helpTitle="지속 메시지 엑셀 추출 사용방법"
+        helpSummary="지속 메시지의 담당자를 검토하고 보고용 엑셀을 생성합니다."
+        helpSteps={howToSteps}
+      />
 
       <WorkflowGuide
         steps={['원본 데이터 입력', '담당자·특이사항 검토', '엑셀 추출']}

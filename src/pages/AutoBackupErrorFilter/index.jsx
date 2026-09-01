@@ -9,7 +9,7 @@ import {
   MdOutlineCloudDone,
   MdOutlineTableView,
 } from 'react-icons/md';
-import HowToPopover from '../../components/HowToPopover';
+import PageHeader from '../../components/PageHeader';
 import WorkflowGuide from '../../components/WorkflowGuide';
 import {
   createDefaultBackupState,
@@ -315,26 +315,15 @@ function AutoBackupErrorFilter() {
 
   return (
     <div className="page-shell">
-      <header className="page-header">
-        <div className="flex items-start justify-between gap-3">
-          <span className="page-eyebrow">Backup operations</span>
-          <HowToPopover
-            title="자동 백업 에러 필터 사용방법"
-            summary="백업 작업에서 정상 건을 제외하고 오류 보고를 정리합니다."
-            steps={howToSteps}
-          />
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-violet-100 text-violet-600">
-            <MdBackup size={25} />
-          </span>
-          <h1 className="page-title">자동 백업 에러 필터</h1>
-        </div>
-        <p className="page-description">
-          백업존에서 복사한 작업 목록을 붙여넣으면 정상 작업을 제외하고 확인이 필요한
-          오류만 모아 보여줍니다.
-        </p>
-      </header>
+      <PageHeader
+        title="자동 백업 에러 필터"
+        description="백업 작업 목록에서 정상 건을 제외하고 확인이 필요한 오류만 추출합니다."
+        icon={<MdBackup size={21} />}
+        iconClassName="bg-violet-50 text-violet-600"
+        helpTitle="자동 백업 에러 필터 사용방법"
+        helpSummary="백업 작업에서 정상 건을 제외하고 오류 보고를 정리합니다."
+        helpSteps={howToSteps}
+      />
 
       <WorkflowGuide
         steps={['데이터 관리 확인', '백업존 데이터 입력', '오류 결과 복사']}

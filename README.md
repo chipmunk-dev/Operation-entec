@@ -292,7 +292,9 @@ src/
 │   ├── AppUpdateBanner.jsx
 │   ├── HowToPopover.jsx
 │   ├── Modal.jsx
-│   └── Navbar.jsx
+│   ├── Navbar.jsx
+│   ├── PageHeader.jsx
+│   └── WorkflowGuide.jsx
 ├── hooks/
 │   └── useAppUpdate.js
 ├── pages/

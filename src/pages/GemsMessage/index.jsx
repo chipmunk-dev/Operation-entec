@@ -6,7 +6,7 @@ import {
   MdOutlineMessage,
   MdTune,
 } from 'react-icons/md';
-import HowToPopover from '../../components/HowToPopover';
+import PageHeader from '../../components/PageHeader';
 import WorkflowGuide from '../../components/WorkflowGuide';
 import {
   formatGemsMessage,
@@ -87,26 +87,15 @@ function GemsMessage() {
 
   return (
     <div className="page-shell">
-      <header className="page-header">
-        <div className="flex items-start justify-between gap-3">
-          <span className="page-eyebrow">G-EMS message formatter</span>
-          <HowToPopover
-            title="담당자 제거·메신저 최적화 사용방법"
-            summary="G-EMS 확인 내역을 제거하고 전달용 메시지를 완성합니다."
-            steps={howToSteps}
-          />
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-violet-100 text-violet-600">
-            <MdOutlineMessage size={25} />
-          </span>
-          <h1 className="page-title">담당자 제거·메신저 최적화</h1>
-        </div>
-        <p className="page-description">
-          확인 처리된 여러 메시지의 확인 내역을 일괄 제거하고, 전달하기 좋은
-          형식으로 정리합니다.
-        </p>
-      </header>
+      <PageHeader
+        title="담당자 제거·메신저 최적화"
+        description="확인 내역을 제거하고 전달하기 좋은 메신저 형식으로 정리합니다."
+        icon={<MdOutlineMessage size={21} />}
+        iconClassName="bg-violet-50 text-violet-600"
+        helpTitle="담당자 제거·메신저 최적화 사용방법"
+        helpSummary="G-EMS 확인 내역을 제거하고 전달용 메시지를 완성합니다."
+        helpSteps={howToSteps}
+      />
 
       <WorkflowGuide
         steps={['보고 양식 설정', '메시지 입력', '결과 확인·복사']}
