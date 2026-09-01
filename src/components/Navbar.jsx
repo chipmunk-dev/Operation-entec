@@ -60,6 +60,14 @@ const menuItems = [
 
 const changeLogItems = [
   {
+    date: '2026.09',
+    title: '입력 양식·백업 관리',
+    detail: `아이체크 13열 입력 반영
+G-EMS 출력 방식 저장·단일 메시지 정리
+백업 데이터 접기·초기화 동선 개선
+오류 결과 TXT 메모장 저장 추가`,
+  },
+  {
     date: '2026.08',
     title: '업무 양식·신규 도구',
     detail: `해외메일·재전달·G-EMS 개선
