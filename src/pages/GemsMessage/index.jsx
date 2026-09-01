@@ -13,7 +13,9 @@ import {
   parseGemsMessageRows,
 } from '../../utils/gemsMessageFormatter';
 import {
+  loadGemsOutputMode,
   loadGemsReporterName,
+  saveGemsOutputMode,
   saveGemsReporterName,
 } from '../../utils/gemsReporterStorage';
 
@@ -54,7 +56,7 @@ const howToSteps = [
 function GemsMessage() {
   const [name, setName] = useState(() => loadGemsReporterName());
   const [position, setPosition] = useState('사원');
-  const [outputMode, setOutputMode] = useState('basic');
+  const [outputMode, setOutputMode] = useState(() => loadGemsOutputMode());
   const [rawInput, setRawInput] = useState('');
   const [copied, setCopied] = useState(false);
 
@@ -183,9 +185,11 @@ function GemsMessage() {
                           name="gems-output-mode"
                           value={value}
                           checked={isSelected}
-                          onChange={(event) =>
-                            setOutputMode(event.target.value)
-                          }
+                          onChange={(event) => {
+                            const nextMode = event.target.value;
+                            setOutputMode(nextMode);
+                            saveGemsOutputMode(nextMode);
+                          }}
                           className="h-4 w-4 shrink-0 border-slate-300 text-violet-600 focus:ring-violet-500"
                         />
                         <span className="text-sm font-bold text-slate-800">

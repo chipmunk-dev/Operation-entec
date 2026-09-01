@@ -44,6 +44,22 @@ test('메시지 뒤의 날짜형 확인 내역을 제거한다', () => {
   assert.match(row.confirmationText, /김철수 책임 메신저 확인/u);
 });
 
+test('동일한 날짜형 확인 내역을 단일 행과 복수 행에서 똑같이 제거한다', () => {
+  const confirmedMessage =
+    'CPU warning [2026-08-03 10:00:00: 김철수 책임 메신저 확인 UserName: 정지운]';
+  const [singleRow] = parseGemsMessageRows(`HOST-01\t${confirmedMessage}`);
+  const multipleRows = parseGemsMessageRows(
+    `HOST-01\t${confirmedMessage}\nHOST-02\t${confirmedMessage}`,
+  );
+
+  assert.equal(singleRow.message, 'CPU warning');
+  assert.notEqual(singleRow.confirmationText, '');
+  assert.deepEqual(
+    multipleRows.map(({ message }) => message),
+    ['CPU warning', 'CPU warning'],
+  );
+});
+
 test('날짜형 확인 내역이 아니면 대괄호 내용을 보존한다', () => {
   const [row] = parseGemsMessageRows('HOST-01\tCPU warning [PRIMARY]');
 
