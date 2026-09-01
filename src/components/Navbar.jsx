@@ -62,43 +62,56 @@ const changeLogItems = [
   {
     date: '2026.09',
     title: '입력 양식·화면 개선',
-    detail: `아이체크 13열 입력·G-EMS 설정 저장
-백업 데이터 관리·TXT 내보내기 개선
-공통 헤더·입력 영역·작업 안내 간소화
-입력 예시 근무자명 통일`,
+    detail: `점등 내역 편집 일시 중단 안내 - 정지운 사원
+아이체크 13열 입력 반영 - 정지운 사원
+G-EMS 출력 설정 12시간 저장 - 정지운 사원
+G-EMS 단일 메시지 처리 개선 - 정지운 사원
+백업 데이터 관리·TXT 내보내기 개선 - 정지운 사원
+공통 헤더·입력 영역 간소화 - 정지운 사원
+중복 작업순서 안내 제거 - 정지운 사원
+입력 예시 근무자명 통일 - 정지운 사원`,
   },
   {
     date: '2026.08',
     title: '업무 양식·신규 도구',
-    detail: `해외메일·재전달·G-EMS 개선
-아이체크 보고·점등 내역 편집 추가
-사용방법·배포 알림·화면 개선`,
+    detail: `해외메일 구분선·간격 개선 - 정지운 사원
+재전달 해외메일 양식 개선 - 정지운 사원
+G-EMS 화면·출력 문구 개선 - 정지운 사원
+아이체크 보고 추가 - 정지운 사원
+점등 내역 편집 추가·개선 - 주상돈 사원
+사용방법 안내 추가 - 정지운 사원
+배포 새로고침 알림 추가 - 정지운 사원
+화면 디자인 개선 - 정지운 사원`,
   },
   {
     date: '2026.07',
     title: '운영 화면·이벤트 처리',
-    detail: `백업 JSON·엑셀 보고 추가
-담당자 판독·Event 처리 개선`,
+    detail: `백업 JSON 공유 추가 - 정지운 사원
+지속 메시지 엑셀 보고 추가 - 정지운 사원
+담당자 판독 개선 - 정지운 사원
+Event 처리 개선 - 정지운 사원`,
   },
   {
     date: '2026.01',
     title: '해외메일 개선',
-    detail: '본문 간격·출력 형식 개선',
+    detail: '본문 간격·출력 형식 개선 - 정지운 사원',
   },
   {
     date: '2025.12',
     title: '지속 이벤트 재전달',
-    detail: '대기·확인 관리 및 국내·해외 전달 문구 추가',
+    detail: `대기·확인 관리 추가 - 정지운 사원
+국내·해외 전달 문구 추가 - 정지운 사원`,
   },
   {
     date: '2025.07',
     title: '백업 오류 판독',
-    detail: 'Context Error Code 판독 개선',
+    detail: 'Context Error Code 판독 개선 - 정지운 사원',
   },
   {
     date: '2025.05',
     title: '업무 도구 시작',
-    detail: '해외메일·백업 오류 필터 추가',
+    detail: `해외메일 작성 추가 - 정지운 사원
+백업 오류 필터 추가 - 정지운 사원`,
   },
 ];
 
@@ -118,21 +131,23 @@ const Navbar = ({ isOpen, setIsOpen }) => (
     </div>
 
     <div className="relative z-10 flex h-20 items-center justify-between border-b border-white/10 px-3.5">
-      <div className={`min-w-0 items-center gap-3 ${isOpen ? 'flex' : 'hidden'}`}>
+      <div
+        className={`min-w-0 items-center gap-3 ${isOpen ? 'flex' : 'hidden'}`}
+      >
         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-blue-400 via-blue-500 to-cyan-400 text-white shadow-lg shadow-blue-950/40 ring-1 ring-white/20">
           <MdBolt size={23} aria-hidden="true" />
         </span>
         <div className="min-w-0">
-        {isOpen && (
-          <>
+          {isOpen && (
+            <>
               <p className="truncate text-sm font-bold tracking-tight text-white">
                 Operation CNS Elect
               </p>
               <p className="mt-1 text-[10px] font-bold tracking-[0.16em] text-blue-300/70">
                 ELECT TEAM
               </p>
-          </>
-        )}
+            </>
+          )}
         </div>
       </div>
       <button
