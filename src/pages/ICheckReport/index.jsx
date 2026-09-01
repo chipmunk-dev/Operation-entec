@@ -10,6 +10,7 @@ import { FaFileExcel } from 'react-icons/fa6';
 import HowToPopover from '../../components/HowToPopover';
 import WorkflowGuide from '../../components/WorkflowGuide';
 import {
+  ICHECK_COLUMN_COUNT,
   formatICheckReport,
   groupICheckReportsByAdmin,
   parseICheckReportRows,
@@ -20,12 +21,12 @@ import {
 } from '../../utils/gemsReporterStorage';
 
 const inputPlaceholder =
-  '2026-06-13\tLG전자\tLGECCRP1 / LGEAETL1\tSA3E-36\tIBM\tServer\tPOWER 570\tN/A\t!점등\t2\t정유희\t김미경 책임\t\t○\t\t○ 06/13 김미경 책임 - 확인요청';
+  '2026-06-13\tLG전자\tLGECCRP1 / LGEAETL1\tSA3E-36\tIBM\tServer\tPOWER 570\tN/A\t!점등\t2\t정유희\t김미경 책임\t○ 06/13 김미경 책임 - 확인요청';
 
 const howToSteps = [
   {
-    title: '엑셀 16열 복사',
-    description: '아이체크에서 보고할 장비 행과 16개 열을 그대로 복사합니다.',
+    title: `엑셀 ${ICHECK_COLUMN_COUNT}열 복사`,
+    description: `아이체크에서 보고할 장비 행과 ${ICHECK_COLUMN_COUNT}개 열을 그대로 복사합니다.`,
     icon: <FaFileExcel />,
   },
   {
@@ -193,8 +194,9 @@ function ICheckReport() {
               spellCheck="false"
             />
             <p className="mt-3 text-xs leading-5 text-slate-500">
-              엑셀의 16개 열을 그대로 복사해 붙여넣으세요. 헤더·빈 줄은 자동
-              제외하고, 완전히 동일한 행은 한 건으로 처리합니다.
+              엑셀의 {ICHECK_COLUMN_COUNT}개 열을 그대로 복사해 붙여넣으세요.
+              헤더·빈 줄은 자동 제외하고, 완전히 동일한 행은 한 건으로
+              처리합니다.
             </p>
 
             {incompleteRows.length > 0 && (
@@ -207,8 +209,8 @@ function ICheckReport() {
                   {incompleteRows.map((row) => (
                     <li key={row.id}>
                       {row.lineNumber}행 ·{' '}
-                      {row.columnCount !== 16
-                        ? `${row.columnCount}열 입력 (16열 필요)`
+                      {row.columnCount !== ICHECK_COLUMN_COUNT
+                        ? `${row.columnCount}열 입력 (${ICHECK_COLUMN_COUNT}열 필요)`
                         : `${row.missingFields.join(', ')} 누락`}
                     </li>
                   ))}
