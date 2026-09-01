@@ -62,56 +62,57 @@ const changeLogItems = [
   {
     date: '2026.09',
     title: '입력 양식·화면 개선',
-    detail: `점등 내역 편집 일시 중단 안내 - 정지운 사원
-아이체크 13열 입력 반영 - 정지운 사원
-G-EMS 출력 설정 12시간 저장 - 정지운 사원
-G-EMS 단일 메시지 처리 개선 - 정지운 사원
-백업 데이터 관리·TXT 내보내기 개선 - 정지운 사원
-공통 헤더·입력 영역 간소화 - 정지운 사원
-중복 작업순서 안내 제거 - 정지운 사원
-입력 예시 근무자명 통일 - 정지운 사원`,
+    detail: `[공통 화면] 히스토리 표기·줄바꿈 개선 - 정지운 사원
+[점등 내역 편집] 기능 일시 중단 안내 - 정지운 사원
+[아이체크 보고] 13열 입력 반영 - 정지운 사원
+[G-EMS 메세지] 출력 설정 12시간 저장 - 정지운 사원
+[G-EMS 메세지] 단일 메시지 처리 개선 - 정지운 사원
+[자동 백업 에러] 데이터 관리·TXT 내보내기 개선 - 정지운 사원
+[공통 화면] 헤더·입력 영역 간소화 - 정지운 사원
+[전체 기능] 중복 작업순서 안내 제거 - 정지운 사원
+[전체 기능] 입력 예시 근무자명 통일 - 정지운 사원`,
   },
   {
     date: '2026.08',
     title: '업무 양식·신규 도구',
-    detail: `해외메일 구분선·간격 개선 - 정지운 사원
-재전달 해외메일 양식 개선 - 정지운 사원
-G-EMS 화면·출력 문구 개선 - 정지운 사원
-아이체크 보고 추가 - 정지운 사원
-점등 내역 편집 추가·개선 - 주상돈 사원
-사용방법 안내 추가 - 정지운 사원
-배포 새로고침 알림 추가 - 정지운 사원
-화면 디자인 개선 - 정지운 사원`,
+    detail: `[해외메일 작성] 구분선·간격 개선 - 정지운 사원
+[지속 이벤트 재전달] 해외메일 양식 개선 - 정지운 사원
+[G-EMS 메세지] 화면·출력 문구 개선 - 정지운 사원
+[아이체크 보고] 담당자별 보고 기능 추가 - 정지운 사원
+[점등 내역 편집] 편집 기능 추가·개선 - 주상돈 사원
+[전체 기능] 사용방법 안내 추가 - 정지운 사원
+[공통 화면] 배포 새로고침 알림 추가 - 정지운 사원
+[공통 화면] 화면 디자인 개선 - 정지운 사원`,
   },
   {
     date: '2026.07',
     title: '운영 화면·이벤트 처리',
-    detail: `백업 JSON 공유 추가 - 정지운 사원
-지속 메시지 엑셀 보고 추가 - 정지운 사원
-담당자 판독 개선 - 정지운 사원
-Event 처리 개선 - 정지운 사원`,
+    detail: `[자동 백업 에러] 백업 JSON 공유 추가 - 정지운 사원
+[지속 메시지 엑셀 추출] 엑셀 보고 추가 - 정지운 사원
+[지속 메시지 엑셀 추출] 담당자 판독 개선 - 정지운 사원
+[지속 이벤트 재전달] Event 처리 개선 - 정지운 사원`,
   },
   {
     date: '2026.01',
     title: '해외메일 개선',
-    detail: '본문 간격·출력 형식 개선 - 정지운 사원',
+    detail: '[해외메일 작성] 본문 간격·출력 형식 개선 - 정지운 사원',
   },
   {
     date: '2025.12',
     title: '지속 이벤트 재전달',
-    detail: `대기·확인 관리 추가 - 정지운 사원
-국내·해외 전달 문구 추가 - 정지운 사원`,
+    detail: `[지속 이벤트 재전달] 대기·확인 관리 추가 - 정지운 사원
+[지속 이벤트 재전달] 국내·해외 전달 문구 추가 - 정지운 사원`,
   },
   {
     date: '2025.07',
     title: '백업 오류 판독',
-    detail: 'Context Error Code 판독 개선 - 정지운 사원',
+    detail: '[자동 백업 에러] Context Error Code 판독 개선 - 정지운 사원',
   },
   {
     date: '2025.05',
     title: '업무 도구 시작',
-    detail: `해외메일 작성 추가 - 정지운 사원
-백업 오류 필터 추가 - 정지운 사원`,
+    detail: `[해외메일 작성] 메일 작성 기능 추가 - 정지운 사원
+[자동 백업 에러] 오류 필터 추가 - 정지운 사원`,
   },
 ];
 
@@ -220,8 +221,10 @@ const Navbar = ({ isOpen, setIsOpen }) => (
       <div
         id="operation-change-log"
         role="tooltip"
-        className={`pointer-events-none fixed bottom-3 z-50 max-h-[calc(100vh-1.5rem)] w-[min(18rem,calc(100vw-7rem))] translate-x-1 overflow-y-auto rounded-3xl border border-white/10 bg-slate-950/95 p-3.5 opacity-0 shadow-2xl shadow-slate-950/50 backdrop-blur-2xl transition duration-150 group-hover:pointer-events-auto group-hover:translate-x-0 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:translate-x-0 group-focus-within:opacity-100 ${
-          isOpen ? 'left-[276px]' : 'left-[92px]'
+        className={`pointer-events-none fixed bottom-3 z-50 max-h-[calc(100vh-1.5rem)] w-max translate-x-1 overflow-auto rounded-3xl border border-white/10 bg-slate-950/95 p-3.5 opacity-0 shadow-2xl shadow-slate-950/50 backdrop-blur-2xl transition duration-150 group-hover:pointer-events-auto group-hover:translate-x-0 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:translate-x-0 group-focus-within:opacity-100 ${
+          isOpen
+            ? 'left-[276px] max-w-[calc(100vw-18rem)]'
+            : 'left-[92px] max-w-[calc(100vw-7rem)]'
         }`}
       >
         <div className="mb-2.5 flex items-center justify-between border-b border-white/10 px-1 pb-3">
@@ -244,7 +247,7 @@ const Navbar = ({ isOpen, setIsOpen }) => (
                 <span className="block text-[11px] font-bold text-slate-200">
                   {title}
                 </span>
-                <span className="mt-1 block whitespace-pre-line text-[10px] leading-4 text-slate-500">
+                <span className="mt-1 block whitespace-pre text-[10px] leading-4 text-slate-500">
                   {detail}
                 </span>
               </span>
