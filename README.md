@@ -68,6 +68,10 @@ G-EMS 메시지, 백업 오류 목록, 지속 메시지 엑셀 보고서 등 필
 
 ### 점등 내역 편집
 
+> **현재 사용할 수 없는 기능:** 입력 양식 변경이 진행 중이므로 편집 기능을
+> 일시 중단했습니다. 양식 확정과 안정화 이후 필요에 따라 리팩토링하거나
+> 제거할 예정입니다.
+
 - 3·4·5층 탭으로 층별 입력을 구분하고 현재 브라우저에 7일 동안 저장
 - 기존 점등 내역에 아이체크에서 확인한 점등·소등을 한 번에 반영
 - 엑셀 셀 복사로 생긴 따옴표 래핑 자동 해제
@@ -122,20 +126,20 @@ npm run dev
 
 ### 사용할 수 있는 명령어
 
-| 명령어 | 설명 |
-| --- | --- |
-| `npm run dev` | 개발 서버 실행 |
-| `npm run build` | 프로덕션 빌드 생성 |
-| `npm run preview` | 프로덕션 빌드 미리보기 |
-| `npm run lint` | ESLint 코드 검사 |
-| `npm run test:app-version` | 새 배포 버전 판독 테스트 |
-| `npm run test:foreign-mail` | 해외메일 입력 복구·포맷 테스트 |
-| `npm run test:gems-message` | G-EMS 메시지 파싱·포맷 테스트 |
-| `npm run test:icheck-report` | 아이체크 13열 파싱·담당자별 보고 테스트 |
-| `npm run test:backup-notepad` | 자동 백업 메모장 출력 테스트 |
-| `npm run test:persistent-event` | 지속 메시지 파싱·엑셀 테스트 |
-| `npm run test:persistent-redirect` | 지속 이벤트 파싱 테스트 |
-| `npm run test:light-log` | 점등 내역 반영·복원·층별 저장 테스트 |
+| 명령어                             | 설명                                    |
+| ---------------------------------- | --------------------------------------- |
+| `npm run dev`                      | 개발 서버 실행                          |
+| `npm run build`                    | 프로덕션 빌드 생성                      |
+| `npm run preview`                  | 프로덕션 빌드 미리보기                  |
+| `npm run lint`                     | ESLint 코드 검사                        |
+| `npm run test:app-version`         | 새 배포 버전 판독 테스트                |
+| `npm run test:foreign-mail`        | 해외메일 입력 복구·포맷 테스트          |
+| `npm run test:gems-message`        | G-EMS 메시지 파싱·포맷 테스트           |
+| `npm run test:icheck-report`       | 아이체크 13열 파싱·담당자별 보고 테스트 |
+| `npm run test:backup-notepad`      | 자동 백업 메모장 출력 테스트            |
+| `npm run test:persistent-event`    | 지속 메시지 파싱·엑셀 테스트            |
+| `npm run test:persistent-redirect` | 지속 이벤트 파싱 테스트                 |
+| `npm run test:light-log`           | 점등 내역 반영·복원·층별 저장 테스트    |
 
 ## 입력 데이터 형식
 
@@ -156,10 +160,10 @@ Host    Message/Event    Date    IP
 
 최소 9개의 열이 필요하며 다음 위치의 값을 사용합니다.
 
-| 위치 | 필드 | 용도 |
-| ---: | --- | --- |
-| 1번째 열 | Status | 오류 여부 판단 |
-| 6번째 열 | Job Policy | 정책 이름 표시 |
+|     위치 | 필드       | 용도                |
+| -------: | ---------- | ------------------- |
+| 1번째 열 | Status     | 오류 여부 판단      |
+| 6번째 열 | Job Policy | 정책 이름 표시      |
 | 7번째 열 | Start Time | 백업 시작 시간 표시 |
 
 권장 열 순서:
@@ -329,6 +333,15 @@ src/
 npm run lint
 npm run build
 ```
+
+## 개발 히스토리 작성 규칙
+
+- 기능·오류 수정·UI 변경은 작업을 마칠 때 `src/components/Navbar.jsx`의
+  히스토리에 함께 반영
+- 최신 월을 위에 두고 같은 월의 작업은 하나로 묶어 한 작업당 한 줄로 기록
+- 각 줄은 `[기능페이지] 작업 내용 - 작업자` 형식으로 작성하고 줄바꿈 없이 표시
+- 날짜는 일수 없이 `YYYY.MM`만 사용하고 작업자는 관등성명으로 표기
+- 관리자 작업은 `정지운 사원`, 점등 내역 편집 기여는 `주상돈 사원`으로 표기
 
 ## 문의
 
