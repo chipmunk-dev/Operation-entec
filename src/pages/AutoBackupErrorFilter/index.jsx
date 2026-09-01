@@ -12,7 +12,6 @@ import {
 import HowToPopover from '../../components/HowToPopover';
 import WorkflowGuide from '../../components/WorkflowGuide';
 import {
-  clearBackupDraft,
   createDefaultBackupState,
   DEFAULT_COLUMN_POSITIONS,
   loadBackupDraft,
@@ -233,15 +232,10 @@ function AutoBackupErrorFilter() {
     }
   };
 
-  const resetReport = () => {
-    if (!window.confirm('세 백업존의 입력과 열 설정을 모두 초기화할까요?')) return;
-    const defaults = createDefaultBackupState(zones);
-    clearBackupDraft();
-    setInputs(defaults.inputs);
-    setColumnPositions(defaults.columnPositions);
-    setActiveZone(defaults.activeZone);
-    setLastSavedAt(null);
-    setNotice('저장된 에러 보고 데이터를 초기화했습니다.');
+  const resetAllInputs = () => {
+    if (!window.confirm('입력된 데이터를 모두 초기화하시겠습니까?')) return;
+    setInputs(createDefaultBackupState(zones).inputs);
+    setNotice('세 백업존의 입력 데이터를 모두 초기화했습니다.');
   };
 
   const handleNotepadExport = async () => {
@@ -366,10 +360,14 @@ function AutoBackupErrorFilter() {
           onClick={() => setShowDataManagement((current) => !current)}
           aria-expanded={showDataManagement}
           aria-controls="auto-backup-data-management"
-          className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition hover:bg-slate-50/70"
+          className={`group flex w-full cursor-pointer items-center justify-between gap-4 px-5 py-4 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500 ${
+            showDataManagement
+              ? 'bg-slate-50/70'
+              : 'hover:bg-blue-50/80 hover:shadow-[inset_4px_0_0_#3b82f6]'
+          }`}
         >
           <span className="min-w-0">
-            <span className="block text-sm font-bold text-slate-900">
+            <span className="block text-sm font-bold text-slate-900 transition-colors group-hover:text-blue-700">
               데이터 관리
             </span>
             <span className="mt-1 block truncate text-xs text-slate-500">
@@ -381,13 +379,18 @@ function AutoBackupErrorFilter() {
               <MdOutlineCloudDone size={16} />
               {storageStatus === 'saving' ? '저장 중' : '자동 저장'}
             </span>
-            <MdExpandMore
-              size={22}
-              aria-hidden="true"
-              className={`text-slate-400 transition-transform duration-200 ${
-                showDataManagement ? 'rotate-180' : ''
-              }`}
-            />
+            <span className="hidden text-xs font-bold text-slate-400 transition-colors group-hover:text-blue-700 sm:inline">
+              {showDataManagement ? '접기' : '펼치기'}
+            </span>
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-slate-100 text-slate-500 transition-all duration-200 group-hover:translate-y-0.5 group-hover:bg-blue-100 group-hover:text-blue-700">
+              <MdExpandMore
+                size={22}
+                aria-hidden="true"
+                className={`transition-transform duration-200 ${
+                  showDataManagement ? 'rotate-180' : ''
+                }`}
+              />
+            </span>
           </span>
         </button>
 
@@ -452,21 +455,11 @@ function AutoBackupErrorFilter() {
                   새로고침해도 복원되며 마지막 수정 후 7일이 지나면 삭제됩니다.
                   이 데이터는 다른 PC에서는 볼 수 없습니다.
                 </p>
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <span className="text-xs font-semibold text-emerald-700">
-                    {lastSavedAt
-                      ? `최근 저장 · ${new Date(lastSavedAt).toLocaleString('ko-KR')}`
-                      : '저장된 임시 데이터 없음'}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={resetReport}
-                    className="btn-ghost px-3 py-2 text-rose-600 hover:bg-rose-50"
-                  >
-                    <MdDeleteOutline size={18} />
-                    현재 PC 데이터 초기화
-                  </button>
-                </div>
+                <span className="text-xs font-semibold text-emerald-700">
+                  {lastSavedAt
+                    ? `최근 저장 · ${new Date(lastSavedAt).toLocaleString('ko-KR')}`
+                    : '저장된 임시 데이터 없음'}
+                </span>
               </div>
             </div>
           </div>
@@ -494,6 +487,15 @@ function AutoBackupErrorFilter() {
             <p className="mt-1 text-xs text-slate-500">백업존을 선택하고 데이터를 붙여넣으세요.</p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              disabled={!zones.some((zone) => inputs[zone].trim())}
+              onClick={resetAllInputs}
+              className="btn-ghost text-rose-600 hover:bg-rose-50"
+            >
+              <MdDeleteOutline size={18} />
+              전체 초기화
+            </button>
             <button
               type="button"
               onClick={() => setShowColumnSettings(!showColumnSettings)}
@@ -642,7 +644,7 @@ function AutoBackupErrorFilter() {
               className="btn-ghost text-rose-600 hover:bg-rose-50"
             >
               <MdDeleteOutline size={18} />
-              현재 입력 지우기
+              현재 백업존 데이터 지우기
             </button>
           </div>
         </div>
