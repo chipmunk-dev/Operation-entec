@@ -21,7 +21,7 @@ const menuItems = [
     icon: MdEmail,
   },
   {
-    name: 'G-EMS 메세지 담당자 제거 / 메신저 보고양식 자동완성',
+    name: 'G-EMS 메세지 담당자 제거\n메신저 보고양식 자동완성',
     description: 'G-EMS Message Helper',
     path: '/gems-message',
     icon: MdOutlineMessage,
@@ -63,9 +63,9 @@ const changeLogItems = [
     date: '2026.09',
     title: '입력 양식·화면 개선',
     detail: `아이체크 13열 입력·G-EMS 설정 저장
-백업 데이터 접기·초기화 동선 개선
-오류 결과 TXT 메모장 저장 추가
-공통 헤더·입력 영역 디자인 간소화`,
+백업 데이터 관리·TXT 내보내기 개선
+공통 헤더·입력 영역·작업 안내 간소화
+입력 예시 근무자명 통일`,
   },
   {
     date: '2026.08',
@@ -164,7 +164,9 @@ const Navbar = ({ isOpen, setIsOpen }) => (
           </span>
           {isOpen && (
             <span className="min-w-0">
-              <span className="block text-[13px] font-semibold leading-4">{name}</span>
+              <span className="block whitespace-pre-line text-[13px] font-semibold leading-4">
+                {name}
+              </span>
               <span className="mt-0.5 block truncate text-[10px] font-medium tracking-wide text-slate-400 transition group-hover:text-slate-300">
                 {description}
               </span>

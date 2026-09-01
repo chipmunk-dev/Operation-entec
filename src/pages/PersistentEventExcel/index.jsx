@@ -12,7 +12,6 @@ import {
 } from 'react-icons/md';
 import { FaFileExcel } from 'react-icons/fa';
 import PageHeader from '../../components/PageHeader';
-import WorkflowGuide from '../../components/WorkflowGuide';
 import {
   DEFAULT_PERSISTENT_EVENT_ORDER,
   PERSISTENT_EVENT_FIELDS,
@@ -495,10 +494,6 @@ function PersistentEventExcel() {
         helpSteps={howToSteps}
       />
 
-      <WorkflowGuide
-        steps={['원본 데이터 입력', '담당자·특이사항 검토', '엑셀 추출']}
-      />
-
       <section className="panel mb-6 overflow-hidden">
         <div className="panel-header">
           <div>
@@ -554,7 +549,7 @@ function PersistentEventExcel() {
             onChange={(event) => setRawInput(event.target.value)}
             className="field-input min-h-56 resize-y font-mono text-xs leading-6"
             placeholder={
-              '1일 16시간 57분\t하이엠솔루텍\tHIMSWHIRUN02V\t/logs001 Utilization MAJOR occurred [2026-07-08 13:39:08: 이승규 선임 문자 → 전예찬 사원 이승규 선임 메신저 재전달 확인]\t2026-07-08 13:22:28\t156.147.36.89'
+              '1일 16시간 57분\t하이엠솔루텍\tHIMSWHIRUN02V\t/logs001 Utilization MAJOR occurred [2026-07-08 13:39:08: 이승규 선임 문자 → 정지운 사원 이승규 선임 메신저 재전달 확인]\t2026-07-08 13:22:28\t156.147.36.89'
             }
             spellCheck="false"
           />

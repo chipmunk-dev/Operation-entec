@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { IoMdCopy } from 'react-icons/io';
 import { FaCheck, FaUndo, FaListUl, FaCheckDouble, FaPaperPlane, FaExclamationCircle, FaCommentDots, FaEnvelope, FaGlobe, FaInfoCircle } from 'react-icons/fa';
 import PageHeader from '../../components/PageHeader';
-import WorkflowGuide from '../../components/WorkflowGuide';
 import {
   DEFAULT_PERSISTENT_REDIRECT_ORDER,
   mergePersistentRedirectIds,
@@ -285,10 +284,6 @@ function PersistentRedirect() {
         helpSteps={howToSteps}
       />
 
-      <WorkflowGuide
-        steps={['근무자·열 설정', '이벤트 입력·검토', '전달 문구 확인·복사', '메시지 상태 관리']}
-      />
-
       <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
         <section className={`panel overflow-hidden transition-colors ${!workerName.trim() ? 'border-rose-200 bg-rose-50/50' : ''}`}>
           <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3">
@@ -321,7 +316,7 @@ function PersistentRedirect() {
                 onChange={(e) => setWorkerName(e.target.value)}
                 aria-invalid={!workerName.trim() || undefined}
                 className={`field-input px-3 py-2 ${!workerName.trim() ? 'border-rose-300 bg-white placeholder:text-rose-300' : ''}`}
-                placeholder="홍길동"
+                placeholder="정지운"
               />
             </div>
             <div className="w-24 shrink-0">

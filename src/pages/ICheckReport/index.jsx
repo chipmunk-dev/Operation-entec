@@ -8,7 +8,6 @@ import {
 } from 'react-icons/md';
 import { FaFileExcel } from 'react-icons/fa6';
 import PageHeader from '../../components/PageHeader';
-import WorkflowGuide from '../../components/WorkflowGuide';
 import {
   ICHECK_COLUMN_COUNT,
   formatICheckReport,
@@ -21,7 +20,7 @@ import {
 } from '../../utils/gemsReporterStorage';
 
 const inputPlaceholder =
-  '2026-06-13\tLG전자\tLGECCRP1 / LGEAETL1\tSA3E-36\tIBM\tServer\tPOWER 570\tN/A\t!점등\t2\t정유희\t김미경 책임\t○ 06/13 김미경 책임 - 확인요청';
+  '2026-06-13\tLG전자\tLGECCRP1 / LGEAETL1\tSA3E-36\tIBM\tServer\tPOWER 570\tN/A\t!점등\t2\t정지운\t김미경 책임\t○ 06/13 김미경 책임 - 확인요청';
 
 const howToSteps = [
   {
@@ -92,10 +91,6 @@ function ICheckReport() {
         helpSteps={howToSteps}
       />
 
-      <WorkflowGuide
-        steps={['보고자 입력', '엑셀 데이터 붙여넣기', '담당자별 확인·복사']}
-      />
-
       <div className="grid gap-6">
         <section
           aria-invalid={isReporterNameRequired || undefined}
@@ -129,7 +124,7 @@ function ICheckReport() {
                   className={`field-input min-w-0 py-2 ${
                     isReporterNameRequired ? 'border-rose-300 bg-rose-50' : ''
                   }`}
-                  placeholder="홍길동"
+                  placeholder="정지운"
                 />
               </label>
               <label className="mb-0 flex items-center gap-2 text-xs font-semibold text-slate-700">

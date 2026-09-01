@@ -10,7 +10,6 @@ import {
   MdOutlineTableView,
 } from 'react-icons/md';
 import PageHeader from '../../components/PageHeader';
-import WorkflowGuide from '../../components/WorkflowGuide';
 import {
   createDefaultBackupState,
   DEFAULT_COLUMN_POSITIONS,
@@ -323,10 +322,6 @@ function AutoBackupErrorFilter() {
         helpTitle="자동 백업 에러 필터 사용방법"
         helpSummary="백업 작업에서 정상 건을 제외하고 오류 보고를 정리합니다."
         helpSteps={howToSteps}
-      />
-
-      <WorkflowGuide
-        steps={['데이터 관리 확인', '백업존 데이터 입력', '오류 결과 복사']}
       />
 
       {notice && (

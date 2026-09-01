@@ -8,7 +8,6 @@ import {
   MdOutlineViewList,
 } from 'react-icons/md';
 import PageHeader from '../../components/PageHeader';
-import WorkflowGuide from '../../components/WorkflowGuide';
 import { buildLightLog, splitLabel } from '../../utils/lightLogFormatter';
 import {
   FLOOR_KEYS,
@@ -204,10 +203,6 @@ function LightLogEditor() {
         helpTitle="점등 내역 편집 사용방법"
         helpSummary="기존 내역에 점등·소등을 반영해 원래 형태로 되돌립니다."
         helpSteps={howToSteps}
-      />
-
-      <WorkflowGuide
-        steps={['층 선택·기존 내역 입력', '점등·소등 입력', '결과 확인·복사']}
       />
 
       <div

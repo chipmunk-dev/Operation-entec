@@ -7,7 +7,6 @@ import {
   MdTune,
 } from 'react-icons/md';
 import PageHeader from '../../components/PageHeader';
-import WorkflowGuide from '../../components/WorkflowGuide';
 import {
   formatGemsMessage,
   parseGemsMessageRows,
@@ -90,17 +89,13 @@ function GemsMessage() {
   return (
     <div className="page-shell">
       <PageHeader
-        title="G-EMS 메세지 담당자 제거 / 메신저 보고양식 자동완성"
+        title="G-EMS 메세지 담당자 제거 · 메신저 보고양식 자동완성"
         description="확인 내역을 제거하고 전달하기 좋은 메신저 형식으로 정리합니다."
         icon={<MdOutlineMessage size={21} />}
         iconClassName="bg-violet-50 text-violet-600"
-        helpTitle="G-EMS 메세지 담당자 제거 / 메신저 보고양식 자동완성 사용방법"
+        helpTitle="G-EMS 메세지 담당자 제거 · 메신저 보고양식 자동완성 사용방법"
         helpSummary="G-EMS 확인 내역을 제거하고 전달용 메시지를 완성합니다."
         helpSteps={howToSteps}
-      />
-
-      <WorkflowGuide
-        steps={['보고 양식 설정', '메시지 입력', '결과 확인·복사']}
       />
 
       <div className="grid gap-6">
@@ -138,7 +133,7 @@ function GemsMessage() {
                     className={`field-input min-w-0 py-2 ${
                       isReporterNameRequired ? 'border-rose-300 bg-rose-50' : ''
                     }`}
-                    placeholder="홍길동"
+                    placeholder="정지운"
                   />
                 </label>
                 <label className="mb-0 flex items-center gap-2 text-xs font-semibold text-slate-700">

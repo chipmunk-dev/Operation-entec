@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import { IoMdCheckmark, IoMdCopy } from 'react-icons/io';
 import { MdContentPaste, MdEmail, MdOutlineTune } from 'react-icons/md';
 import PageHeader from '../../components/PageHeader';
-import WorkflowGuide from '../../components/WorkflowGuide';
 import {
   FOREIGN_MAIL_FIELDS,
   formatForeignMail,
@@ -75,8 +74,6 @@ function ForeignMail() {
         helpSummary="모니터링 데이터를 표준 영문 장애 메일로 변환합니다."
         helpSteps={howToSteps}
       />
-
-      <WorkflowGuide steps={['데이터 입력', '메일 확인·복사']} />
 
       <div className="grid gap-6">
         <section className="panel overflow-hidden">
