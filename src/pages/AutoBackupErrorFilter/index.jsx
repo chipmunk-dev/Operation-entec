@@ -3,6 +3,7 @@ import { IoMdCheckmark, IoMdCopy } from 'react-icons/io';
 import {
   MdBackup,
   MdDeleteOutline,
+  MdExpandMore,
   MdFileDownload,
   MdFileUpload,
   MdInfoOutline,
@@ -179,6 +180,7 @@ function AutoBackupErrorFilter() {
   const initialDraft = useMemo(() => loadBackupDraft(zones), []);
   const [activeZone, setActiveZone] = useState(initialDraft.state.activeZone);
   const [inputs, setInputs] = useState(initialDraft.state.inputs);
+  const [showDataManagement, setShowDataManagement] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [showColumnSettings, setShowColumnSettings] = useState(false);
   const [columnPositions, setColumnPositions] = useState(initialDraft.state.columnPositions);
@@ -383,91 +385,133 @@ function AutoBackupErrorFilter() {
         </div>
       )}
 
-      <section className="mb-6 grid gap-4 lg:grid-cols-2">
-        <div className="panel overflow-hidden">
-          <div className="border-b border-slate-100 bg-blue-50/60 px-5 py-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-bold text-slate-900">JSON 파일 공유</p>
-                <p className="mt-1 text-xs text-slate-500">
-                  서버 전송 없이 파일로 다른 PC와 데이터를 공유합니다.
-                </p>
-              </div>
-              <span className="status-pill bg-blue-100 text-blue-700">
-                오프라인 공유
-              </span>
-            </div>
-          </div>
-          <div className="p-5">
-            <p className="min-h-10 text-xs leading-5 text-slate-500">
-              내보낸 파일에는 세 백업존의 원본 입력과 열 설정이 포함됩니다. 파일을
-              전달받은 사용자가 불러오면 현재 화면의 데이터를 교체합니다.
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".json,application/json"
-                onChange={handleJsonImport}
-                className="hidden"
-              />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="btn-secondary"
-              >
-                <MdFileUpload size={18} />
-                JSON 파일 불러오기
-              </button>
-              <button
-                type="button"
-                onClick={handleJsonExport}
-                className="btn-primary"
-              >
-                <MdFileDownload size={18} />
-                공유 JSON 내보내기
-              </button>
-            </div>
-          </div>
-        </div>
+      <section className="panel mb-6 overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setShowDataManagement((current) => !current)}
+          aria-expanded={showDataManagement}
+          aria-controls="auto-backup-data-management"
+          className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition hover:bg-slate-50/70"
+        >
+          <span className="min-w-0">
+            <span className="block text-sm font-bold text-slate-900">
+              데이터 관리
+            </span>
+            <span className="mt-1 block truncate text-xs text-slate-500">
+              JSON 파일 공유 · 현재 PC 임시 저장
+            </span>
+          </span>
+          <span className="flex shrink-0 items-center gap-2">
+            <span className="status-pill bg-emerald-50 text-emerald-700">
+              <MdOutlineCloudDone size={16} />
+              {storageStatus === 'saving' ? '저장 중' : '자동 저장'}
+            </span>
+            <MdExpandMore
+              size={22}
+              aria-hidden="true"
+              className={`text-slate-400 transition-transform duration-200 ${
+                showDataManagement ? 'rotate-180' : ''
+              }`}
+            />
+          </span>
+        </button>
 
-        <div className="panel overflow-hidden">
-          <div className="border-b border-slate-100 bg-emerald-50/60 px-5 py-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-bold text-slate-900">현재 PC 임시 저장</p>
-                <p className="mt-1 text-xs text-slate-500">
-                  입력할 때마다 이 브라우저에 자동 저장합니다.
-                </p>
+        {showDataManagement && (
+          <div
+            id="auto-backup-data-management"
+            className="grid gap-4 border-t border-slate-100 bg-slate-50/50 p-4 lg:grid-cols-2"
+          >
+            <div className="overflow-hidden rounded-2xl border border-blue-100 bg-white">
+              <div className="border-b border-blue-100 bg-blue-50/60 px-5 py-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-bold text-slate-900">
+                      JSON 파일 공유
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      서버 전송 없이 파일로 다른 PC와 데이터를 공유합니다.
+                    </p>
+                  </div>
+                  <span className="status-pill bg-blue-100 text-blue-700">
+                    오프라인 공유
+                  </span>
+                </div>
               </div>
-              <span className="status-pill bg-emerald-100 text-emerald-700">
-                <MdOutlineCloudDone size={16} />
-                {storageStatus === 'saving' ? '저장 중' : '자동 저장'}
-              </span>
+              <div className="p-5">
+                <p className="min-h-10 text-xs leading-5 text-slate-500">
+                  내보낸 파일에는 세 백업존의 원본 입력과 열 설정이 포함됩니다.
+                  파일을 전달받은 사용자가 불러오면 현재 화면의 데이터를
+                  교체합니다.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".json,application/json"
+                    onChange={handleJsonImport}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="btn-secondary"
+                  >
+                    <MdFileUpload size={18} />
+                    JSON 파일 불러오기
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleJsonExport}
+                    className="btn-primary"
+                  >
+                    <MdFileDownload size={18} />
+                    공유 JSON 내보내기
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-2xl border border-emerald-100 bg-white">
+              <div className="border-b border-emerald-100 bg-emerald-50/60 px-5 py-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-bold text-slate-900">
+                      현재 PC 임시 저장
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      입력할 때마다 이 브라우저에 자동 저장합니다.
+                    </p>
+                  </div>
+                  <span className="status-pill bg-emerald-100 text-emerald-700">
+                    <MdOutlineCloudDone size={16} />
+                    {storageStatus === 'saving' ? '저장 중' : '자동 저장'}
+                  </span>
+                </div>
+              </div>
+              <div className="flex h-[154px] flex-col justify-between p-5">
+                <p className="text-xs leading-5 text-slate-500">
+                  새로고침해도 복원되며 마지막 수정 후 7일이 지나면 삭제됩니다.
+                  이 데이터는 다른 PC에서는 볼 수 없습니다.
+                </p>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <span className="text-xs font-semibold text-emerald-700">
+                    {lastSavedAt
+                      ? `최근 저장 · ${new Date(lastSavedAt).toLocaleString('ko-KR')}`
+                      : '저장된 임시 데이터 없음'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={resetReport}
+                    className="btn-ghost px-3 py-2 text-rose-600 hover:bg-rose-50"
+                  >
+                    <MdDeleteOutline size={18} />
+                    현재 PC 데이터 초기화
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="flex h-[154px] flex-col justify-between p-5">
-            <p className="text-xs leading-5 text-slate-500">
-              새로고침해도 복원되며 마지막 수정 후 7일이 지나면 삭제됩니다. 이 데이터는
-              다른 PC에서는 볼 수 없습니다.
-            </p>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <span className="text-xs font-semibold text-emerald-700">
-                {lastSavedAt
-                  ? `최근 저장 · ${new Date(lastSavedAt).toLocaleString('ko-KR')}`
-                  : '저장된 임시 데이터 없음'}
-              </span>
-              <button
-                type="button"
-                onClick={resetReport}
-                className="btn-ghost px-3 py-2 text-rose-600 hover:bg-rose-50"
-              >
-                <MdDeleteOutline size={18} />
-                현재 PC 데이터 초기화
-              </button>
-            </div>
-          </div>
-        </div>
+        )}
       </section>
 
       <section className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
