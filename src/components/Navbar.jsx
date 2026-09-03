@@ -9,6 +9,7 @@ import {
   MdOutlineChevronLeft,
   MdOutlineLightbulb,
   MdOutlineMessage,
+  MdOutlineTableChart,
 } from 'react-icons/md';
 import { FaArrowsRotate, FaFileExcel } from 'react-icons/fa6';
 import { NavLink } from 'react-router-dom';
@@ -51,6 +52,12 @@ const menuItems = [
     icon: MdOutlineLightbulb,
   },
   {
+    name: '아이체크 점등·소등 처리',
+    description: 'Eye Check Light Log',
+    path: '/eyecheck-light-log',
+    icon: MdOutlineTableChart,
+  },
+  {
     name: '지속 메시지 엑셀 추출',
     description: 'Event Excel Report',
     path: '/persistent-event-excel',
@@ -62,7 +69,8 @@ const changeLogItems = [
   {
     date: '2026.09',
     title: '사용성 고도화',
-    detail: `[공통 화면] 히스토리 표기·줄바꿈 개선 - 정지운 사원
+    detail: `[아이체크 점등·소등 처리] Eye Check 엑셀 직접 편집 도구 추가 - 주상돈 사원
+[공통 화면] 히스토리 표기·줄바꿈 개선 - 정지운 사원
 [공통 화면] 개선활동 기간 표기 폭 조정 - 정지운 사원
 [아이체크 보고] 13열 입력 반영 - 정지운 사원
 [G-EMS 메세지] 출력 설정 12시간 저장 - 정지운 사원

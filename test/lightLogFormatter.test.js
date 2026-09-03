@@ -236,3 +236,39 @@ test('점등 "A-1,2,3" 입력이 기존 내역에 세 자리로 반영된다', (
   assert.equal(log.output, '점등(4ea) : A-1,2,3,9');
   assert.equal(log.total, 4);
 });
+
+test('같은 구역 안에 같은 번호가 여러 번 나오면 한 자리로 합쳐 개수를 더한다', () => {
+  const log = buildLightLog('점등(3ea) : A-15,15,21', '', '');
+  assert.equal(log.output, '점등(3ea) : A-15(2),21');
+  assert.equal(log.total, 3);
+
+  const added = buildLightLog('점등(1ea) : A-15', 'A-15, A-15', '');
+  assert.equal(added.output, '점등(3ea) : A-15(3)');
+
+  const removed = buildLightLog('점등(3ea) : A-15,15(2)', '', 'A-15');
+  assert.equal(removed.output, '점등(2ea) : A-15(2)');
+});
+
+test('한 조각 안에서 구역 글자가 바뀌면 그 지점부터 다른 구역으로 읽는다', () => {
+  const log = buildLightLog('점등(5ea) : A-15,15,16,B-12,A-17', '', '');
+
+  assert.deepEqual(
+    log.sectors.map((sector) => [sector.group, sector.items.map((item) => `${item.num}(${item.count})`)]),
+    [
+      ['A', ['15(2)', '16(1)', '17(1)']],
+      ['B', ['12(1)']],
+    ],
+  );
+  assert.equal(log.output, '점등(5ea) : A-15(2),16,17/B-12');
+  assert.equal(log.total, 5);
+});
+
+test('allowEmptyBase면 빈 기존 내역에 점등을 더해 새로 만든다', () => {
+  assert.equal(buildLightLog('', 'A-1', ''), null, '기본값은 기존과 같이 결과를 만들지 않는다');
+
+  const log = buildLightLog('', 'A-15, A-15, B-3', '', { allowEmptyBase: true });
+  assert.equal(log.output, 'A-15(2)/B-3');
+  assert.equal(log.total, 3);
+  assert.equal(log.before, 0);
+  assert.equal(log.hasHead, false);
+});
