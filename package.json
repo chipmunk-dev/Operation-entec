@@ -15,7 +15,9 @@
     "test:backup-notepad": "node --test test/backupNotepad.test.js",
     "test:persistent-event": "node --test test/persistentEventParser.test.js",
     "test:persistent-redirect": "node --test test/persistentRedirectParser.test.js",
-    "test:light-log": "node --test test/lightLogFormatter.test.js test/lightLogStorage.test.js"
+    "test:light-log": "node --test test/lightLogFormatter.test.js test/lightLogStorage.test.js",
+
+    "test:eyecheck": "node --test test/xlsxSheetXml.test.js test/eyecheckWorkbook.test.js test/eyecheckStorage.test.js"
   },
   "dependencies": {
     "clsx": "^2.1.1",

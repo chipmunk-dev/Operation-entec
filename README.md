@@ -83,6 +83,17 @@ G-EMS 메시지, 백업 오류 목록, 지속 메시지 엑셀 보고서 등 필
 - 갱신 결과를 기존 내역으로 반영하는 버튼과 구역·개수 색상 구분 출력 제공
 - 인식하지 못한 조각과 기존 내역에 없는 소등 자리를 별도로 안내
 
+### 아이체크 점등·소등 처리
+
+- Eye Check 엑셀(xlsx) 파일을 브라우저에서 직접 열어 `점등장비`·`소등장비`·`층별갯수`·`전자_Eyecheck` 시트를 읽고 수정
+- 층 탭별로 `전자_Eyecheck` 점검대상 칸의 구역별 내용을 기존 내역으로 가져와 점등 입력을 반영
+- `점등장비` 목록에서 고른 행을 소등으로 처리해 `소등장비` 시트 아래로 옮기고 점검대상 칸에서도 제거
+- 점등 입력을 `점등장비` 시트에 행으로 추가하며 점검 날짜·위치·점등상태·조·발견자·내용 칸을 채움
+- `층별갯수` 시트의 수식 결과를 새 개수로 맞추고 파일을 열 때 전체 재계산하도록 표시
+- 크롬에서는 원본 파일에 바로 덮어쓰기(백업 자동 내려받기), 그 외에는 새 파일로 내려받기
+- 파일 안 개수가 서로 맞지 않거나 지난번 저장 내용과 다르면 열 때 경고
+- 다른 시트·도형·메모·sharedStrings는 손대지 않고 바이트 그대로 보존
+
 ### 지속 메시지 엑셀 추출
 
 - 입력 데이터의 발생일시를 계산이나 변환 없이 그대로 사용
@@ -140,6 +151,7 @@ npm run dev
 | `npm run test:persistent-event`    | 지속 메시지 파싱·엑셀 테스트            |
 | `npm run test:persistent-redirect` | 지속 이벤트 파싱 테스트                 |
 | `npm run test:light-log`           | 점등 내역 반영·복원·층별 저장 테스트    |
+| `npm run test:eyecheck`            | 아이체크 엑셀 편집·시트 XML·설정 저장 테스트 |
 
 ## 입력 데이터 형식
 
@@ -209,6 +221,24 @@ Job Policy    Start Time
 
 층별(3·4·5층) 입력은 현재 브라우저에 최대 7일 동안 저장되어 탭을 오가거나
 새로고침해도 유지되며, 외부 서버로는 전송되지 않습니다.
+
+### 아이체크 점등·소등 처리
+
+Eye Check 통합 문서(xlsx)를 그대로 엽니다. 다음 시트를 이름으로 찾습니다.
+
+| 시트 | 용도 |
+| --- | --- |
+| `점등장비` | 3행부터 장비 목록. A열 Check Date, D열 위치(`SA3A-15`), I열 점등상태, J열 조, K열 발견자, M열 내용 |
+| `소등장비` | 소등 처리한 행을 마지막 행 아래에 붙이고 A열에 점검 날짜를 기록 |
+| `층별갯수` | `3층`·`총합` 라벨 오른쪽의 수식 결과를 새 개수로 갱신 |
+| `전자_Eyecheck` | `3A 구역` 라벨 행과 `점검대상` 머리글 열이 만나는 칸에 구역별 점등내역 기록 |
+
+점검대상 칸의 구역별 내용을 `/`로 이어 붙인 것이 기존 내역이 되며, 입력 규칙은
+점등 내역 편집과 같습니다. 소등은 입력하지 않고 `점등장비` 목록에서 행을 골라
+처리합니다. 위치는 `SA3A-15`와 `SA3-A-15` 두 표기를 모두 읽습니다.
+
+조·발견자·점등상태 기본값과 덮어쓰기 설정은 현재 브라우저에 7일 동안 저장되며,
+층별 점등 입력과 자리별 점등상태는 저장하지 않습니다.
 
 ### 지속 메시지 엑셀 추출
 
@@ -301,6 +331,7 @@ src/
 │   └── useAppUpdate.js
 ├── pages/
 │   ├── AutoBackupErrorFilter/
+│   ├── EyeCheckLightLog/
 │   ├── ForeignMail/
 │   ├── ICheckReport/
 │   ├── LightLog/
@@ -311,12 +342,15 @@ src/
 │   ├── autoBackupStorage.js
 │   ├── appVersion.js
 │   ├── backupNotepad.js
+│   ├── eyecheckStorage.js
+│   ├── eyecheckWorkbook.js
 │   ├── iCheckReportFormatter.js
 │   ├── lightLogFormatter.js
 │   ├── lightLogStorage.js
 │   ├── persistentEventParser.js
 │   ├── persistentRedirectParser.js
-│   └── xlsxExport.js
+│   ├── xlsxExport.js
+│   └── xlsxSheetXml.js
 ├── App.jsx
 ├── index.css
 └── main.jsx
