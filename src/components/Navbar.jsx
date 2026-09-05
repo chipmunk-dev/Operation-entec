@@ -61,9 +61,9 @@ const menuItems = [
 const changeLogItems = [
   {
     date: '2026.09',
-    title: '입력 양식·화면 개선',
+    title: '사용성 고도화',
     detail: `[공통 화면] 히스토리 표기·줄바꿈 개선 - 정지운 사원
-[점등 내역 편집] 기능 일시 중단 안내 - 정지운 사원
+[공통 화면] 개선활동 기간 표기 폭 조정 - 정지운 사원
 [아이체크 보고] 13열 입력 반영 - 정지운 사원
 [G-EMS 메세지] 출력 설정 12시간 저장 - 정지운 사원
 [G-EMS 메세지] 단일 메시지 처리 개선 - 정지운 사원
@@ -74,45 +74,39 @@ const changeLogItems = [
   },
   {
     date: '2026.08',
-    title: '업무 양식·신규 도구',
+    title: '기능 통합',
     detail: `[해외메일 작성] 구분선·간격 개선 - 정지운 사원
 [지속 이벤트 재전달] 해외메일 양식 개선 - 정지운 사원
 [G-EMS 메세지] 화면·출력 문구 개선 - 정지운 사원
 [아이체크 보고] 담당자별 보고 기능 추가 - 정지운 사원
-[점등 내역 편집] 편집 기능 추가·개선 - 주상돈 사원
 [전체 기능] 사용방법 안내 추가 - 정지운 사원
 [공통 화면] 배포 새로고침 알림 추가 - 정지운 사원
 [공통 화면] 화면 디자인 개선 - 정지운 사원`,
   },
   {
     date: '2026.07',
-    title: '운영 화면·이벤트 처리',
+    title: '보고 자동화 확장',
     detail: `[자동 백업 에러] 백업 JSON 공유 추가 - 정지운 사원
 [지속 메시지 엑셀 추출] 엑셀 보고 추가 - 정지운 사원
 [지속 메시지 엑셀 추출] 담당자 판독 개선 - 정지운 사원
 [지속 이벤트 재전달] Event 처리 개선 - 정지운 사원`,
   },
   {
+    date: '2026.02~06',
+    title: '현업 적용·규칙 정리',
+    detail: `[전체 기능] 현업 예외 입력 반영 및 처리 기준 정리 - 정지운 사원
+[전체 기능] 반복 사용 결과를 바탕으로 출력 양식 보완 - 정지운 사원`,
+  },
+  {
     date: '2026.01',
-    title: '해외메일 개선',
+    title: '메일 양식 개선',
     detail: '[해외메일 작성] 본문 간격·출력 형식 개선 - 정지운 사원',
   },
   {
     date: '2025.12',
-    title: '지속 이벤트 재전달',
+    title: '협업 기능 시작',
     detail: `[지속 이벤트 재전달] 대기·확인 관리 추가 - 정지운 사원
 [지속 이벤트 재전달] 국내·해외 전달 문구 추가 - 정지운 사원`,
-  },
-  {
-    date: '2025.07',
-    title: '백업 오류 판독',
-    detail: '[자동 백업 에러] Context Error Code 판독 개선 - 정지운 사원',
-  },
-  {
-    date: '2025.05',
-    title: '업무 도구 시작',
-    detail: `[해외메일 작성] 메일 작성 기능 추가 - 정지운 사원
-[자동 백업 에러] 오류 필터 추가 - 정지운 사원`,
   },
 ];
 
@@ -238,7 +232,7 @@ const Navbar = ({ isOpen, setIsOpen }) => (
           {changeLogItems.map(({ date, title, detail }) => (
             <li
               key={`${date}-${title}`}
-              className="grid grid-cols-[3.25rem_1fr] gap-2.5 rounded-xl px-2.5 py-2.5 transition-colors hover:bg-white/[0.05]"
+              className="grid grid-cols-[4.25rem_1fr] gap-2.5 rounded-xl px-2.5 py-2.5 transition-colors hover:bg-white/[0.05]"
             >
               <span className="mt-0.5 h-fit rounded-lg bg-white/[0.06] px-1.5 py-1 text-center text-[9px] font-bold text-blue-300">
                 {date}
