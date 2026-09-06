@@ -17,7 +17,7 @@
     "test:persistent-redirect": "node --test test/persistentRedirectParser.test.js",
     "test:light-log": "node --test test/lightLogFormatter.test.js test/lightLogStorage.test.js",
 
-    "test:eyecheck": "node --test test/xlsxSheetXml.test.js test/eyecheckWorkbook.test.js test/eyecheckStorage.test.js"
+    "test:eyecheck": "node --test test/xlsxSheetXml.test.js test/eyecheckWorkbook.test.js test/eyecheckCalculations.test.js test/eyecheckStorage.test.js test/eyecheckFileAccess.test.js"
   },
   "dependencies": {
     "clsx": "^2.1.1",

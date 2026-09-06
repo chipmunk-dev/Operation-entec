@@ -9,6 +9,7 @@ import {
   applyEyecheckChanges,
   backupName,
   calculateFloor,
+  calculateFloors,
   checkWorkbookConsistency,
   collectPendingWork,
   compareEntries,
@@ -291,6 +292,62 @@ test('저장할 작업을 층 기록·이동·추가 행으로 모은다', () =>
   assert.equal(work.moveCount, 1);
   assert.equal(work.devices.length, 1);
   assert.deepEqual(collectPendingWork(doc, [{ floor, calc }], 0, false).devices, []);
+});
+
+test('저장 계산은 이전 미리보기와 별개로 최신 층별 입력을 반영한다', () => {
+  const doc = openEyecheckWorkbook(zipParts(buildParts()), 'EyeCheck.xlsx');
+  const floors = doc.eye.floors;
+  const inputs = Object.fromEntries(
+    floors.map((floor) => [floor.floor, { base: floor.zoneText, on: '' }]),
+  );
+  inputs['3'].on = 'A-30';
+  const options = {
+    moveRows: doc.move.rows,
+    selectedRows: new Set([4]),
+    dateSerial: DATE,
+    lightType: '주황',
+    picks: {},
+    addDevices: true,
+  };
+  const preview = calculateFloors(floors, inputs, options);
+  const latestInputs = {
+    ...inputs,
+    3: { ...inputs['3'], on: 'A-30,31' },
+    4: { ...inputs['4'], on: 'B-9' },
+  };
+  const calcs = calculateFloors(floors, latestInputs, options);
+  const pending = collectPendingWork(doc, calcs, options.selectedRows.size, true);
+  const result = applyEyecheckChanges(doc, {
+    floors: pending.floors,
+    calcByFloor: Object.fromEntries(calcs.map(({ floor, calc }) => [floor.floor, calc])),
+    selectedRows: [...options.selectedRows],
+    dateSerial: DATE,
+    devices: pending.devices,
+  });
+  const reopened = openEyecheckWorkbook(result.bytes, 'EyeCheck.xlsx');
+
+  assert.deepEqual(preview[0].calc.devices.map((device) => device.D), ['SA3A-30']);
+  assert.deepEqual(pending.devices.map((device) => device.D), ['SA3A-30', 'SA3A-31', 'SA4B-9']);
+  assert.deepEqual(reopened.eye.floors.map((floor) => floor.zoneText), [
+    'A-15(3),21,30,31',
+    'A-2/B-9',
+  ]);
+  assert.deepEqual(reopened.move.rows.map((device) => device.vals.D), [
+    'SA3A-15', 'SA4A-2', 'SA3A-30', 'SA3A-31', 'SA4B-9',
+  ]);
+});
+
+test('최신 입력을 지우면 이전 미리보기에 작업이 있어도 저장할 작업은 없다', () => {
+  const floor = floor3();
+  const doc = { move: { rows: moveRowsOf() } };
+  const options = { moveRows: doc.move.rows, selectedRows: [], lightType: '주황', addDevices: true };
+  const preview = calculateFloors([floor], { 3: { base: floor.zoneText, on: 'A-30' } }, options);
+  assert.equal(collectPendingWork(doc, preview, 0, true).devices.length, 1);
+
+  const latest = calculateFloors([floor], { 3: { base: floor.zoneText, on: '' } }, options);
+  assert.deepEqual(collectPendingWork(doc, latest, 0, true), {
+    floors: [], moveCount: 0, devices: [],
+  });
 });
 
 test('문구·파일 이름 도우미', () => {

@@ -10,11 +10,18 @@
  *   행 번호를 다시 매겨 채워 넣으면 그 수식들이 그대로 새 내용을 읽으므로 손댈 필요가 없다.
  */
 import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate';
+import { buildLightLog } from './lightLogFormatter.js';
 import {
-  buildLightLog,
-  parseLightEdits,
-  sectorText,
-} from './lightLogFormatter.js';
+  calculateFloorState,
+  normalizePosition,
+  offTextOf as offTextFromPositions,
+} from './eyecheckCalculations.js';
+export {
+  compareEntries,
+  normalizePosition,
+  parsePosition,
+  positionOf,
+} from './eyecheckCalculations.js';
 import {
   appendRows,
   buildNumberCell,
@@ -90,28 +97,6 @@ const TOTAL_LABEL = /^총\s*(합|계)$/;
 /* 위치·정렬·문구                                                         */
 /* ------------------------------------------------------------------ */
 
-/**
- * 점등장비 D열의 위치 문자열을 층·구역·번호로 나눈다.
- * "SA3A-15"와 "SA3-A-15" 두 표기를 모두 읽는다. 못 읽으면 null.
- */
-export const parsePosition = (text) => {
-  const match = /^SA(\d+)-?([A-Z]+)-(.+)$/i.exec(
-    String(text ?? '')
-      .replace(/\s+/g, '')
-      .toUpperCase(),
-  );
-  return match ? { floor: match[1], group: match[2], num: match[3] } : null;
-};
-
-/** 위치 문자열 정규화 — 비교용 (공백 제거, 대문자). */
-export const normalizePosition = (text) =>
-  String(text ?? '')
-    .replace(/\s+/g, '')
-    .toUpperCase();
-
-/** 층·구역 글자·번호로 점등장비 위치 문자열을 만든다. 예: ('3', 'A', '15') → 'SA3A-15' */
-export const positionOf = (floor, group, num) => `SA${floor}${group}-${num}`;
-
 /** 층별 점등장비 개수. 엑셀의 COUNTIF("*SA3*")와 같은 기준으로 센다. */
 export const countByFloor = (rows, floors, col = POSITION_COL) => {
   const counts = { total: 0 };
@@ -125,22 +110,6 @@ export const countByFloor = (rows, floors, col = POSITION_COL) => {
     }
   }
   return counts;
-};
-
-/**
- * 점등·소등 입력 항목의 정렬 순서. 구역 글자 먼저, 그다음 번호를 자연 순서로 본다.
- * "36-1" < "36-2" < "38" 처럼 하이픈으로 이어진 번호도 마디별로 비교한다.
- */
-export const compareEntries = (a, b) => {
-  if (a.group !== b.group) return a.group < b.group ? -1 : 1;
-  const left = String(a.num).split('-').map(Number);
-  const right = String(b.num).split('-').map(Number);
-  for (let i = 0; i < Math.max(left.length, right.length); i += 1) {
-    const x = left[i] ?? -1;
-    const y = right[i] ?? -1;
-    if (x !== y) return x - y;
-  }
-  return 0;
 };
 
 /** 내용 칸에 넣을 시작 문구. "○ 09/03"까지만 채우고 나머지는 사람이 적는다. */
@@ -365,117 +334,49 @@ export const moveRows = ({ onXml, offXml, selectedRows, dateSerial }) => {
 /* 층별 계산                                                             */
 /* ------------------------------------------------------------------ */
 
-/** 점등장비 목록에서 고른 행 중 이 층의 것을 소등 입력 형식으로 만든다. 예: "A-15,C-07" */
-export const offTextOf = (rows, selectedRows, floor) => {
-  const selected = new Set([...(selectedRows ?? [])].map(Number));
-  return rows
-    .filter((row) => selected.has(row.r))
-    .map((row) => parsePosition(row.vals[POSITION_COL]))
-    .filter((position) => position && position.floor === floor)
-    .map((position) => `${position.group}-${position.num}`)
-    .join(',');
-};
+/** 시트에서 읽은 장비 행을 계산용 위치 데이터로 바꾼다. */
+const devicePositionsOf = (rows) =>
+  rows.map((row) => ({ r: row.r, position: row.vals[POSITION_COL] }));
+
+/** 점등장비 목록에서 고른 행 중 이 층의 것을 소등 입력 형식으로 만든다. */
+export const offTextOf = (rows, selectedRows, floor) =>
+  offTextFromPositions(devicePositionsOf(rows), selectedRows, floor);
 
 /**
- * 한 층의 계산 결과. 구역별 칸에는 머리말이 없으므로 붙이지 않는다.
- * 소등은 입력칸 대신 점등장비 목록에서 고른 행에서 뽑는다.
- *
- * @param {object} floor        scanEyecheck가 돌려준 층 하나
+ * 기존 층별 계산 계약을 유지하며 계산 결과를 점등장비 시트의 열 형식으로 바꾼다.
+ * 입력은 scanEyecheck의 층과 시트에서 읽은 장비 행을 사용한다.
+ * @param {object} floor
  * @param {object} input
- * @param {string}  input.base          기존 내역 (점검대상 칸을 이어 붙인 것)
- * @param {string}  input.on            점등 입력
- * @param {Array|null} input.moveRows   점등장비 목록 (없으면 null)
- * @param {Iterable<number>} input.selectedRows  소등으로 고른 행 번호
- * @param {number|null} input.dateSerial
- * @param {string}  input.content       내용 칸 시작 문구
- * @param {string}  input.shift, input.finder
- * @param {string}  input.lightType, input.lightOther  점등상태 기본값
- * @param {Object}  input.picks         자리별 점등상태 { key: { t, o } }
- * @param {boolean} input.addDevices    점등 입력을 점등장비 시트에 행으로 추가할지
+ * @returns {object} 층별 결과와 화면 항목, 엑셀 열로 구성된 devices
  */
 export const calculateFloor = (floor, input) => {
-  const off = input.moveRows
-    ? offTextOf(input.moveRows, input.selectedRows, floor.floor)
-    : '';
-  const baseText = String(input.base ?? '').trim();
-  const on = String(input.on ?? '');
-  // 점검대상 칸이 비어 있는 새 시트에서도 점등·소등을 반영해야 하므로 빈 기존 내역을 허용한다.
-  const log =
-    baseText || on.trim() || off
-      ? buildLightLog(baseText, on, off, { allowEmptyBase: true })
-      : null;
-  const output = log ? log.output : String(input.base ?? '');
-
-  const zones = floor.zones.map((zone) => {
-    const sector = log?.sectors.find((candidate) => candidate.group === zone.letter);
-    return { ...zone, next: sector ? sectorText(sector) : '' };
+  const calc = calculateFloorState(floor, {
+    ...input,
+    moveRows: input.moveRows ? devicePositionsOf(input.moveRows) : input.moveRows,
   });
-  const unmatched = log
-    ? log.sectors
-        .filter(
-          (sector) =>
-            sectorText(sector) &&
-            !floor.zones.some((zone) => zone.letter === sector.group),
-        )
-        .map((sector) => sector.group)
-    : [];
-  // 사용자가 이 층을 건드렸을 때(기존 내역 수정, 점등 입력, 소등 선택)만 기록 대상으로 본다.
-  // 손대지 않은 층은 칸의 표기가 정규 형태와 달라도 그대로 둔다.
-  const touched =
-    baseText !== String(floor.zoneText ?? '').trim() || on.trim() !== '' || off !== '';
-  const dirty =
-    touched &&
-    zones.some((zone) => (zone.text ?? '').trim() !== (zone.next ?? '').trim());
-
-  // 점등 입력 → 점등장비 시트에 추가할 행 (개수만큼 반복).
-  // 넣은 순서가 아니라 구역 글자 > 번호 순으로 정렬해 시트에 넣는다.
-  const onList = parseLightEdits(on).list.slice().sort(compareEntries);
-  // 점등 입력의 항목마다 점등상태를 따로 고를 수 있다. 안 고른 항목은 기본값을 따른다.
-  const seen = new Map();
-  const items = onList.map((entry) => {
-    const base = `${floor.floor}|${entry.group}-${entry.num}`;
-    const ordinal = seen.get(base) ?? 0;
-    seen.set(base, ordinal + 1);
-    const key = `${base}|${ordinal}`;
-    const pick = input.picks?.[key];
-    const type = pick?.t ?? input.lightType;
-    const other = pick ? (pick.o ?? '') : (input.lightOther ?? '');
-    return {
-      key,
-      pos: positionOf(floor.floor, entry.group, entry.num),
-      count: entry.count,
-      type,
-      other,
-      own: Boolean(pick),
-    };
-  });
-  const devices = input.moveRows
-    ? items.flatMap((item) =>
-        Array.from({ length: item.count }, () => ({
-          A: input.dateSerial,
-          D: item.pos,
-          I: lightValue(item.type, item.other),
-          J: input.shift ?? '',
-          K: input.finder ?? '',
-          M: input.content ?? '',
-        })),
-      )
-    : [];
-
-  // 저장하고 나면 이 층의 점등장비 시트에 몇 건이 남는지. 점검대상 칸 총계와 맞아야 한다.
-  let deviceCount = null;
-  if (input.moveRows) {
-    const selected = new Set([...(input.selectedRows ?? [])].map(Number));
-    const inFloor = (row) => parsePosition(row.vals[POSITION_COL])?.floor === floor.floor;
-    const current = input.moveRows.filter(inFloor).length;
-    const goingOff = input.moveRows.filter(
-      (row) => selected.has(row.r) && inFloor(row),
-    ).length;
-    deviceCount = current - goingOff + (input.addDevices ? devices.length : 0);
-  }
-
-  return { log, output, off, touched, dirty, zones, unmatched, items, devices, deviceCount };
+  return {
+    ...calc,
+    devices: calc.devices.map((device) => ({
+      A: device.dateSerial,
+      D: device.position,
+      I: lightValue(device.lightType, device.lightOther),
+      J: device.shift,
+      K: device.finder,
+      M: device.content,
+    })),
+  };
 };
+
+/** 전달한 층별 입력으로 계산한다. 미리보기와 저장에서 같은 계산 규칙을 사용한다. */
+export const calculateFloors = (floors, inputs, options) =>
+  floors.map((floor) => ({
+    floor,
+    calc: calculateFloor(floor, {
+      ...options,
+      base: inputs[floor.floor]?.base ?? '',
+      on: inputs[floor.floor]?.on ?? '',
+    }),
+  }));
 
 /**
  * 저장 직후 파일의 층별 점검대상 내용. 기록한 층은 새 값, 나머지 층은 파일에 있던 값 그대로.

@@ -151,7 +151,7 @@ npm run dev
 | `npm run test:persistent-event`    | 지속 메시지 파싱·엑셀 테스트            |
 | `npm run test:persistent-redirect` | 지속 이벤트 파싱 테스트                 |
 | `npm run test:light-log`           | 점등 내역 반영·복원·층별 저장 테스트    |
-| `npm run test:eyecheck`            | 아이체크 엑셀 편집·시트 XML·설정 저장 테스트 |
+| `npm run test:eyecheck`            | 아이체크 엑셀 편집·층별 계산·시트 XML·설정 저장·파일 접근 테스트 |
 
 ## 입력 데이터 형식
 
@@ -342,6 +342,7 @@ src/
 │   ├── autoBackupStorage.js
 │   ├── appVersion.js
 │   ├── backupNotepad.js
+│   ├── eyecheckCalculations.js
 │   ├── eyecheckStorage.js
 │   ├── eyecheckWorkbook.js
 │   ├── iCheckReportFormatter.js
