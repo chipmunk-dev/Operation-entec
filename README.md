@@ -22,6 +22,16 @@ G-EMS 메시지, 백업 오류 목록, 지속 메시지 엑셀 보고서 등 필
 - 자동 백업 에러 필터:
   https://stupendous-stardust-bd8168.netlify.app/auto-backup-error-filter
 
+## 사용자 설명서
+
+- [상세 PDF 설명서 (20페이지)](reports/user-guide/operation-cns-elect-user-guide.pdf)
+- [설명서 + 붙여넣기 예시 + 연습·결과 엑셀 ZIP](reports/user-guide/operation-cns-elect-user-guide-bundle.zip)
+- [설명서 재생성 및 검증 방법](reports/user-guide/README.md)
+
+현재 6개 메뉴의 실제 실행 화면, 입력 형식, 단계별 사용법, 결과 예시와
+주의사항을 제공합니다. 모든 예시 데이터는 가상 값이며 문서는 2026.09.09
+로컬 검증 코드를 기준으로 합니다. 배포 반영 여부는 별도로 확인해 주세요.
+
 ## 주요 기능
 
 ### 해외메일 작성

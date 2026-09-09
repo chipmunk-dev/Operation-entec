@@ -26,16 +26,16 @@ const menuItems = [
     icon: MdOutlineMessage,
   },
   {
-    name: '자동 백업 에러',
-    description: 'Backup Error Filter',
-    path: '/auto-backup-error-filter',
-    icon: MdBackup,
-  },
-  {
     name: '지속 이벤트 재전달',
     description: 'Event Redirect',
     path: '/persistent-redirect',
     icon: FaArrowsRotate,
+  },
+  {
+    name: '자동 백업 에러',
+    description: 'Backup Error Filter',
+    path: '/auto-backup-error-filter',
+    icon: MdBackup,
   },
   {
     name: '아이체크 내역 편집/보고',
@@ -55,7 +55,9 @@ const changeLogItems = [
   {
     date: '2026.09',
     title: '사용성 고도화',
-    detail: `[점등 내역 편집] 독립 페이지·메뉴 삭제 및 통합 화면 연결
+    detail: `[공통 화면] 지속 이벤트 재전달·자동 백업 에러 메뉴 순서 변경
+[전체 기능] 예시·실제 화면을 포함한 PDF 사용 설명서 작성
+[점등 내역 편집] 독립 페이지·메뉴 삭제 및 통합 화면 연결
 [아이체크 내역 편집/보고] 편집·보고 탭 통합
 [아이체크 내역 편집/보고] 원본 대비 신규 점등·소등 보고 생성
 [아이체크 내역 편집/보고] 신규 장비 정보 보완·저장 후 비교 유지

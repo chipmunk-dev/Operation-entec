@@ -1,0 +1,3 @@
+2일 1시간	DEMO>운영	DEMO-SRV-01	/data Utilization MAJOR occurred(91 %)[2026-09-09 09:00:00: 김예시 책임 문자 확인 UserName : 홍예시 UserID : DEMO]	2026-09-09 09:00:00	192.0.2.20
+2일 1시간	DEMO>운영	DEMO-SRV-02	/data Utilization MAJOR occurred(91 %)[2026-09-09 09:00:00: 김예시 책임 / 이예시 선임 문자 확인 UserName : 홍예시 UserID : DEMO]	2026-09-09 09:00:00	192.0.2.21
+2일 1시간	DEMO>운영	DEMO-SRV-03	/data Utilization MAJOR occurred(91 %)[2026-09-09 09:00:00: 담당자 확인중 확인 UserName : 홍예시 UserID : DEMO]	2026-09-09 09:00:00	192.0.2.22

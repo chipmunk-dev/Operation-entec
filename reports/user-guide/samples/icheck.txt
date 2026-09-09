@@ -1,0 +1,2 @@
+2026-09-09	DEMO	DEMO-WEB-01	SA3A-1	DEMO	Server	MODEL-A	-	주황 점등	1조	홍예시	김예시 책임	확인 요청
+2026-09-09	DEMO	DEMO-DB-01	SA3A-2	DEMO	Server	MODEL-B	-	빨강 점등	1조	홍예시	이예시 선임	확인 요청

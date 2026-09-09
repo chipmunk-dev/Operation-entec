@@ -1,0 +1,24 @@
+{
+  "capturedAt": "2026-09-09T03:41:22.623Z",
+  "results": {
+    "mail": "Dear!\nThis is KIC Control office in Korea.\nMonitoring System detected warning message(s) from your server.\nPlease check following message(s).\n\n-------------------------------------------------------\nDate        : 2026-09-09 09:00:00 (Base On Korea Time)\nIP             : 192.0.2.10\nHost        : DEMO-WEB-01\nMessage : CPU Utilization MAJOR occurred(91 %)\n-------------------------------------------------------\nDate        : 2026-09-09 09:00:00 (Base On Korea Time)\nIP             : 192.0.2.11\nHost        : DEMO-DB-01\nMessage : /data (Filesystem) Utilization MAJOR occurred(92 %)\n-------------------------------------------------------\n\nThank you.",
+    "gems": "안녕하세요 상암 상황실 홍예시 사원 입니다.\nG-EMS에서 발생한 메세지 전달드리니 확인 부탁드립니다.\n\nDEMO-WEB-01\nCPU Utilization MAJOR occurred(91 %)\n\nDEMO-DB-01\n/data Utilization MAJOR occurred(92 %)",
+    "redirect": "안녕하세요.\n상암 상황실 홍예시 사원입니다.\n지속중인 메세지 재전달드리니 확인 부탁드립니다.\n\n서버: DEMO-WEB-01\n내용: CPU Utilization MAJOR occurred(91 %)\n\n서버: DEMO-DB-01\n내용: /data Utilization MAJOR occurred(92 %)\n\n감사합니다.",
+    "backup": "P-EUBKMST\tDEMO_DB_DAILY\nDEMO_WEB_DAILY\t2026-09-09 09:00:00\n2026-09-09 09:00:00\tErr: 58\nErr: 84",
+    "persistent": "담당자 확정 및 XLSX 다운로드 검증 완료",
+    "eyecheck": "안녕하세요 상암상황실 홍예시 사원입니다.\n서버실 장비 점등·소등 변경내역을 확인하여 보고드립니다.\n\n[신규 점등]\n위치: SA3A-3\n서버: NEW-HOST-01\n상태: 주황 점등\n\n[신규 점등]\n위치: SA3A-3\n서버: NEW-HOST-02\n상태: 주황 점등\n\n[소등]\n위치: SA3A-1\n서버: TEST-HOST-01\n상태: 소등 (기존: 주황 점등)"
+  },
+  "checks": [
+    "메뉴 순서",
+    "Message 내부 탭·줄바꿈 복구",
+    "확인 이력 제거",
+    "재전달 복수선택 유지",
+    "백업 Status 0·1 제외",
+    "담당자 미해결 추출 차단",
+    "담당자 확정 XLSX",
+    "아이체크 신규 2·소등 1",
+    "아이체크 저장 후 비교 유지",
+    "13열 붙여넣기 2건",
+    "브라우저 오류 없음"
+  ]
+}
