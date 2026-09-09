@@ -21,6 +21,10 @@ import {
 } from '../../utils/eyecheckWorkbook';
 import { isoToSerial } from '../../utils/xlsxSheetXml';
 import {
+  compareReportRows,
+  prepareReportDevices,
+} from '../../utils/eyecheckReport';
+import {
   loadEyecheckSettings,
   mergeLastSaved,
   saveEyecheckSettings,
@@ -43,6 +47,9 @@ const todayISO = () => {
 export default function useEyeCheckLightLog() {
   const [settings, setSettings] = useState(() => loadEyecheckSettings());
   const [doc, setDoc] = useState(null);
+  const [originalRows, setOriginalRows] = useState([]);
+  const [deviceDetails, setDeviceDetails] = useState({});
+  const [session, setSession] = useState(0);
   const [fileHandle, setFileHandle] = useState(null);
   const [floorInputs, setFloorInputs] = useState({});
   const [picks, setPicks] = useState({});
@@ -70,6 +77,9 @@ export default function useEyeCheckLightLog() {
     setSelected(new Set());
     setFloorInputs({});
     setPicks({});
+    setOriginalRows([]);
+    setDeviceDetails({});
+    setSession((value) => value + 1);
   };
 
   const openFile = useCallback(async (file, handle = null) => {
@@ -87,6 +97,9 @@ export default function useEyeCheckLightLog() {
         inputs[floor.floor] = { base: floor.zoneText, on: '' };
       }
       setDoc(nextDoc);
+      setOriginalRows(nextDoc.move?.rows ?? []);
+      setDeviceDetails({});
+      setSession((value) => value + 1);
       setFileHandle(handle);
       setFloorInputs(inputs);
       setPicks({});
@@ -211,6 +224,42 @@ export default function useEyeCheckLightLog() {
     pending.floors.length || pending.moveCount || pending.devices.length
   );
 
+  // 보고와 저장은 지연된 미리보기가 아닌 현재 입력을 사용한다.
+  const reportPending = doc
+    ? collectPendingWork(
+        doc,
+        calculateInputs(floorInputs),
+        selected.size,
+        settings.addDevices
+      )
+    : { devices: [] };
+  const reportDevices = prepareReportDevices(
+    reportPending.devices,
+    deviceDetails
+  );
+  const detailKeys = JSON.stringify(reportDevices.map((row) => row.key));
+  useEffect(() => {
+    const valid = new Set(JSON.parse(detailKeys));
+    setDeviceDetails((previous) => {
+      const entries = Object.entries(previous).filter(([key]) =>
+        valid.has(key)
+      );
+      return entries.length === Object.keys(previous).length
+        ? previous
+        : Object.fromEntries(entries);
+    });
+  }, [detailKeys]);
+  const currentRows = [
+    ...(doc?.move?.rows ?? []).filter((row) => !selected.has(row.r)),
+    ...reportDevices.map(({ key, vals }) => ({ vals, detailKey: key })),
+  ];
+  const reportChanges = compareReportRows(originalRows, currentRows);
+  const updateDeviceDetail = (key, col, value) =>
+    setDeviceDetails((previous) => ({
+      ...previous,
+      [key]: { ...previous[key], [col]: value },
+    }));
+
   const visibleRows = useMemo(() => {
     const rows = doc?.move?.rows ?? [];
     const query = deferredSearch.trim().toLowerCase();
@@ -313,8 +362,12 @@ export default function useEyeCheckLightLog() {
         calcByFloor: saveCalcByFloor,
         selectedRows: [...selected],
         dateSerial,
-        devices: savePending.devices,
+        devices: prepareReportDevices(savePending.devices, deviceDetails).map(
+          (row) => row.vals
+        ),
       });
+      // 저장 전에 재열기를 검증한다. 저장 후에도 최초 비교 기준은 그대로 둔다.
+      const savedDoc = openEyecheckWorkbook(result.bytes, doc.fileName);
       const blob = new Blob([result.bytes], { type: XLSX_MIME });
 
       const where = await saveWorkbookFile({
@@ -337,14 +390,17 @@ export default function useEyeCheckLightLog() {
         updateSettings({ lastSaved });
       }
       setPicks({});
-      setFloorInputs({});
-
-      if (overwrite) {
-        // 방금 쓴 내용을 다시 읽어 이어서 작업할 수 있게 한다. (openFile이 알림을 지우므로 먼저 실행)
-        await openFile(await fileHandle.getFile(), fileHandle);
-      } else {
-        resetDoc();
-      }
+      setSelected(new Set());
+      setDeviceDetails({});
+      setDoc(savedDoc);
+      setFloorInputs(
+        Object.fromEntries(
+          (savedDoc.eye?.floors ?? []).map((floor) => [
+            floor.floor,
+            { base: floor.zoneText, on: '' },
+          ])
+        )
+      );
       setNotice({
         kind: 'done',
         text: `${where} — ${result.done.join(' / ')}. 층별 개수는 파일을 열 때 다시 계산됩니다.`,
@@ -406,6 +462,10 @@ export default function useEyeCheckLightLog() {
     summaryParts.push(`${OFF_SHEET}로 이동: ${pending.moveCount}건`);
 
   return {
+    session,
+    reportChanges,
+    currentRows,
+    updateDeviceDetail,
     settings,
     doc,
     fileHandle,

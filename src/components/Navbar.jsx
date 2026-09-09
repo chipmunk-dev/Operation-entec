@@ -5,9 +5,7 @@ import {
   MdEmail,
   MdHistory,
   MdMenu,
-  MdFactCheck,
   MdOutlineChevronLeft,
-  MdOutlineLightbulb,
   MdOutlineMessage,
   MdOutlineTableChart,
 } from 'react-icons/md';
@@ -40,20 +38,8 @@ const menuItems = [
     icon: FaArrowsRotate,
   },
   {
-    name: '아이체크 보고',
-    description: 'I-Check Report',
-    path: '/icheck-report',
-    icon: MdFactCheck,
-  },
-  {
-    name: '점등 내역 편집',
-    description: 'Light Log Editor',
-    path: '/light-log',
-    icon: MdOutlineLightbulb,
-  },
-  {
-    name: '아이체크 점등·소등 처리',
-    description: 'Eye Check Light Log',
+    name: '아이체크 내역 편집/보고',
+    description: 'Eye Check Edit & Report',
     path: '/eyecheck-light-log',
     icon: MdOutlineTableChart,
   },
@@ -69,7 +55,12 @@ const changeLogItems = [
   {
     date: '2026.09',
     title: '사용성 고도화',
-    detail: `[아이체크 점등·소등 처리] Eye Check 엑셀 직접 편집 도구 추가
+    detail: `[점등 내역 편집] 독립 페이지·메뉴 삭제 및 통합 화면 연결
+[아이체크 내역 편집/보고] 편집·보고 탭 통합
+[아이체크 내역 편집/보고] 원본 대비 신규 점등·소등 보고 생성
+[아이체크 내역 편집/보고] 신규 장비 정보 보완·저장 후 비교 유지
+[아이체크 내역 편집/보고] 기존 장비 재보고·붙여넣기 입력 지원
+[아이체크 점등·소등 처리] Eye Check 엑셀 직접 편집 도구 추가
 [아이체크 점등·소등 처리] 입력 직후 저장 시 최신 입력 반영
 [공통 화면] 히스토리 담당자 표기 제거
 [공통 화면] 히스토리 표기·줄바꿈 개선

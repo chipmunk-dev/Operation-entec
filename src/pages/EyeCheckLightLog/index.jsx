@@ -1,4 +1,8 @@
+import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { FaFileExcel } from 'react-icons/fa6';
+import ChangeReport from './ChangeReport';
+import ICheckReport from '../ICheckReport';
 import {
   MdClose,
   MdEditNote,
@@ -48,6 +52,11 @@ const howToSteps = [
     description: '원본 파일에 덮어쓰거나(백업 자동) 새 파일로 내려받습니다.',
     icon: <MdSave />,
   },
+  {
+    title: '변경내역 보고',
+    description: '담당자 보고 탭에서 신규 점등·소등을 확인하고 누락 정보를 보완한 뒤 문구를 복사합니다. 저장 후에도 최초 원본과의 비교가 유지됩니다.',
+    icon: <MdOutlineViewList />,
+  },
 ];
 
 const noticeStyles = {
@@ -57,7 +66,16 @@ const noticeStyles = {
 };
 
 function EyeCheckLightLog() {
+  const [params] = useSearchParams();
+  const [tab, setTab] = useState(
+    params.get('tab') === 'report' ? 'report' : 'edit'
+  );
+  const [pasteMode, setPasteMode] = useState(false);
   const {
+    session,
+    reportChanges,
+    currentRows,
+    updateDeviceDetail,
     settings,
     doc,
     fileHandle,
@@ -108,14 +126,53 @@ function EyeCheckLightLog() {
   return (
     <div className="page-shell">
       <PageHeader
-        title="아이체크 점등·소등 처리"
-        description="Eye Check 파일을 열어 층별 점등내역을 점검대상 칸에 기록하고, 소등된 장비를 소등장비 시트로 옮깁니다."
+        title="아이체크 내역 편집/보고"
+        description="엑셀의 점등·소등 내역을 편집하고, 원본 대비 변경사항을 담당자별 보고 문구로 만듭니다."
         icon={<FaFileExcel size={19} />}
         iconClassName="bg-amber-50 text-amber-700"
-        helpTitle="아이체크 점등·소등 처리 사용방법"
+        helpTitle="아이체크 내역 편집/보고 사용방법"
         helpSummary="엑셀 파일을 직접 고쳐 원본에 덮어쓰거나 새 파일로 내려받습니다."
         helpSteps={howToSteps}
       />
+
+      <div
+        className="mb-5 flex flex-wrap items-center gap-2"
+        role="tablist"
+        aria-label="아이체크 작업"
+      >
+        {[
+          ['edit', '내역 편집'],
+          ['report', '담당자 보고'],
+        ].map(([value, label]) => (
+          <button
+            key={value}
+            id={`eyecheck-tab-${value}`}
+            aria-controls={`eyecheck-panel-${value}`}
+            role="tab"
+            aria-selected={tab === value}
+            type="button"
+            className={tab === value ? 'btn-primary' : 'btn-secondary'}
+            onClick={() => setTab(value)}
+          >
+            {label}
+            {value === 'report' && doc ? ` (${reportChanges.length})` : ''}
+          </button>
+        ))}
+      </div>
+      {tab === 'report' && (
+        <div className="mb-4">
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => setPasteMode((value) => !value)}
+          >
+            {pasteMode ? '파일 변경내역으로 보고' : '붙여넣기로 보고'}
+          </button>
+        </div>
+      )}
+      <div hidden={tab !== 'report' || !pasteMode}>
+        <ICheckReport embedded />
+      </div>
 
       {alertText && (
         <div
@@ -174,7 +231,7 @@ function EyeCheckLightLog() {
         onChange={(event) => openFile(event.target.files[0])}
       />
 
-      {!doc ? (
+      {!doc && !(tab === 'report' && pasteMode) ? (
         <div
           role="button"
           tabIndex={0}
@@ -214,68 +271,103 @@ function EyeCheckLightLog() {
             </p>
           </div>
         </div>
-      ) : (
+      ) : doc ? (
         <div className="grid gap-6">
-          <WorkbookHeader
-            doc={doc}
-            floors={floors}
-            date={date}
-            setDate={setDate}
-            settings={settings}
-            updateSettings={updateSettings}
-            resetDoc={resetDoc}
-            setNotice={setNotice}
-          />
-
-          {doc.eye && activeFloor && activeCalc && activeInput && (
-            <FloorInputs
-              grandTotal={grandTotal}
-              calcs={calcs}
+          <fieldset disabled={saving} className="min-w-0">
+            <WorkbookHeader
+              doc={doc}
+              floors={floors}
+              date={date}
+              setDate={setDate}
               settings={settings}
               updateSettings={updateSettings}
-              activeFloor={activeFloor}
-              activeInput={activeInput}
-              setActiveInput={setActiveInput}
+              resetDoc={() => {
+                if (
+                  (hasPending || reportChanges.length > 0) &&
+                  !window.confirm(
+                    '다른 파일을 열면 현재 편집 내용과 최초 원본 대비 보고내역이 초기화됩니다. 계속할까요?'
+                  )
+                )
+                  return;
+                resetDoc();
+              }}
+              setNotice={setNotice}
             />
-          )}
+          </fieldset>
 
-          {doc.move && (
-            <OffRows
-              hasEye={Boolean(doc.eye)}
-              rowCount={doc.move.rows.length}
-              selected={selected}
-              search={search}
-              setSearch={setSearch}
-              allVisibleSelected={allVisibleSelected}
-              visibleRows={visibleRows}
-              toggleVisibleRows={toggleVisibleRows}
-              toggleRow={toggleRow}
-            />
-          )}
+          <div
+            id="eyecheck-panel-edit"
+            role="tabpanel"
+            aria-labelledby="eyecheck-tab-edit"
+            hidden={tab !== 'edit'}
+          >
+            <fieldset disabled={saving} className="grid min-w-0 gap-6">
+              {doc.eye && activeFloor && activeCalc && activeInput && (
+                <FloorInputs
+                  grandTotal={grandTotal}
+                  calcs={calcs}
+                  settings={settings}
+                  updateSettings={updateSettings}
+                  activeFloor={activeFloor}
+                  activeInput={activeInput}
+                  setActiveInput={setActiveInput}
+                />
+              )}
 
-          {doc.eye && activeFloor && activeCalc && (
-            <FloorPreview
-              hasMove={Boolean(doc.move)}
-              activeFloor={activeFloor}
-              activeCalc={activeCalc}
-              clearActiveEdits={clearActiveEdits}
-              activeWarnings={activeWarnings}
-            />
-          )}
+              {doc.move && (
+                <OffRows
+                  hasEye={Boolean(doc.eye)}
+                  rowCount={doc.move.rows.length}
+                  selected={selected}
+                  search={search}
+                  setSearch={setSearch}
+                  allVisibleSelected={allVisibleSelected}
+                  visibleRows={visibleRows}
+                  toggleVisibleRows={toggleVisibleRows}
+                  toggleRow={toggleRow}
+                />
+              )}
 
-          {doc.move && floors.length > 0 && (
-            <DeviceRows
-              hasEye={Boolean(doc.eye)}
-              settings={settings}
-              updateSettings={updateSettings}
-              content={content}
-              floorsWithItems={floorsWithItems}
-              totalDeviceRows={totalDeviceRows}
-              setPickType={setPickType}
-              setPickOther={setPickOther}
-            />
-          )}
+              {doc.eye && activeFloor && activeCalc && (
+                <FloorPreview
+                  hasMove={Boolean(doc.move)}
+                  activeFloor={activeFloor}
+                  activeCalc={activeCalc}
+                  clearActiveEdits={clearActiveEdits}
+                  activeWarnings={activeWarnings}
+                />
+              )}
 
+              {doc.move && floors.length > 0 && (
+                <DeviceRows
+                  hasEye={Boolean(doc.eye)}
+                  settings={settings}
+                  updateSettings={updateSettings}
+                  content={content}
+                  floorsWithItems={floorsWithItems}
+                  totalDeviceRows={totalDeviceRows}
+                  setPickType={setPickType}
+                  setPickOther={setPickOther}
+                />
+              )}
+            </fieldset>
+          </div>
+          <div
+            id="eyecheck-panel-report"
+            role="tabpanel"
+            aria-labelledby="eyecheck-tab-report"
+            hidden={tab !== 'report' || pasteMode}
+          >
+            <fieldset disabled={saving} className="min-w-0">
+              <ChangeReport
+                key={session}
+                changes={reportChanges}
+                currentRows={currentRows}
+                hasPending={hasPending}
+                updateDeviceDetail={updateDeviceDetail}
+              />
+            </fieldset>
+          </div>
           <SaveBar
             summaryParts={summaryParts}
             canWriteOriginal={Boolean(fileHandle)}
@@ -290,12 +382,12 @@ function EyeCheckLightLog() {
             saveLabel={saveLabel}
           />
         </div>
-      )}
+      ) : null}
 
       {!doc && (
         <p className="mt-4 flex items-center gap-2 text-xs text-slate-500">
           <MdOutlineLightbulb size={16} className="text-amber-500" />
-          기존 내역의 입력 규칙은 점등 내역 편집과 같습니다. 괄호 숫자는 자리별
+          기존 내역은 엑셀에서 가져옵니다. 괄호 숫자는 자리별
           개수, 콤마 뒤 맨숫자는 앞 구역 글자를 이어받습니다.
         </p>
       )}
