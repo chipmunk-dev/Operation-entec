@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { zipSync } from 'fflate';
+import { services } from './services.mjs';
 
 const root = fileURLToPath(new URL('./', import.meta.url));
 const { results } = JSON.parse(await readFile(`${root}results.json`, 'utf8'));
@@ -13,7 +14,7 @@ const note = text => `<aside>${text}</aside>`;
 const code = text => `<pre>${esc(text)}</pre>`;
 const table = (heads, rows) => `<table><thead><tr>${heads.map(x => `<th>${x}</th>`).join('')}</tr></thead><tbody>${rows.map(row => `<tr>${row.map(x => `<td>${x}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
 const shot = (file, caption, height = 380) => `<figure><img src="screenshots/${file}.png" style="max-height:${height}px" alt="${esc(caption)}"><figcaption>${caption} · 로컬 서비스 실제 실행 화면 / 가상 데이터</figcaption></figure>`;
-const pages = [];
+let pages = [];
 const add = (chapter, title, intro, content) => pages.push({ chapter, title, intro, content });
 add('USER GUIDE · 2026.09', '반복 업무를 줄이는<br>운영 지원 서비스', 'Operation CNS Elect 사용자 설명서',
   `<div class="cover-block">입력 → 확인 → 복사·파일 저장</div>` +
@@ -149,10 +150,56 @@ add('실습 및 마무리', '동봉 파일로 한 번씩 연습하기', '운영 
   note('사용 설명서와 예시는 현재 로컬 코드로 검증했습니다. 실습 파일은 업무 원본에 덮어쓰지 마세요. 기능의 자동화는 내용 정리를 돕는 것이며 최종 판단·발송 책임을 대신하지 않습니다.') +
   p('<small>Operation CNS Elect · 사용자 설명서 2026.09<br>LG CNS 전자/제조시스템팀 · 문의 wldns0622@cnspartner.com</small>'));
 
+// 각 서비스에 독립적인 기능 안내 페이지를 추가하고 모든 상세 페이지에
+// 서비스명·색상·작업 단계·챕터 내 위치를 반복 표시합니다.
+const expanded = [];
+for (const entry of pages) {
+  const service = services.find(item => item.chapter === entry.chapter);
+  if (service && !expanded.some(item => item.service === service)) {
+    expanded.push({
+      chapter: service.chapter, title: service.name, intro: service.purpose, service, overview: true,
+      content: h('01 · 언제 사용하는 페이지인가요?') + p(service.purpose) +
+        table(['준비할 입력', '완성되는 결과'], [[service.input, service.output]]) +
+        h('02 · 화면에서 제공하는 주요 기능') + table(['기능·조작 영역', '무엇을 하는 기능인가요?'], service.features) +
+        h('03 · 비슷한 서비스와의 차이') + p(service.difference) +
+        h('04 · 실습과 사용 시 주의사항') + p(`<b>실습 파일·기대 결과:</b> ${service.sample}`) + note(service.caution) +
+        `<p class="service-route">메뉴 경로: ${service.name}<br>접속 경로: <a href="https://stupendous-stardust-bd8168.netlify.app${service.path}">${service.path}</a></p>`,
+    });
+  }
+  expanded.push({ ...entry, service });
+}
+pages = expanded;
+const chapters = services.map(service => {
+  const indexes = pages.flatMap((entry, i) => entry.service === service ? [i] : []);
+  indexes.forEach((index, localIndex) => {
+    pages[index].stage = localIndex === 0 ? '기능 한눈에 보기' : service.stages[localIndex - 1];
+    pages[index].chapterPage = `${localIndex + 1} / ${indexes.length}`;
+  });
+  return { number: service.number, name: service.name, start: indexes[0] + 1, end: indexes.at(-1) + 1 };
+});
+pages[1].content = table(['서비스 메뉴', '어떤 결과가 필요한가요?', '설명 페이지'], chapters.map((chapter, i) => [
+  `<a href="#page-${chapter.start}">${chapter.number}. ${chapter.name}</a>`,
+  services[i].output,
+  `<a href="#page-${chapter.start}">${chapter.start}–${chapter.end}</a>`,
+])) + h('서비스별로 읽는 순서') + p('각 서비스는 <b>기능 한눈에 보기 → 입력·조작 → 실제 결과·주의사항</b> 순서로 구성했습니다. 모든 페이지 상단에 서비스명과 현재 설명 단계를 표시합니다.') +
+  h('서로 다른 업무를 구분하세요') + table(['업무 목적', '선택할 서비스'], [
+    ['영문 메일 / 국내 메시지 정리', '해외메일 작성 / G-EMS 메세지'],
+    ['지속 중인 건 재전달 / 장기 내역 파일 정리', '지속 이벤트 재전달 / 지속 메시지 엑셀 추출'],
+    ['백업 오류 보고 / 서버실 점등·소등 기록', '자동 백업 에러 / 아이체크 내역 편집·보고'],
+  ]) + p(`<b>공통 입력·저장 안내:</b> 3페이지 · <b>문제 해결·실습 파일:</b> ${pages.length - 1}–${pages.length}페이지`) +
+  note('목차의 서비스명·페이지 번호를 클릭하면 해당 챕터로 이동합니다. 메뉴 순서는 지속 이벤트 재전달 다음 자동 백업 에러이며, 점등 내역 편집은 아이체크 통합 화면에서 사용합니다.');
+const pastePage = pages.findIndex(entry => entry.title === '파일 없이 보고 문구만 만들기') + 1;
+pages[2].content = pages[2].content.replace('15페이지 이후 설명 참고', `${pastePage}페이지 설명 참고`);
+await writeFile(`${root}manifest.json`, JSON.stringify({ pageCount: pages.length, chapters }, null, 2));
+const renderPage = (entry, index) => `<section class="page ${entry.service ? 'service-page' : ''}" style="--accent:${entry.service?.color || '#087a8d'}" id="page-${index + 1}">
+  <header>${entry.service ? `<div class="service-heading"><span class="service-number">${entry.service.number}</span><strong>${entry.service.name}</strong><a href="#page-2">목차</a></div><div class="stage"><span>${entry.stage}</span><span>서비스 안내 ${entry.chapterPage}</span></div>` : entry.chapter}</header>
+  <main><h1>${entry.title}</h1><p class="intro">${entry.intro}</p>${entry.content}</main><footer><span>LG CNS 전자/제조시스템팀 · 사용자 설명서</span><span>${String(index + 1).padStart(2, '0')} / ${pages.length}</span></footer></section>`;
+
 const regular = (await readFile(process.env.GUIDE_FONT || '/tmp/eyecheck-browser-libs/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc')).toString('base64');
 const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>Operation CNS Elect 사용자 설명서</title><style>
 @font-face{font-family:Guide;src:url(data:font/ttf;base64,${regular})}*{box-sizing:border-box}body{margin:0;background:#e8edf3;color:#192b40;font-family:Guide,sans-serif;font-size:13px;line-height:1.65}.page{width:210mm;height:297mm;padding:15mm 16mm 17mm;margin:8mm auto;background:white;position:relative;break-after:page}.page:last-child{break-after:auto}header{font-size:10px;letter-spacing:1.4px;color:#087a8d;border-bottom:2px solid #1491a2;padding-bottom:7px;margin-bottom:20px}h1{font-size:27px;line-height:1.35;letter-spacing:-.6px;margin:0 0 12px}h3{font-size:15px;margin:18px 0 8px}.intro{color:#587185;margin:0 0 20px;font-size:14px}p{margin:10px 0}ol{padding-left:23px;margin:12px 0}li{padding:3px 0}b{color:#0a6980}table{width:100%;border-collapse:collapse;font-size:12px;margin:14px 0;table-layout:fixed}th{background:#eaf4f6;text-align:left;color:#096c7d}th,td{padding:8px 10px;border-bottom:1px solid #dce5ed;vertical-align:top;overflow-wrap:anywhere}aside{background:#fff5df;border-left:3px solid #dc9a23;padding:11px 14px;font-size:12px;margin:16px 0}pre{font-family:Guide,sans-serif;background:#f3f6fa;border:1px solid #dbe4ef;border-radius:6px;padding:12px;font-size:11px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;margin:10px 0}figure{margin:18px 0 12px;text-align:center}figure img{max-width:100%;width:auto;height:auto;object-fit:contain;border:1px solid #dce5ed;border-radius:7px}figcaption{font-size:9px;color:#63798c;margin-top:5px}footer{position:absolute;bottom:9mm;left:16mm;right:16mm;border-top:1px solid #dce5ed;padding-top:6px;display:flex;justify-content:space-between;color:#657a8e;font-size:9px}a{color:#076e89;text-decoration:none}small{font-size:11px}.cover-block{background:#123246;color:#a6eced;border-radius:10px;padding:38px 24px;font-size:25px;margin:26px 0}.page:first-child h1{font-size:38px}.page:first-child .intro{font-size:20px}@page{size:A4;margin:0}@media print{body{background:white}.page{margin:0}}
-</style></head><body>${pages.map((x, i) => `<section class="page" id="page-${i + 1}"><header>${x.chapter}</header><main><h1>${x.title}</h1><p class="intro">${x.intro}</p>${x.content}</main><footer><span>LG CNS 전자/제조시스템팀 · 사용자 설명서</span><span>${String(i + 1).padStart(2, '0')} / ${pages.length}</span></footer></section>`).join('')}</body></html>`;
+.service-page{border-top:5px solid var(--accent);padding-top:10mm}.service-page header{border-color:var(--accent);letter-spacing:0;margin-bottom:16px}.service-heading{display:flex;align-items:center;gap:12px;color:var(--accent);font-size:19px;line-height:1.3}.service-number{padding:5px 9px;background:var(--accent);color:white;border-radius:5px;font-size:16px}.service-heading a{margin-left:auto;font-size:10px;color:var(--accent)}.stage{display:flex;justify-content:space-between;margin-top:9px;font-size:10px;color:#586e80}.service-page h1{font-size:24px}.service-page h3,.service-page b,.service-page a{color:var(--accent)}.service-route{font-size:11px;color:#52697c}
+</style></head><body>${pages.map(renderPage).join('')}</body></html>`;
 await writeFile(`${root}user-guide.html`, html);
 const { chromium } = await import(process.env.GUIDE_PLAYWRIGHT_MODULE || '/tmp/eyecheck-ui-tools/node_modules/playwright/index.mjs');
 const browser = await chromium.launch({ headless: true });

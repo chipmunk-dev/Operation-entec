@@ -1,10 +1,15 @@
 # 사용자 설명서
 
-- `operation-cns-elect-user-guide.pdf`: 20페이지 사용자 설명서
+- `operation-cns-elect-user-guide.pdf`: 26페이지 서비스별 사용자 설명서
 - `operation-cns-elect-user-guide-bundle.zip`: PDF와 실습용 파일 9개
 - `samples/`: 실제 형식의 가상 입력 TXT, 아이체크 연습 원본 및 실제 다운로드 결과 XLSX
 - `screenshots/`: 로컬 서비스에서 예시를 실행하여 캡처한 화면
 - `results.json`: 클립보드 결과와 검증 항목
+- `services.mjs`: 서비스별 목적·입출력·기능·차이점·주의사항 정의
+- `manifest.json`: 생성된 페이지 수와 서비스별 페이지 범위
+
+6개 서비스마다 독립된 기능 안내 페이지가 있으며, 모든 상세 페이지에
+서비스명·색상·작업 단계·챕터 내 위치가 표시됩니다. 목차에서 챕터로 이동할 수 있습니다.
 
 기준: 2026.09.09, 메뉴 순서 변경 반영 로컬 코드. 배포 완료를 의미하지 않습니다.
 서버·IP·담당자는 모두 가상 값입니다. 기존 개선활동 보고서는 수정하지 않습니다.
@@ -41,17 +46,17 @@ node reports/user-guide/generate.mjs
 1. `capture.mjs`: 메뉴 순서, 이벤트 복구·이력 제거, 재전달 복수선택,
    백업 오류 제외 규칙, 담당자 미확정 추출 차단, XLSX 다운로드,
    아이체크 신규 2·소등 1 및 저장 후 원본 비교 유지, 13열 보고를 검증합니다.
-2. `generate.mjs`: 모든 이미지 로드, 20개 페이지의 본문·꼬릿말 겹침과 가로 넘침을 검사합니다.
-3. `pdfinfo`, `pdftotext`, `pdffonts`로 실제 PDF 20페이지·한글 추출·폰트 포함을 확인합니다.
+2. `generate.mjs`: 모든 이미지 로드, 26개 페이지의 본문·꼬릿말 겹침과 가로 넘침을 검사합니다.
+3. `pdfinfo`, `pdftotext`, `pdffonts`로 실제 PDF 26페이지·한글 추출·폰트 포함을 확인합니다.
 4. `pdftoppm`으로 실제 PDF를 렌더링하여 페이지별 잘림·글자 표시를 시각 검수합니다.
 
 텍스트 추출 파일을 `pdf-text.txt`, 렌더링 파일을 `pdf-preview/page-01.png`~
-`page-20.png`로 준비한 뒤 `node reports/user-guide/verify.mjs`를 실행하면
-20페이지·한글·페이지 번호·엑셀 4행·필터·ZIP 내용 일치 여부를 검사하고
+`page-26.png`로 준비한 뒤 `node reports/user-guide/verify.mjs`를 실행하면
+manifest 기준 페이지 수·서비스 구분·한글·페이지 번호·엑셀 4행·필터·ZIP 내용 일치 여부를 검사하고
 전체 페이지 검수용 모음을 생성합니다. Playwright 환경 변수는 위와 같습니다.
 
 2026.09.09 검수 결과: 빌드·린트·기존 테스트 15개 파일 통과,
-6개 기능의 브라우저 실습 통과, PDF 20페이지·한글 텍스트·폰트 포함 확인,
+6개 기능의 브라우저 실습 통과(초판), 개정 PDF 26페이지·한글 텍스트·폰트 포함 확인,
 전체 페이지 렌더링 시각 검수 및 주요 화면 확대 확인 완료.
 
 생성 HTML과 미리보기는 크기가 크므로 Git에서 제외합니다. 배포물은 PDF·ZIP이며

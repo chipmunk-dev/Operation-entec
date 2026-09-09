@@ -1,0 +1,41 @@
+{
+  "pageCount": 26,
+  "chapters": [
+    {
+      "number": "01",
+      "name": "해외메일 작성",
+      "start": 4,
+      "end": 6
+    },
+    {
+      "number": "02",
+      "name": "G-EMS 메세지",
+      "start": 7,
+      "end": 9
+    },
+    {
+      "number": "03",
+      "name": "지속 이벤트 재전달",
+      "start": 10,
+      "end": 13
+    },
+    {
+      "number": "04",
+      "name": "자동 백업 에러",
+      "start": 14,
+      "end": 16
+    },
+    {
+      "number": "05",
+      "name": "아이체크 내역 편집/보고",
+      "start": 17,
+      "end": 21
+    },
+    {
+      "number": "06",
+      "name": "지속 메시지 엑셀 추출",
+      "start": 22,
+      "end": 24
+    }
+  ]
+}
