@@ -63,17 +63,38 @@ function compareNumbers(a, b) {
 }
 
 /**
- * 한 구역을 항목 단위로 읽는다.
+ * 슬래시로 나뉜 한 조각을 구역 단위로 읽는다.
  * - "(3)" 은 그 자리 점등 개수. 개수는 1 이상만 유효하다
  * - "B-01-3" 은 범위가 아니라 번호 하나
- * - 콤마 뒤 맨숫자는 앞의 접두사를 이어받는다
+ * - 콤마 뒤 맨숫자는 앞의 구역 글자를 이어받는다
+ * - 조각 안에서 구역 글자가 바뀌면 그 지점부터 다른 구역이다 ("A-1,2,B-3" → A-1,2 / B-3)
+ * - 같은 번호가 여러 번 나오면 한 자리로 합쳐 개수를 더한다 ("A-15,15" → A-15(2))
  * - "A-" 처럼 번호가 없거나 숫자가 아니면 반영하지 않고 남긴다
  */
 function parseSector(text) {
-  const items = [];
+  const sectors = [];
   const unread = [];
-  let group = null;
+  let current = null;
   let last = null;
+
+  const useGroup = (group) => {
+    current = sectors.find((sector) => sector.group === group) ?? null;
+    if (!current) {
+      current = { group, items: [] };
+      sectors.push(current);
+    }
+  };
+
+  const addItem = (num, count) => {
+    const existing = current.items.find((item) => item.num === num);
+    if (existing) {
+      existing.count += count;
+      last = existing;
+    } else {
+      last = { num, count };
+      current.items.push(last);
+    }
+  };
 
   text.split(TOKEN_SPLIT).forEach((token) => {
     if (!token) return;
@@ -104,23 +125,20 @@ function parseSector(text) {
         return;
       }
 
-      group = body.slice(0, cut).toUpperCase();
-      last = { num, count };
+      useGroup(body.slice(0, cut).toUpperCase());
+      addItem(num, count);
     } else if (BARE_NUMBER.test(body)) {
-      if (!group) {
+      if (!current) {
         unread.push(token);
         return;
       }
-      last = { num: body, count };
+      addItem(body, count);
     } else {
       unread.push(token);
-      return;
     }
-
-    items.push(last);
   });
 
-  return { group, items, unread };
+  return { sectors, unread };
 }
 
 /**
@@ -144,9 +162,9 @@ function parseBase(raw) {
 
     body.split(SECTOR_SPLIT).forEach((chunk) => {
       if (!chunk.trim()) return;
-      const sector = parseSector(chunk);
-      sector.unread.forEach((token) => unread.push(token));
-      if (sector.group) sectors.push({ group: sector.group, items: sector.items });
+      const parsed = parseSector(chunk);
+      parsed.unread.forEach((token) => unread.push(token));
+      parsed.sectors.forEach((sector) => sectors.push(sector));
     });
 
     return { sectors, trailing: /[/／]\s*$/.test(body) };
@@ -297,7 +315,7 @@ function countTotal(base) {
 }
 
 /** 한 구역을 원래 표기법으로 되돌린다. 첫 항목만 구역 글자를 달고 나머지는 번호만 쓴다. */
-function sectorText(sector) {
+export function sectorText(sector) {
   const live = sector.items.filter((item) => !item.removed);
   if (!live.length) return '';
 
@@ -339,8 +357,18 @@ function rebuild(base) {
  * 기존 내역에 점등·소등을 반영한 결과 한 벌.
  * 화면에서 필요한 값을 모두 담아 돌려준다.
  */
-export function buildLightLog(rawBase, rawOn, rawOff) {
-  const base = parseBase(rawBase);
+export function buildLightLog(
+  rawBase,
+  rawOn,
+  rawOff,
+  { allowEmptyBase = false } = {},
+) {
+  // 기존 내역이 비어 있으면 결과를 만들지 않는다. allowEmptyBase면 빈 내역에 점등을 더해 새로 만든다.
+  const base =
+    parseBase(rawBase) ??
+    (allowEmptyBase
+      ? { label: null, gap: '', lines: [{ sectors: [], trailing: false }], unread: [] }
+      : null);
   if (!base) return null;
 
   const before = countTotal(base);

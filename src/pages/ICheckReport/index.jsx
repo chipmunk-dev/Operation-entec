@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import PropTypes from 'prop-types';
 import { IoMdCheckmark, IoMdCopy } from 'react-icons/io';
 import {
   MdContentPaste,
@@ -45,7 +46,7 @@ const howToSteps = [
   },
 ];
 
-function ICheckReport() {
+function ICheckReport({ embedded = false }) {
   const [reporterName, setReporterName] = useState(() =>
     loadGemsReporterName(),
   );
@@ -80,8 +81,8 @@ function ICheckReport() {
   };
 
   return (
-    <div className="page-shell">
-      <PageHeader
+    <div className={embedded ? '' : 'page-shell'}>
+      {!embedded && <PageHeader
         title="아이체크 보고"
         description="장비 이상·점등 내역을 서버 담당자별 메신저 보고 문구로 변환합니다."
         icon={<MdFactCheck size={21} />}
@@ -89,7 +90,7 @@ function ICheckReport() {
         helpTitle="아이체크 보고 사용방법"
         helpSummary="엑셀 데이터를 붙여넣고 담당자별 보고 문구를 바로 복사하세요."
         helpSteps={howToSteps}
-      />
+      />}
 
       <div className="grid gap-6">
         <section
@@ -290,5 +291,7 @@ function ICheckReport() {
     </div>
   );
 }
+
+ICheckReport.propTypes = { embedded: PropTypes.bool };
 
 export default ICheckReport;
