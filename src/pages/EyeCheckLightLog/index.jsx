@@ -126,11 +126,11 @@ function EyeCheckLightLog() {
   return (
     <div className="page-shell">
       <PageHeader
-        title="아이체크 내역 편집/보고"
+        title="아이체크 내역 편집"
         description="엑셀의 점등·소등 내역을 편집하고, 원본 대비 변경사항을 담당자별 보고 문구로 만듭니다."
         icon={<FaFileExcel size={19} />}
         iconClassName="bg-amber-50 text-amber-700"
-        helpTitle="아이체크 내역 편집/보고 사용방법"
+        helpTitle="아이체크 내역 편집 사용방법"
         helpSummary="엑셀 파일을 직접 고쳐 원본에 덮어쓰거나 새 파일로 내려받습니다."
         helpSteps={howToSteps}
       />
