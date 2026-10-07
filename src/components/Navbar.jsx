@@ -45,8 +45,8 @@ const menuItems = [
     icon: MdFactCheck,
   },
   {
-    name: '아이체크 내역 편집/보고',
-    description: 'Eye Check Edit & Report',
+    name: '아이체크 내역 편집',
+    description: 'Eye Check Editor',
     path: '/eyecheck-light-log',
     icon: MdOutlineTableChart,
   },
@@ -61,8 +61,9 @@ const menuItems = [
 const changeLogItems = [
   {
     date: '2026.10',
-    title: '보고 메뉴 복원',
-    detail: '[아이체크 보고] 엑셀 붙여넣기 독립 메뉴 복원 - 정지운 사원',
+    title: '보고 메뉴 복원·명칭 정리',
+    detail: `[아이체크 보고] 엑셀 붙여넣기 독립 메뉴 복원 - 정지운 사원
+[아이체크 내역 편집] 메뉴·화면 제목의 보고 표기 제거 - 정지운 사원`,
   },
   {
     date: '2026.09',

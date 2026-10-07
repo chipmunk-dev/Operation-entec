@@ -208,7 +208,7 @@ try {
   const pastedMessage = await page.evaluate(() => navigator.clipboard.readText());
   assert.match(pastedMessage, /TEST-HOST/);
   assert.match(pastedMessage, /SA3A-1/);
-  await page.getByRole('link', { name: '아이체크 내역 편집/보고', exact: false }).click();
+  await page.getByRole('link', { name: '아이체크 내역 편집', exact: false }).click();
   await page.getByRole('tab', { name: '내역 편집', exact: true }).waitFor();
   await page.goto('http://127.0.0.1:5173/eyecheck-light-log?tab=report');
   await page.getByRole('tab', { name: '담당자 보고' }).waitFor();
