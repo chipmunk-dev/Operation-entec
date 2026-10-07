@@ -3,6 +3,7 @@ import {
   MdBackup,
   MdBolt,
   MdEmail,
+  MdFactCheck,
   MdHistory,
   MdMenu,
   MdOutlineChevronLeft,
@@ -38,6 +39,12 @@ const menuItems = [
     icon: FaArrowsRotate,
   },
   {
+    name: '아이체크 보고',
+    description: 'I-Check Report',
+    path: '/icheck-report',
+    icon: MdFactCheck,
+  },
+  {
     name: '아이체크 내역 편집/보고',
     description: 'Eye Check Edit & Report',
     path: '/eyecheck-light-log',
@@ -52,6 +59,11 @@ const menuItems = [
 ];
 
 const changeLogItems = [
+  {
+    date: '2026.10',
+    title: '보고 메뉴 복원',
+    detail: '[아이체크 보고] 엑셀 붙여넣기 독립 메뉴 복원 - 정지운 사원',
+  },
   {
     date: '2026.09',
     title: '사용성 고도화',
