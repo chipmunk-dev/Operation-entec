@@ -1,0 +1,15 @@
+﻿[P-EUBKMST]
+DEMO_DB_DAILY
+DEMO_WEB_DAILY
+-------------
+2026-09-09 09:00:00
+2026-09-09 09:00:00
+-------------
+Err: 58
+Err: 84
+
+[NBUMASTER]
+에러 없음
+
+[EXTMASTER]
+에러 없음

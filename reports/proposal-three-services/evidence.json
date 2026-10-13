@@ -1,0 +1,19 @@
+{
+  "capturedAt": "2026-10-13T23:39:55.366Z",
+  "dataKind": "가상 서버·IP·담당자",
+  "results": {
+    "mail": "Dear!\nThis is KIC Control office in Korea.\nMonitoring System detected warning message(s) from your server.\nPlease check following message(s).\n\n-------------------------------------------------------\nDate        : 2026-09-09 09:00:00 (Base On Korea Time)\nIP             : 192.0.2.10\nHost        : DEMO-WEB-01\nMessage : CPU Utilization MAJOR occurred(91 %)\n-------------------------------------------------------\nDate        : 2026-09-09 09:00:00 (Base On Korea Time)\nIP             : 192.0.2.11\nHost        : DEMO-DB-01\nMessage : /data (Filesystem) Utilization MAJOR occurred(92 %)\n-------------------------------------------------------\n\nThank you.",
+    "backup": "P-EUBKMST\tDEMO_DB_DAILY\nDEMO_WEB_DAILY\t2026-09-09 09:00:00\n2026-09-09 09:00:00\tErr: 58\nErr: 84",
+    "backupTxt": "﻿[P-EUBKMST]\nDEMO_DB_DAILY\nDEMO_WEB_DAILY\n-------------\n2026-09-09 09:00:00\n2026-09-09 09:00:00\n-------------\nErr: 58\nErr: 84\n\n[NBUMASTER]\n에러 없음\n\n[EXTMASTER]\n에러 없음",
+    "redirect": "안녕하세요.\n상암 상황실 홍예시 사원입니다.\n지속중인 메세지 재전달드리니 확인 부탁드립니다.\n\n서버: DEMO-WEB-01\n내용: CPU Utilization MAJOR occurred(91 %)\n\n서버: DEMO-DB-01\n내용: /data Utilization MAJOR occurred(92 %)\n\n감사합니다."
+  },
+  "checks": [
+    "해외메일 2건 및 내부 줄바꿈 정리",
+    "확인 이력 제거",
+    "백업 Status 0·1 제외 / 58·84 추출",
+    "Outlook 표 복사 및 TXT 내려받기",
+    "지속 이벤트 3건 중 2건 복수선택",
+    "보류 1건의 전달 문구 미포함",
+    "브라우저 오류 없음"
+  ]
+}
