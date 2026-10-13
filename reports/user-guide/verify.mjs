@@ -2,13 +2,15 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { unzipSync, strFromU8 } from 'fflate';
+import { services } from './services.mjs';
 
 const root = fileURLToPath(new URL('./', import.meta.url));
 const text = await readFile(`${root}pdf-text.txt`, 'utf8');
 const pages = text.split('\f').filter(part => part.trim());
 const manifest = JSON.parse(await readFile(`${root}manifest.json`, 'utf8'));
 assert.equal(pages.length, manifest.pageCount);
-assert.equal(manifest.chapters.length, 6);
+assert.equal(manifest.chapters.length, services.length);
+assert.deepEqual(manifest.chapters.map(chapter => chapter.name), services.map(service => service.name));
 assert.doesNotMatch(text, /\uFFFD|\u25A1/);
 for (const [i, page] of pages.entries()) {
   assert.match(page, /LG CNS 전자\/제조시스템팀/);
@@ -29,11 +31,17 @@ assert.match(xml, /autoFilter ref="A1:H5"/);
 const bundle = unzipSync(new Uint8Array(await readFile(`${root}operation-cns-elect-user-guide-bundle.zip`)));
 assert.equal(Object.keys(bundle).length, 10);
 assert.deepEqual(bundle['operation-cns-elect-user-guide.pdf'], new Uint8Array(await readFile(`${root}operation-cns-elect-user-guide.pdf`)));
-const { chromium } = await import(process.env.GUIDE_PLAYWRIGHT_MODULE || '/tmp/eyecheck-ui-tools/node_modules/playwright/index.mjs');
+const { chromium } = await import(process.env.GUIDE_PLAYWRIGHT_MODULE || '/tmp/operation-guide-tools/node_modules/playwright/index.mjs');
 const browser = await chromium.launch({ headless: true });
 try {
   const page = await browser.newPage({ viewport: { width: 1400, height: 1000 } });
   await page.goto(new URL('./user-guide.html', import.meta.url).href);
+  const badLinks = await page.locator('a[href^="#"]').evaluateAll(links => links.filter(link => !document.getElementById(link.getAttribute('href').slice(1))).map(link => link.getAttribute('href')));
+  assert.deepEqual(badLinks, [], '목차 링크 목적지');
+  const layout = await page.locator('.page').evaluateAll(nodes => nodes.map((node, i) => ({ page: i + 1, fontSize: parseFloat(getComputedStyle(node).fontSize), overflow: node.scrollWidth > node.clientWidth })));
+  assert.ok(layout.every(item => item.fontSize >= 15 && !item.overflow));
+  await page.getByRole('link', { name: `05. 아이체크 보고`, exact: true }).click();
+  assert.equal(new URL(page.url()).hash, `#page-${manifest.chapters[4].start}`);
   for (let group = 0; group < Math.ceil(pages.length / 5); group++) {
     const images = Array.from({ length: Math.min(5, pages.length - group * 5) }, (_, i) => group * 5 + i + 1).map(n => `<figure><img src="${new URL(`./pdf-preview/page-${String(n).padStart(2, '0')}.png`, import.meta.url).href}"><figcaption>Page ${n}</figcaption></figure>`).join('');
     await page.setContent(`<style>body{margin:0;background:#d9e0e8;display:flex;gap:8px;padding:8px}figure{margin:0;width:268px}img{width:268px}figcaption{text-align:center;font:16px sans-serif}</style>${images}`);

@@ -23,10 +23,10 @@ for (const [name, value] of Object.entries(samples)) await writeFile(`${root}sam
 const practiceParts = unzipSync(reportWorkbookBytes());
 practiceParts['[Content_Types].xml'] = strToU8(strFromU8(practiceParts['[Content_Types].xml']).replace('</Types>', [1, 2, 3].map(n => `<Override PartName="/xl/worksheets/sheet${n}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('') + '</Types>'));
 await writeFile(`${root}samples/eyecheck-practice.xlsx`, zipSync(practiceParts));
-const { chromium } = await import(process.env.GUIDE_PLAYWRIGHT_MODULE || '/tmp/eyecheck-ui-tools/node_modules/playwright/index.mjs');
+const { chromium } = await import(process.env.GUIDE_PLAYWRIGHT_MODULE || '/tmp/operation-guide-tools/node_modules/playwright/index.mjs');
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, permissions: ['clipboard-read', 'clipboard-write'] });
-const font = await readFile(process.env.GUIDE_FONT || '/tmp/eyecheck-browser-libs/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc');
+const font = await readFile(process.env.GUIDE_FONT || '/tmp/operation-guide-libs/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc');
 await context.route('**/__guide-font', route => route.fulfill({ contentType: 'font/ttf', body: font }));
 await context.addInitScript(() => document.addEventListener('DOMContentLoaded', () => {
   const style = document.createElement('style');
@@ -55,6 +55,7 @@ const clipboard = async () => page.evaluate(() => navigator.clipboard.readText()
 try {
   await goto('/foreign-mail');
   const links = await page.locator('nav a').evaluateAll(nodes => nodes.map(n => n.getAttribute('href')));
+  assert.deepEqual(links, ['/foreign-mail', '/gems-message', '/persistent-redirect', '/auto-backup-error-filter', '/icheck-report', '/eyecheck-light-log', '/persistent-event-excel']);
   assert.ok(links.indexOf('/persistent-redirect') < links.indexOf('/auto-backup-error-filter'));
   await page.locator('textarea').fill(mail);
   await page.getByRole('button', { name: '메일 전체 복사', exact: true }).click();
@@ -137,6 +138,7 @@ try {
   assert.match(results.eyecheck, /\[소등\]/);
   await shot('13-eyecheck-report');
   await shot('13-eyecheck-fields', page.getByRole('heading', { name: '보고 대상 확인', exact: true }).locator('..'));
+  await shot('13-eyecheck-field-detail', page.locator('article').filter({ has: page.getByLabel('SA3A-3 호스트명', { exact: true }) }).first());
   await shot('13-eyecheck-output', page.getByRole('heading', { name: '담당자별 보고 미리보기', exact: true }).locator('..'));
   const downloadWait = page.waitForEvent('download');
   await page.getByRole('button', { name: '새 파일로 내려받기', exact: true }).click();
@@ -150,6 +152,19 @@ try {
   await page.getByLabel('아이체크 엑셀 원본 데이터').fill(icheck);
   await page.getByText('보고 대상 2건', { exact: true }).waitFor();
   await shot('14-eyecheck-paste');
+  await goto('/icheck-report');
+  await page.getByRole('heading', { name: '아이체크 보고', exact: true }).waitFor();
+  assert.equal(new URL(page.url()).pathname, '/icheck-report');
+  await page.getByLabel('아이체크 엑셀 원본 데이터').fill(icheck);
+  await page.getByRole('textbox', { name: '이름', exact: true }).fill('홍예시');
+  await page.getByText('보고 대상 2건', { exact: true }).waitFor();
+  await page.getByRole('button', { name: '담당자 문구 복사', exact: true }).first().click();
+  await page.waitForFunction(() => document.body.innerText.includes('복사 완료'));
+  results.icheck = await clipboard();
+  assert.match(results.icheck, /DEMO-WEB-01/);
+  assert.match(results.icheck, /SA3A-1/);
+  await shot('15-icheck-standalone');
+  await shot('15-icheck-card-detail', page.locator('article').filter({ hasText: '김예시 책임' }).first());
   assert.deepEqual(errors, []);
-  await writeFile(`${root}results.json`, JSON.stringify({ capturedAt: new Date().toISOString(), results, checks: ['메뉴 순서', 'Message 내부 탭·줄바꿈 복구', '확인 이력 제거', '재전달 복수선택 유지', '백업 Status 0·1 제외', '담당자 미해결 추출 차단', '담당자 확정 XLSX', '아이체크 신규 2·소등 1', '아이체크 저장 후 비교 유지', '13열 붙여넣기 2건', '브라우저 오류 없음'] }, null, 2));
+  await writeFile(`${root}results.json`, JSON.stringify({ capturedAt: new Date().toISOString(), results, checks: ['7개 메뉴 순서', 'Message 내부 탭·줄바꿈 복구', '확인 이력 제거', '재전달 복수선택 유지', '백업 Status 0·1 제외', '담당자 미해결 추출 차단', '담당자 확정 XLSX', '아이체크 신규 2·소등 1', '아이체크 저장 후 비교 유지', '편집 화면 붙여넣기 2건', '독립 아이체크 보고·복사', '브라우저 오류 없음'] }, null, 2));
 } finally { await browser.close(); }

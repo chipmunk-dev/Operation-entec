@@ -3,6 +3,7 @@ import {
   MdBackup,
   MdBolt,
   MdEmail,
+  MdFactCheck,
   MdHistory,
   MdMenu,
   MdOutlineChevronLeft,
@@ -38,8 +39,14 @@ const menuItems = [
     icon: MdBackup,
   },
   {
-    name: '아이체크 내역 편집/보고',
-    description: 'Eye Check Edit & Report',
+    name: '아이체크 보고',
+    description: 'I-Check Report',
+    path: '/icheck-report',
+    icon: MdFactCheck,
+  },
+  {
+    name: '아이체크 내역 편집',
+    description: 'Eye Check Editor',
     path: '/eyecheck-light-log',
     icon: MdOutlineTableChart,
   },
@@ -52,6 +59,15 @@ const menuItems = [
 ];
 
 const changeLogItems = [
+  {
+    date: '2026.10',
+    title: '보고 메뉴·사용 설명서 정리',
+    detail: `[아이체크 보고] 엑셀 붙여넣기 독립 메뉴 복원
+[아이체크 내역 편집] 메뉴·화면 제목의 보고 표기 제거
+[전체 기능] 최신 7개 메뉴 기준 PDF 설명서 갱신
+[전체 기능] PDF 글자·표·화면 예시 가독성 개선
+[공통 화면] 업데이트 이력 작업자 표기·월 형식 정리`,
+  },
   {
     date: '2026.09',
     title: '사용성 고도화',
@@ -96,8 +112,8 @@ const changeLogItems = [
 [지속 이벤트 재전달] Event 처리 개선`,
   },
   {
-    date: '2026.02~06',
-    title: '현업 적용·규칙 정리',
+    date: '2026.06',
+    title: '현업 적용·규칙 정리 (2~6월)',
     detail: `[전체 기능] 현업 예외 입력 반영 및 처리 기준 정리
 [전체 기능] 반복 사용 결과를 바탕으로 출력 양식 보완`,
   },

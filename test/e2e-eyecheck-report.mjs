@@ -197,6 +197,20 @@ try {
     .getByText('신규 0 · 소등 0 · 보고 선택 0', { exact: true })
     .waitFor();
   await page.goto('http://127.0.0.1:5173/icheck-report');
+  await page.getByRole('heading', { name: '아이체크 보고', exact: true }).waitFor();
+  assert.equal(new URL(page.url()).pathname, '/icheck-report');
+  const pastedReport =
+    '2026-09-09\tLG전자\tTEST-HOST\tSA3A-1\tIBM\tServer\tMODEL\tN/A\t!점등\t1\t테스트\t테스트 책임\t확인요청';
+  await page.getByLabel('아이체크 엑셀 원본 데이터').fill(pastedReport);
+  await page.getByText('보고 대상 1건', { exact: true }).waitFor();
+  await page.getByRole('textbox', { name: '이름', exact: true }).fill('테스트');
+  await page.getByRole('button', { name: '담당자 문구 복사', exact: true }).click();
+  const pastedMessage = await page.evaluate(() => navigator.clipboard.readText());
+  assert.match(pastedMessage, /TEST-HOST/);
+  assert.match(pastedMessage, /SA3A-1/);
+  await page.getByRole('link', { name: '아이체크 내역 편집', exact: false }).click();
+  await page.getByRole('tab', { name: '내역 편집', exact: true }).waitFor();
+  await page.goto('http://127.0.0.1:5173/eyecheck-light-log?tab=report');
   await page.getByRole('tab', { name: '담당자 보고' }).waitFor();
   assert.match(page.url(), /eyecheck-light-log\?tab=report/);
   await page
@@ -204,9 +218,7 @@ try {
     .click();
   await page
     .getByLabel('아이체크 엑셀 원본 데이터')
-    .fill(
-      '2026-09-09\tLG전자\tTEST-HOST\tSA3A-1\tIBM\tServer\tMODEL\tN/A\t!점등\t1\t테스트\t테스트 책임\t확인요청'
-    );
+    .fill(pastedReport);
   await page.getByText('보고 대상 1건', { exact: true }).waitFor();
   // 원본 덮어쓰기의 권한/파일 API만 대체하여 실패와 재시도를 검증한다.
   await context.addInitScript((bytes) => {
@@ -320,7 +332,7 @@ try {
   assert.deepEqual(errors, []);
   await writeFile('/tmp/eyecheck-test.xlsx', reportWorkbookBytes());
   console.log(
-    'PASS: upload, unchanged, duplicate positions, typing focus, missing fields, selection, tab persistence, clipboard, download contents, retained baseline, add-then-remove, existing report, mobile overflow, new-file reset, legacy route/paste, overwrite failure/retry, invalid date, removed-device detail reset, no browser errors'
+    'PASS: upload, unchanged, duplicate positions, typing focus, missing fields, selection, tab persistence, clipboard, download contents, retained baseline, add-then-remove, existing report, mobile overflow, new-file reset, standalone report/paste/copy, integrated report/paste, overwrite failure/retry, invalid date, removed-device detail reset, no browser errors'
   );
 } finally {
   await browser.close();
