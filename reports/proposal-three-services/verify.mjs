@@ -9,7 +9,16 @@ const pages = text.split('\f').filter(value => value.trim());
 assert.equal(pages.length, 9);
 assert.doesNotMatch(text, /\uFFFD|\u25A1|G-EMS|아이체크|지속 메시지 엑셀/);
 assert.doesNotMatch(text, /보고 대상은 3개|처음 보는 분|업무 경험이 없는 독자|사용자가 하는 일은|한눈에 보는 개선/);
-for (const phrase of ['해외메일 작성', '해외 백업 오류 보고', '지속 이벤트 재전달', '정지운 사원', '이정선 책임', '강성준 책임', '데이터베이스', '참고값', '5~10초', '5분 미만', '20분 미만', 'Monitoring System', 'DEMO_DB_DAILY', 'DEMO-WEB-01', '안녕하세요.']) assert.ok(text.includes(phrase), phrase);
+assert.doesNotMatch(text, /소스 저장소|github\.com|netlify\.app|작성일|2026년 10월 14일|15~25초|5~10초|40~60분/);
+for (const phrase of ['해외메일 작성', '해외 백업 오류 보고', '지속 이벤트 재전달', '정지운 사원', '이정선 책임', '강성준 책임', '데이터베이스', '참고값', '1분', '15초 미만', '5분 미만', '1시간', '20분 미만', '1일 이상 지속', '확인내역 자동 재생성', 'Monitoring System', 'DEMO_DB_DAILY', 'DEMO-WEB-01', '안녕하세요.']) assert.ok(text.includes(phrase), phrase);
+for (const pageIndex of [3, 8]) {
+  assert.match(pages[pageIndex], /1분/);
+  assert.match(pages[pageIndex], /15초 미만/);
+}
+for (const pageIndex of [7, 8]) {
+  assert.match(pages[pageIndex], /1시간/);
+  assert.match(pages[pageIndex], /20분 미만/);
+}
 for (let i = 0; i < pages.length; i++) {
   assert.match(pages[i], /LG CNS 전자\/제조시스템팀/);
   assert.match(pages[i], new RegExp(`${i + 1}\\s*/\\s*9`));
@@ -35,5 +44,5 @@ try {
     await page.screenshot({ path: `${root}pdf-preview/contact-${group + 1}.png`, fullPage: true });
   }
 } finally { await browser.close(); }
-await writeFile(`${root}verification.json`, JSON.stringify({ date: '2026-10-14', pageCount: 9, screenshotCount: 6, resultExampleCount: 3, checks: ['세 기능만 포함', '상부 보고 문체 및 작업 안내 문구 제거', '국문 고딕 본문·굵은 제목 적용', '한글 추출·페이지 번호 정상', '작성자·부서 표기 확인', '현업 시간 참고값 표기', '메일 본문·오류 보고 표·재전달 문구 예시 포함', 'PDF와 ZIP 내 보고서 일치', '전체 페이지 렌더링 검수 자료 생성'] }, null, 2));
+await writeFile(`${root}verification.json`, JSON.stringify({ date: '2026-10-14', pageCount: 9, screenshotCount: 6, resultExampleCount: 3, checks: ['세 기능만 포함', '상부 보고 문체 및 작업 안내 문구 제거', '서비스·소스 저장소 주소 및 작성일 제거', '국문 고딕 본문·굵은 제목 적용', '한글 추출·페이지 번호 정상', '작성자·부서 표기 확인', '해외메일 1분 → 15초 미만·재전달 1시간 → 20분 미만 참고값 일치', '1일 이상 지속 이벤트 재전달·확인내역 자동 재생성 설명 포함', '메일 본문·오류 보고 표·재전달 문구 예시 포함', 'PDF와 ZIP 내 보고서 일치', '전체 페이지 렌더링 검수 자료 생성'] }, null, 2));
 console.log('PASS: 보고 대상 3개 / 9페이지 / 캡처 6개 / 한글·역할·참고 수치·ZIP 일치');
