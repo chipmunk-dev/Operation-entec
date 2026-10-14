@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { zipSync } from 'fflate';
 
@@ -8,126 +8,146 @@ const evidence = JSON.parse(await readFile(`${root}evidence.json`, 'utf8'));
 const esc = text => String(text).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 const p = text => `<p>${text}</p>`;
 const h = text => `<h3>${text}</h3>`;
-const note = text => `<aside>${text}</aside>`;
-const table = (heads, rows, widths = heads.length === 2 ? [29, 71] : [29, 35, 36]) => `<table><colgroup>${widths.map(width => `<col style="width:${width}%">`).join('')}</colgroup><thead><tr>${heads.map(text => `<th>${text}</th>`).join('')}</tr></thead><tbody>${rows.map(row => `<tr>${row.map(text => `<td>${text}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
-const flow = labels => `<div class="flow">${labels.map((label, i) => `<div><span>${i + 1}</span><b>${label}</b></div>`).join('<em>→</em>')}</div>`;
-const fig = (name, caption, maxHeight = 365) => `<figure><img src="screenshots/${name}.png" style="max-height:${maxHeight}px" alt="${esc(caption)}"><figcaption>${caption}<br><span>실제 서비스 화면 · 서버명·IP·담당자는 가상 값</span></figcaption></figure>`;
-const metric = (before, after, unit) => `<div class="metric"><div><small>기존 방식</small><strong>${before}</strong></div><em>→</em><div><small>보조기능 활용</small><strong>${after}</strong></div><span>${unit} · 작성자 제공 참고값</span></div>`;
-const beforeAfter = (before, after) => `<div class="comparison"><div><h4>기존 업무</h4><p>${before}</p></div><div><h4>개선된 업무</h4><p>${after}</p></div></div>`;
+const footnote = text => `<p class="note">${text}</p>`;
+const table = (heads, rows, widths = heads.length === 2 ? [26, 74] : [26, 37, 37]) => `<table><colgroup>${widths.map(width => `<col style="width:${width}%">`).join('')}</colgroup><thead><tr>${heads.map(text => `<th>${text}</th>`).join('')}</tr></thead><tbody>${rows.map(row => `<tr>${row.map(text => `<td>${text}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+const flow = labels => `<div class="flow">${labels.map((label, i) => `<span><small>${String(i + 1).padStart(2, '0')}</small>${label}</span>`).join('<em>→</em>')}</div>`;
+const fig = (name, caption, maxHeight = 330) => `<figure><img src="screenshots/${name}.png" style="max-height:${maxHeight}px" alt="${esc(caption)}"><figcaption>${caption}</figcaption></figure>`;
+const excerpt = (label, text) => `<div class="example"><div class="example-label">${label}</div><pre>${esc(text)}</pre></div>`;
+const outcome = (text, before, after, unit) => `<div class="outcome"><b>개선효과</b><p>${text}</p><div class="time"><span>${unit}</span><strong>${before} → ${after}</strong><small>현업 소요시간 참고값</small></div></div>`;
 const pages = [];
-const add = (section, title, intro, content, accent = '#245b87') => pages.push({ section, title, intro, content, accent });
+const add = (section, title, summary, content, kind = '') => pages.push({ section, title, summary, content, kind });
+const divider = '-------------------------------------------------------';
+const mailParts = evidence.results.mail.split(divider);
+assert.equal(mailParts.length, 4, '해외메일 실제 생성 결과의 2건 구성');
+const mailExcerpt = `${mailParts[0]}${divider}${mailParts[1]}${divider}${mailParts.at(-1)}`.trim();
+const [zone, policies, times, errors] = evidence.results.backup.split('\t');
+const backupRows = policies.split('\n').map((policy, i) => [zone, policy, times.split('\n')[i], errors.split('\n')[i]]);
 
-add('개선제안 보고 · 2026.10', '서버 운영의 반복 보고 업무를<br>붙여넣기·검토·복사로 간소화', 'OP 업무 보조기능 개선제안 보고서',
-  `<div class="hero"><b>보고 대상은 3개 기능입니다.</b><span>해외메일 작성 · 해외 자동 백업 오류 정리 · 지속 이벤트 재전달</span></div>` +
-  p('상황실이 서버 경고와 백업 오류를 정리해 담당자에게 전달하는 과정에서 반복되는 복사·편집·양식 작성을 자동화했습니다.') +
-  table(['항목', '내용'], [
-    ['제안 부서', 'LG CNS 전자/제조시스템 OP팀<br>(엔텍정보통신)'],
-    ['제안자', '정지운 사원 · wldns0622@cnspartner.com'],
+add('운영 업무 개선제안', '운영 보고 업무 자동화<br>개선제안서', '해외 경고메일 작성 · 해외 백업 오류 보고 · 지속 경고 재전달',
+  `<div class="cover-purpose">반복적인 정보 정리와 보고문구 작성의 표준화를 통한<br><b>운영 업무 효율 및 보고 일관성 제고</b></div>` +
+  table(['구분', '내용'], [
+    ['소속', 'LG CNS 전자/제조시스템 OP팀<br>(엔텍정보통신)'],
+    ['제안자', '정지운 사원'],
     ['부현장대리인', '이정선 책임'],
     ['현장대리인', '강성준 책임'],
-    ['작성 기준', '2026.10.14 · 현재 서비스 기능 및 실제 화면'],
-    ['처리 방식', '사용자 PC의 브라우저에서 처리<br><b>업무 데이터를 처리·보관하는 별도 서버·데이터베이스 미사용</b>'],
+    ['작성일', '2026년 10월 14일'],
+    ['개발·운영 방식', '브라우저 기반 업무 지원 도구<br><b>업무 데이터 처리·보관용 별도 서버 및 데이터베이스 미사용</b>'],
   ]) +
-  p('<small>서비스: <a href="https://stupendous-stardust-bd8168.netlify.app/">stupendous-stardust-bd8168.netlify.app</a><br>소스: <a href="https://github.com/chipmunk-dev/Operation-entec">github.com/chipmunk-dev/Operation-entec</a></small>') +
-  note('업무 경험이 없는 독자를 위해 기능별 업무 목적과 입력·결과 화면을 함께 설명합니다. 화면에 실제 운영정보나 개인정보는 사용하지 않았습니다.'));
+  `<div class="cover-links"><p>서비스 <a href="https://stupendous-stardust-bd8168.netlify.app/">stupendous-stardust-bd8168.netlify.app</a></p><p>소스 저장소 <a href="https://github.com/chipmunk-dev/Operation-entec">github.com/chipmunk-dev/Operation-entec</a></p><p>문의 wldns0622@cnspartner.com</p></div>` +
+  footnote('웹 접속에는 서비스 호스팅을 사용하며, 입력 데이터 가공과 파일 생성은 사용자 PC의 브라우저에서 수행.'), 'cover');
 
-add('한눈에 보는 개선 내용', '경고를 확인한 뒤 반복되는<br>정리·전달 작업을 줄였습니다', 'OP는 서버 운영 상황을 확인하고 필요한 내용을 담당자에게 전달하는 업무를 수행합니다.',
-  table(['보고 대상', '기존 수작업', '보조기능이 하는 일'], [
-    ['01 · 해외메일 작성', '서버명·IP·발생시각·경고를 영문 양식에 각각 옮김', '원본을 붙여넣으면 영문 메일 본문을 한 번에 생성'],
-    ['02 · 해외 자동 백업 오류 정리', '백업 작업 목록에서 오류를 찾고 정책명·시각·오류코드를 수기 정리', '작업 결과를 붙여넣으면 오류만 추출해 보고 표·텍스트로 정리'],
-    ['03 · 지속 이벤트 재전달', '아직 해소되지 않은 경고를 골라 전달 문구를 다시 작성', '전달 대상을 선택하면 국내·해외 전달 양식으로 문구 생성'],
+add('01  개선 개요', '추진 배경 및 개선 내용', '반복 수작업을 자동 정리·양식 생성으로 전환하고, 담당자는 결과 검토와 전달에 집중.',
+  h('운영지원 업무의 역할') +
+  p('서버와 업무시스템의 상태를 확인하고, 경고 또는 백업 오류가 발생하면 점검할 내용을 담당자에게 전달하는 업무. 정확한 대상·시각·현상을 정리해야 담당자가 문제를 확인하고 조치할 수 있음.') +
+  h('현행 업무의 개선 필요성') +
+  p('경고 목록과 백업 결과를 보고 양식에 옮기는 과정에서 반복 복사·수기 입력이 발생. 건수가 많아질수록 정리 시간이 증가하고, 근무자에 따라 필수 정보의 배치와 전달 문구가 달라짐.') +
+  table(['개선 기능', '현행 방식', '개선 내용'], [
+    ['해외메일 작성', '서버명·주소·발생시각·경고를 영문 메일에 개별 입력', '원본 데이터를 영문 메일 양식으로 일괄 변환'],
+    ['해외 백업 오류 보고', '작업 결과에서 오류를 찾아 작업명·시각·코드를 수기 정리', '오류만 추출하여 백업존별 보고 표와 텍스트 생성'],
+    ['지속 이벤트 재전달', '미해소 경고의 전달 대상을 확인하고 문구를 재작성', '선택한 경고를 국내·해외 전달 양식으로 자동 구성'],
   ]) +
-  h('사용자가 하는 일은 세 단계입니다') + flow(['원본 붙여넣기', '결과·대상 검토', '복사·보고']) +
-  h('업무 방식의 변화') + beforeAfter('내용을 여러 번 옮기고 불필요한 기록을 지우며 보고 양식을 재조립합니다.', '필요한 원본을 붙여넣고 자동 정리된 결과를 확인한 뒤 업무 도구에 복사합니다.') +
-  note('자동화 범위는 데이터 정리와 보고 문구 작성입니다. 실제 메일·메신저 발송, 장애 조치, 백업 실행은 담당자가 기존 업무 절차에 따라 수행합니다.') +
-  p('<small>기능별 설명: 해외메일 3–4쪽 · 백업 오류 정리 5–6쪽 · 지속 이벤트 재전달 7–8쪽 · 개선효과 9쪽</small>'));
+  h('개선 후 업무 흐름') + flow(['원본 데이터 입력', '자동 정리·문구 생성', '담당자 검토·전달']) +
+  footnote('적용 범위: 자료 정리와 보고문구 생성. 경고의 조치 여부 판단, 메일·메신저 발송, 백업 실행은 기존 업무 절차에 따라 담당자가 수행.') +
+  footnote('화면 및 결과 예시에는 가상 서버명·IP·담당자를 사용. 처리시간은 현업 경험 기반 참고값이며, 자동 측정 평균 또는 보장 수치가 아님.'));
 
-add('01 · 해외메일 작성 — 입력 화면', '해외 담당자에게 전달할<br>서버 경고 메일을 자동 작성', '서버 상태 감시 시스템에서 발생한 경고를 해외 담당자에게 영문으로 안내하는 업무입니다.',
-  beforeAfter('엑셀·원본 목록을 보면서 서버명, IP, 발생시각, 경고 내용을 영문 메일에 각각 옮깁니다.', '4개 열을 복사해 붙여넣으면 여러 건을 동일한 영문 메일 양식으로 정리합니다.') +
-  flow(['경고 목록 복사', '4개 열 붙여넣기', '자동 변환']) +
-  fig('mail-input', '① 원본의 열 순서를 맞춘 뒤 경고 2건을 붙여넣은 화면', 350) +
-  table(['입력 항목', '업무상 의미'], [
-    ['Host / IP', '어느 서버의 경고인지 확인할 서버명과 주소'],
-    ['Message / Date', '경고 내용과 발생시각'],
+add('02  해외메일 작성', '해외 경고메일 작성 자동화', '서버 경고의 필수 정보를 영문 보고 양식으로 일괄 변환.',
+  h('업무 목적') +
+  p('서버 상태 감시 시스템에서 발생한 경고를 해외 담당자에게 영문으로 전달하는 업무. 발생시각, 서버명, 서버 주소(IP), 경고 내용이 정확히 전달되어야 대상 서버를 식별하고 상태를 점검할 수 있음.') +
+  table(['구분', '처리 내용'], [
+    ['현행 업무', '엑셀·원본 목록을 확인하며 필수 정보를 메일 본문에 각각 입력'],
+    ['개선 기능', '경고 목록 입력 시 불필요한 확인 이력과 내부 줄바꿈을 정리하고 영문 메일 생성'],
+    ['입력 정보', 'Host(서버명) · Message(경고) · Date(발생시각) · IP(서버 주소)'],
   ]) +
-  note('예시의 CPU 사용률 경고와 디스크 사용률 경고는 서버 상태를 확인해 달라는 안내입니다. Message 안에 섞인 줄바꿈·탭과 확인 이력도 정리됩니다.'), '#245b87');
+  fig('mail-input', '그림 1. 경고 2건 입력 및 원본 열 순서 설정', 300) +
+  h('처리 예시') +
+  p('서버 처리장치(CPU) 사용률 경고와 저장공간 사용률 경고를 각각 1건 입력하면, 동일한 영문 메일 형식으로 생성. 담당자 메모는 제거하고 점검에 필요한 정보만 전달.'));
 
-add('01 · 해외메일 작성 — 결과 화면', '본문을 다시 조립하지 않고<br>결과를 검토한 뒤 복사', '영문 안내문과 서버별 필수 정보가 같은 순서로 생성됩니다.',
-  fig('mail-result', '② 영문 안내문과 서버별 발생시각·IP·서버명·경고가 자동 생성된 화면', 345) +
-  table(['결과 항목', '보고에 필요한 이유'], [
-    ['Date / IP / Host', '해외 담당자가 해당 시각의 대상 서버를 식별'],
-    ['Message', '확인이 필요한 경고 내용 전달'],
-    ['메일 전체 복사', '메일 프로그램의 본문에 바로 붙여넣기'],
+add('02  해외메일 작성', '생성 결과 및 개선효과', '자동 생성된 본문을 검토한 후 기존 메일 프로그램에서 발송.',
+  `<div class="result-grid"><div>${fig('mail-result', '그림 2. 영문 메일 생성 화면', 310)}</div><div>${excerpt('생성 본문 예시 · 실제 결과에서 1건 발췌', mailExcerpt)}</div></div>` +
+  table(['결과 구성', '업무 활용'], [
+    ['영문 안내문', '서버 경고 발생 및 점검 요청을 동일한 문구로 안내'],
+    ['서버별 필수 정보', 'Date·IP·Host·Message를 일정한 순서로 배치'],
+    ['본문 일괄 복사', '완성된 내용을 메일 본문에 복사하고 수신자·제목 확인 후 발송'],
   ]) +
-  metric('15~25초', '5~10초', '메일 작성 1건') +
-  p('<b>업무 편의성:</b> 건별 양식 재조립이 줄고, 근무자별 메일 형식과 필수 정보 배치가 일관되게 유지됩니다.') +
-  note('수신자·제목은 담당자가 지정합니다. 소요 시간은 작성자가 제공한 현업 참고값이며 건수·입력 복잡도에 따라 달라집니다.'), '#245b87');
+  outcome('정보 재입력과 메일 양식 재조립 감소. 근무자별 전달 형식 통일 및 필수 항목 누락 예방 지원.', '15~25초', '5~10초', '메일 작성 1건') +
+  footnote('예시는 서버 처리장치(CPU) 사용률 경고. 입력된 시각을 표시하며 시간대 변환이나 메일 발송을 자동 수행하지 않음.'));
 
-add('02 · 해외 자동 백업 오류 정리 — 입력 화면', '백업 작업 목록에서<br>보고할 오류만 자동 추출', '서버의 데이터를 보관하는 백업 작업이 제대로 끝났는지 확인하고, 오류를 담당자에게 알리는 업무입니다.',
-  beforeAfter('작업 목록을 한 행씩 확인해 오류를 찾고, 백업 작업명·시작시각·오류코드를 수기 정리합니다.', '백업존을 선택하고 목록을 붙여넣으면 보고할 오류 행을 자동으로 추출합니다.') +
-  flow(['백업 결과 복사', '백업존에 붙여넣기', '오류 자동 추출']) +
-  fig('backup-input', '① P-EUBKMST 백업존에 작업 결과 4건을 붙여넣은 화면', 310) +
-  table(['예시 상태코드', '이 서비스의 처리'], [
-    ['0 · 1', '오류 보고 목록에서 제외: 2건'],
-    ['58 · 84', '오류 보고 목록에 포함: 2건'],
+add('03  해외 백업 오류 보고', '백업 오류 추출 및 보고 자동화', '해외 시스템의 백업 작업 결과에서 확인이 필요한 오류를 추출.',
+  h('업무 목적') +
+  p('백업은 장애나 데이터 손실에 대비해 업무 데이터를 별도로 보관하는 작업. 운영 담당자는 작업 완료 결과를 확인하고, 오류가 있는 작업을 정리하여 담당자에게 점검을 요청함.') +
+  table(['구분', '처리 내용'], [
+    ['현행 업무', '작업 목록을 행별로 확인하고 오류 작업명·시작시각·상태코드를 수기 작성'],
+    ['개선 기능', '백업존별 목록을 입력하면 오류 행을 추출하고 보고 항목을 자동 정리'],
+    ['입력 정보', 'Status(작업 상태코드) · Policy(작업명) · Start Time(시작시각)'],
+    ['관리 구분', '백업존: 작업 결과를 구분하여 정리하는 관리 단위'],
   ]) +
-  note('보고서의 “자동 백업”은 백업 오류 정리·보고 자동화를 의미합니다. 서비스 메뉴명은 “자동 백업 에러”이며, 백업 실행이나 재시도를 수행하지 않습니다.'), '#8c6016');
+  fig('backup-input', '그림 3. 백업 작업 결과 4건 입력 및 오류 분류', 275) +
+  h('처리 예시') +
+  p('입력 4건 중 Status 0·1인 2건은 오류 보고에서 제외하고, 58·84인 2건을 보고 대상으로 추출.') +
+  footnote('서비스 메뉴명: 자동 백업 에러. 자동화 범위는 오류 추출과 보고 작성이며 백업 실행·재시도는 포함하지 않음.'));
 
-add('02 · 해외 자동 백업 오류 정리 — 결과 화면', '오류 작업명·시각·코드를<br>보고 표와 텍스트로 정리', '해외 백업 담당자가 어떤 작업을 확인해야 하는지 바로 알 수 있도록 결과를 묶습니다.',
-  fig('backup-result', '② 작업 4건 중 오류 2건만 남은 Outlook 보고용 결과', 335) +
-  table(['화면 항목', '처음 보는 분을 위한 설명'], [
-    ['Policy', '어떤 백업 작업에서 오류가 났는지 알 수 있는 작업명'],
-    ['RIC 시간', '화면에 표시되는 백업 시작시각'],
-    ['Err: 58 / Err: 84', '확인이 필요한 오류코드'],
-    ['복사 / 메모장 내보내기', '보고 표에 붙여넣거나 텍스트 파일로 보관'],
+add('03  해외 백업 오류 보고', '생성 결과 및 개선효과', '오류 작업명·시작시각·코드를 백업존별로 정리하여 보고 자료로 활용.',
+  fig('backup-result', '그림 4. 오류 2건으로 정리된 보고용 결과 화면', 250) +
+  h('보고 표 생성 예시 · 실제 결과') +
+  table(['백업존', '작업명', '시작시각', '오류코드'], backupRows, [18, 30, 33, 19]) +
+  table(['결과 구성', '업무 활용'], [
+    ['보고 표 복사', '작업명·시각·오류코드를 Outlook 보고 표에 일괄 반영'],
+    ['텍스트 파일 생성', '세 백업존의 오류 결과를 구분해 파일로 저장'],
   ]) +
-  metric('약 20분', '5분 미만', '백업 오류 정리·보고 1회') +
-  p('<b>업무 편의성:</b> 오류 검색과 수기 재입력이 줄고, 백업존별 결과를 같은 형식으로 보고할 수 있습니다.') +
-  note('Status 1도 이 서비스의 제외 대상입니다. 업무상 별도 확인이 필요한 상태는 원본과 대조하며, 입력이 비어 있을 때의 오류 0건을 성공으로 판단하지 않습니다.'), '#8c6016');
+  outcome('오류 검색 및 수기 전사 작업 감소. 백업존별 보고 항목과 표 구성을 통일하여 후속 점검 대상 식별 지원.', '약 20분', '5분 미만', '오류 정리·보고 1회') +
+  footnote('현행 추출 규칙은 Status 0·1 제외. 원본의 업무상 확인 필요 여부는 별도 검토하며, 입력이 없는 경우의 오류 0건은 백업 성공을 의미하지 않음.'));
 
-add('03 · 지속 이벤트 재전달 — 대상 선택', '아직 해소되지 않은 경고를<br>골라 담당자에게 다시 전달', '지속 이벤트는 최초 안내 후에도 해소되지 않고 목록에 남아 있는 서버 경고를 뜻합니다.',
-  beforeAfter('남아 있는 경고와 담당자 메모를 대조하고, 전달할 대상을 골라 안내 문구를 다시 조립합니다.', '원본을 붙여넣고 카드별 전달 추가를 누르면 여러 경고를 한 번에 보고 문구로 정리합니다.') +
-  flow(['지속 경고 붙여넣기', '재전달 대상 선택', '보고 문구 생성']) +
-  fig('redirect-selection', '① 경고 3건 중 WEB·DB 2건을 선택한 실제 화면', 365) +
-  table(['예시 대상', '사용자의 판단과 화면 처리'], [
-    ['WEB · DB 2건', '전달 추가를 눌러 보고 문구에 포함'],
-    ['HOLD 1건', '점검 중·skip 메모를 확인하여 이번 예시에서 전달 대상에 넣지 않음'],
+add('04  지속 이벤트 재전달', '지속 경고 재전달 자동화', '최초 안내 이후 미해소 상태로 남은 경고를 선별하여 담당자에게 재안내.',
+  h('업무 목적') +
+  p('지속 이벤트는 서버 경고를 최초 안내한 뒤에도 해소되지 않고 목록에 남아 있는 항목. 운영 담당자는 미해소 경고와 점검·보류 메모를 확인한 후, 재확인이 필요한 내용을 담당자에게 다시 전달함.') +
+  table(['구분', '처리 내용'], [
+    ['현행 업무', '지속 경고와 처리 메모를 대조하고 전달 대상별 안내 문구를 재작성'],
+    ['개선 기능', '전달 대상을 선택하면 불필요한 이력을 정리한 보고 문구 생성'],
+    ['입력 정보', '서버명 · 경고 내용 · 발생시각 · IP 및 보고자 정보'],
   ]) +
-  note('보류 메모를 검토하고 실제로 전달할 대상은 근무자가 판단합니다. 프로그램의 완료 표시는 장애가 해소되었다는 의미가 아닙니다.'), '#08746c');
+  fig('redirect-selection', '그림 5. 경고 3건 중 재전달 대상 2건 선택', 305) +
+  h('처리 예시') +
+  p('WEB·DB 서버 경고 2건은 전달 대상으로 선택. 점검 중 보류 메모가 있는 HOLD 서버 1건은 검토 후 선택 대상에서 제외.'));
 
-add('03 · 지속 이벤트 재전달 — 결과 화면', '선택한 대상만<br>국내·해외 양식으로 재전달', '국내 메신저·해외 메신저·해외메일 중 상황에 맞는 보고 형식을 선택합니다.',
-  fig('redirect-result', '② 선택한 2건만 포함된 국내 메신저 재전달 결과', 350) +
-  table(['주요 기능', '업무상 편의성'], [
-    ['전달 형식 선택', '국내·해외 담당자에게 맞는 문구를 같은 원본으로 작성'],
-    ['전체 복사', '선택한 여러 경고를 한 번에 붙여넣기'],
-    ['확인·전달 상태 표시', '화면에서 업무 진행 내역을 구분해 관리'],
+add('04  지속 이벤트 재전달', '생성 결과 및 개선효과', '선택한 경고만 포함하여 국내·해외 담당자에 맞는 전달 문구 생성.',
+  `<div class="result-grid"><div>${fig('redirect-result', '그림 6. 재전달 문구 생성 화면', 305)}</div><div>${excerpt('생성 문구 예시 · 실제 결과', evidence.results.redirect)}</div></div>` +
+  table(['결과 구성', '업무 활용'], [
+    ['전달 형식 선택', '국내 메신저·해외 메신저·해외메일에 맞는 문구 생성'],
+    ['선택 대상 일괄 복사', '여러 경고를 하나의 문구로 묶어 업무 도구에 반영'],
+    ['확인·전달 상태 기록', '화면에서 처리 진행 내역을 구분하여 관리'],
   ]) +
-  metric('40~60분', '20분 미만', '지속 이벤트 정리·재전달 1회') +
-  p('<b>업무 편의성:</b> 대상별 문구 재조립을 줄이고, 불필요한 확인 이력을 정리한 일관된 양식으로 전달합니다.') +
-  note('완성 문구를 업무 도구에 붙여넣은 뒤 실제 담당자에게 발송합니다. 원본을 다시 입력하거나 열 순서를 바꾸면 화면의 선택 상태가 초기화됩니다.'), '#08746c');
+  outcome('대상별 문구 재조립 감소. 보류 항목 검토와 선택 대상 확인에 집중하고, 근무자별 재전달 양식 일관성 확보 지원.', '40~60분', '20분 미만', '지속 경고 재전달 1회') +
+  footnote('실제 발송과 조치 여부 판단은 담당자가 수행. 화면의 완료 표시는 서버 경고가 해소되었다는 의미가 아님.'));
 
-add('개선효과 및 적용 방향', '처리시간뿐 아니라<br>보고 편의성과 양식 일관성 개선', '세 기능 모두 수작업 재조립을 원본 붙여넣기 → 검토 → 복사로 바꿉니다.',
-  h('작성자 제공 소요시간 참고값') +
+add('05  개선효과 및 적용 방향', '업무 효율 및 보고 품질 개선', '반복 편집 감소와 보고 형식 표준화를 통해 운영 담당자의 작업 부담 완화.',
+  h('업무별 소요시간 비교') +
   table(['업무 단위', '기존 방식', '보조기능 활용'], [
     ['해외메일 작성 1건', '15~25초', '5~10초'],
     ['백업 오류 정리·보고 1회', '약 20분', '5분 미만'],
     ['지속 이벤트 재전달 1회', '40~60분', '20분 미만'],
   ]) +
-  p('<small>※ 사용자 제공 현업 경험치로, 자동 측정한 평균이나 보장 수치가 아닙니다. 작업량·내용의 복잡도에 따라 달라집니다.</small>') +
-  h('자동화로 개선되는 업무 방식') + table(['개선 항목', '기대되는 업무 효과'], [
-    ['반복 편집 감소', '여러 필드를 옮기고 문구를 재조립하는 대신 붙여넣기·검토·복사로 처리'],
-    ['근무자별 양식 일관성', '메일·백업 보고·재전달 문구의 필수 항목과 배치 통일'],
-    ['누락·오기입 예방 지원', '자동 정리된 결과를 원본과 대조하는 데 집중'],
-    ['추가 데이터 서버 불필요', '현재 브라우저에서 데이터 가공·파일 생성'],
+  footnote('현업 경험 기반 참고값. 작업량·내용의 복잡도에 따라 달라지며, 자동 측정 평균 또는 보장 수치가 아님.') +
+  h('정성적 개선효과') + table(['개선 항목', '개선 내용'], [
+    ['반복 작업 감소', '원본 입력과 결과 검토·복사 중심으로 업무 전환'],
+    ['보고 형식 일관성', '메일·오류 보고·재전달 문구의 필수 항목과 배치 표준화'],
+    ['누락·오기입 예방 지원', '재입력 구간을 줄이고 원본 대조와 대상 검토에 집중'],
+    ['구축 부담 최소화', '브라우저에서 처리하여 별도 업무 데이터 서버·DB 구축 불필요'],
   ]) +
-  h('개선제안 적용·검증 방향') +
-  p('세 기능의 캡처와 사용법을 팀에 공유하고 사용성 피드백을 수집합니다. 이후 동일한 업무량을 기준으로 실제 처리시간·수기 수정 건수를 기록하여 개선효과를 보완합니다.') +
-  note('제안 요지: 기존 업무 판단과 발송 절차를 유지하면서, 반복되는 자료 정리와 보고 문구 작성을 표준화하여 운영 담당자의 작업 부담을 줄입니다.'));
+  h('적용 및 효과 검증') +
+  table(['구분', '추진 내용'], [
+    ['사용성 점검', '기능별 사용법 공유 및 팀원 피드백 반영'],
+    ['효과 검증', '동일 업무량 기준 처리시간·수기 수정 건수 기록'],
+    ['업무 기준 유지', '수신자 확인·보류 여부 판단·최종 발송은 기존 운영 절차 적용'],
+  ]) +
+  p('<b>제안 요지</b>　운영 판단과 보고 체계를 유지하면서 반복적인 자료 정리·문구 생성을 표준화하여 업무 효율을 개선.'));
 
-const font = (await readFile(process.env.GUIDE_FONT || '/tmp/operation-guide-libs/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc')).toString('base64');
-const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>OP 업무 보조기능 개선제안 보고서 — 3개 기능</title><style>
-@font-face{font-family:Report;src:url(data:font/ttf;base64,${font})}*{box-sizing:border-box}body{margin:0;background:#e6ecf1;font-family:Report,sans-serif;color:#1b2d3e;font-size:15px;line-height:1.65}.page{width:210mm;height:297mm;margin:8mm auto;padding:12mm 15mm 17mm;position:relative;background:white;border-top:5px solid var(--accent);break-after:page}.page:last-child{break-after:auto}header{font-size:12px;color:var(--accent);padding-bottom:9px;border-bottom:1.5px solid var(--accent);margin-bottom:17px;display:flex;justify-content:space-between}h1{font-size:29px;line-height:1.4;margin:0 0 12px;letter-spacing:-.4px}.intro{font-size:15px;color:#435c70;margin:0 0 16px}h3{font-size:17px;margin:18px 0 9px;color:var(--accent)}p{margin:10px 0}b{color:var(--accent)}small{font-size:12px;color:#445b6d;line-height:1.65}a{color:var(--accent);text-decoration:none}table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:14px;line-height:1.6;margin:13px 0}th{background:#ecf3f7;color:var(--accent);text-align:left;font-weight:bold}th,td{padding:9px 11px;vertical-align:top;border-bottom:1px solid #d8e3eb;overflow-wrap:anywhere}tr:nth-child(even) td{background:#f7f9fb}figure{margin:16px 0 10px;text-align:center}img{max-width:100%;height:auto;border:1px solid #d9e3ec;border-radius:8px}figcaption{font-size:12px;color:#385c77;line-height:1.4;margin-top:7px}figcaption span{font-size:10px;color:#566d7f}aside{font-size:13px;line-height:1.65;background:#f7f2e7;border-left:4px solid #b08030;padding:11px 14px;margin:15px 0;color:#44381e}.comparison{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:13px 0}.comparison>div{background:#f2f5f8;padding:11px 15px;border-radius:8px}.comparison>div:last-child{background:#edf5f6}.comparison h4{margin:0;color:var(--accent);font-size:14px}.comparison p{font-size:14px;margin:7px 0 0;line-height:1.6}.flow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:16px 0;font-size:13px}.flow div{display:flex;align-items:center;gap:8px;background:#edf3f7;padding:11px 12px;border-radius:6px}.flow span{background:var(--accent);color:white;border-radius:50%;width:23px;height:23px;text-align:center;font-size:12px}.flow em{font-style:normal;color:#577386}.metric{display:flex;align-items:center;gap:20px;background:#edf5f6;border-radius:8px;padding:13px 17px;margin:15px 0}.metric>div{display:flex;flex-direction:column;gap:3px}.metric small{font-size:11px}.metric strong{font-size:23px;color:var(--accent);line-height:1.3}.metric em{font-style:normal;font-size:20px;color:#718496}.metric>span{font-size:11px;color:#47606f;margin-left:auto;max-width:175px}.hero{background:#193b52;border-radius:10px;padding:26px 24px;margin:22px 0;color:white}.hero b{font-size:23px;color:#b5e5ec;display:block;line-height:1.4}.hero span{display:block;margin-top:14px;font-size:14px}footer{position:absolute;left:15mm;right:15mm;bottom:9mm;border-top:1px solid #d6e1ea;padding-top:7px;display:flex;justify-content:space-between;font-size:10px;color:#506677}tr,aside,figure,.comparison,.metric{break-inside:avoid}@page{size:A4;margin:0}@media print{body{background:white}.page{margin:0}}
-</style></head><body>${pages.map((page, i) => `<section class="page" id="page-${i + 1}" style="--accent:${page.accent}"><header><span>${page.section}</span><span>OP 업무 개선제안</span></header><main><h1>${page.title}</h1><p class="intro">${page.intro}</p>${page.content}</main><footer><span>LG CNS 전자/제조시스템팀 · 개선제안 검토용</span><span>${i + 1} / ${pages.length}</span></footer></section>`).join('')}</body></html>`;
+const fonts = process.env.GUIDE_FONT_DIR || '/tmp/operation-guide-libs/usr/share/fonts/opentype/noto';
+const regular = (await readFile(process.env.GUIDE_FONT || `${fonts}/NotoSansCJK-Regular.ttc`)).toString('base64');
+const bold = (await readFile(process.env.GUIDE_BOLD_FONT || `${fonts}/NotoSansCJK-Bold.ttc`)).toString('base64');
+const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>운영 보고 업무 자동화 개선제안서</title><style>
+@font-face{font-family:Report;src:url(data:font/ttf;base64,${regular});font-weight:400}@font-face{font-family:Report;src:url(data:font/ttf;base64,${bold});font-weight:700}*{box-sizing:border-box}body{margin:0;background:#e7ebef;font-family:Report,sans-serif;color:#20262e;font-size:15px;line-height:1.65}.page{width:210mm;height:297mm;margin:8mm auto;padding:13mm 16mm 17mm;position:relative;background:white;break-after:page}.page:last-child{break-after:auto}header{display:flex;justify-content:space-between;font-size:11px;color:#485566;border-bottom:1px solid #253951;padding-bottom:9px;margin-bottom:20px}h1{font-size:27px;line-height:1.4;margin:0 0 11px;letter-spacing:-.35px;font-weight:700}.summary{font-size:15px;color:#394958;margin:0 0 19px}h3{font-size:16px;color:#243b55;margin:18px 0 8px;font-weight:700}h3:before{content:'';display:inline-block;width:4px;height:13px;background:#243b55;margin-right:8px}p{margin:9px 0}b,strong{font-weight:700}table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:14px;line-height:1.6;margin:12px 0}th{background:#edf0f4;color:#26364a;text-align:left;border-top:1px solid #6f7d8d;font-weight:700}th,td{padding:8px 10px;border-bottom:1px solid #d0d6de;vertical-align:top;overflow-wrap:anywhere}tr:nth-child(even) td{background:#fafbfc}.note{font-size:12px;color:#505b68;line-height:1.6;margin-top:12px}.note:before{content:'※ ';color:#505b68}figure{margin:14px 0 10px;text-align:center}img{max-width:100%;height:auto;border:1px solid #d4dae2;border-radius:2px}figcaption{font-size:11px;color:#47566a;line-height:1.5;margin-top:7px}.flow{display:flex;align-items:center;justify-content:space-between;gap:9px;margin:14px 0;font-size:13px;color:#2e4158}.flow span{border-bottom:2px solid #718297;padding:7px 8px}.flow small{font-weight:700;margin-right:8px}.flow em{font-style:normal;color:#7b8796}.outcome{border-top:1px solid #9ba7b4;border-bottom:1px solid #cdd4dc;padding:12px 0;margin:17px 0}.outcome>b{font-size:14px;color:#243b55}.outcome p{font-size:14px;margin:5px 0 10px}.time{display:flex;align-items:baseline;gap:15px;padding:8px 11px;background:#f0f3f6;font-size:13px}.time strong{font-size:18px;color:#243b55}.time small{margin-left:auto;font-size:10px;color:#5a6470}.result-grid{display:grid;grid-template-columns:44% 1fr;gap:17px;align-items:start;margin-top:15px}.result-grid figure{margin-top:0}.example{border:1px solid #bdc8d5;background:#f9fafc}.example-label{font-size:11px;font-weight:700;line-height:1.4;padding:8px 11px;color:#243b55;border-bottom:1px solid #d7dee7}.example pre{font-family:Report,sans-serif;font-size:12px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere;margin:0;padding:12px;color:#20262e;tab-size:2}.cover header{margin-bottom:49px}.cover h1{font-size:36px;line-height:1.5;margin-bottom:16px}.cover .summary{font-size:16px}.cover-purpose{margin:28px 0;padding:17px 0;border-top:2px solid #243b55;border-bottom:1px solid #a5b1bf;font-size:16px;color:#293b50;line-height:1.7}.cover table{margin-top:31px}.cover-links{font-size:12px;margin-top:25px;color:#47576a}.cover-links p{margin:5px 0}a{color:#324f70;text-decoration:none}footer{position:absolute;left:16mm;right:16mm;bottom:9mm;border-top:1px solid #c8d1dc;padding-top:7px;display:flex;justify-content:space-between;color:#4d5e70;font-size:10px}tr,figure,.example,.outcome{break-inside:avoid}@page{size:A4;margin:0}@media print{body{background:white}.page{margin:0}}
+.example pre{font-size:13px;line-height:1.6}
+</style></head><body>${pages.map((page, i) => `<section class="page ${page.kind}" id="page-${i + 1}"><header><span>${page.section}</span><span>운영 보고 업무 자동화</span></header><main><h1>${page.title}</h1><p class="summary">${page.summary}</p>${page.content}</main><footer><span>LG CNS 전자/제조시스템팀</span><span>${i + 1} / ${pages.length}</span></footer></section>`).join('')}</body></html>`;
 await writeFile(`${root}report.html`, html);
 const { chromium } = await import(process.env.GUIDE_PLAYWRIGHT_MODULE || '/tmp/operation-guide-tools/node_modules/playwright/index.mjs');
 const browser = await chromium.launch({ headless: true });
@@ -139,11 +159,14 @@ try {
   const overflow = await page.locator('.page').evaluateAll(nodes => nodes.flatMap((node, i) => {
     const bottom = node.querySelector('main').getBoundingClientRect().bottom;
     const footer = node.querySelector('footer').getBoundingClientRect().top;
-    const clipped = [...node.querySelectorAll('p,td,th')].some(el => el.scrollWidth > el.clientWidth + 2);
-    return bottom > footer - 12 || clipped ? [{ page: i + 1, bottom, footer, clipped }] : [];
+    const clipped = [...node.querySelectorAll('p,td,th,pre')].some(el => el.scrollWidth > el.clientWidth + 2);
+    return bottom > footer - 14 || clipped ? [{ page: i + 1, bottom, footer, clipped }] : [];
   }));
   assert.deepEqual(overflow, [], '보고서 잘림·꼬릿말 겹침');
   assert.equal(await page.locator('img').evaluateAll(images => images.every(img => img.complete && img.naturalWidth > 0)), true);
+  assert.equal(await page.locator('.example').count(), 2);
+  assert.ok((await page.locator('body').innerText()).includes('DEMO_DB_DAILY'));
+  assert.ok((await page.locator('body').innerText()).includes('안녕하세요.'));
   await page.pdf({ path: `${root}op-improvement-proposal-three-services.pdf`, preferCSSPageSize: true, printBackground: true, tagged: true });
   await mkdir(`${root}preview`, { recursive: true });
   for (let i = 0; i < pages.length; i++) await page.locator('.page').nth(i).screenshot({ path: `${root}preview/page-${String(i + 1).padStart(2, '0')}.png` });
@@ -151,5 +174,6 @@ try {
 const archive = { 'op-improvement-proposal-three-services.pdf': new Uint8Array(await readFile(`${root}op-improvement-proposal-three-services.pdf`)) };
 for (const name of ['mail.txt', 'backup.txt', 'redirect.txt', 'backup-result.txt']) archive[`samples/${name}`] = new Uint8Array(await readFile(`${root}samples/${name}`));
 await writeFile(`${root}op-improvement-proposal-three-services-bundle.zip`, zipSync(archive));
-await writeFile(`${root}manifest.json`, JSON.stringify({ pageCount: pages.length, services: ['해외메일 작성', '해외 자동 백업 오류 정리', '지속 이벤트 재전달'], screenshots: 6, timeBasis: '사용자가 제공한 현업 소요시간 참고값, 자동 측정 평균 아님', capturedAt: evidence.capturedAt }, null, 2));
-console.log(`보고서 생성 완료: ${pages.length}페이지 / 세 기능·실제 화면 6개 / 잘림 없음`);
+await copyFile(`${root}op-improvement-proposal-three-services.pdf`, `${root}운영보고업무자동화_개선제안서_2026.10.pdf`);
+await writeFile(`${root}manifest.json`, JSON.stringify({ pageCount: pages.length, services: ['해외메일 작성', '해외 백업 오류 보고', '지속 이벤트 재전달'], screenshots: 6, resultExamples: ['영문 메일 본문 1건 발췌', '오류 보고 표 2건', '재전달 문구 2건'], typography: '본고딕 계열 국문 고딕 Regular / Bold', timeBasis: '현업 소요시간 참고값, 자동 측정 평균 아님', capturedAt: evidence.capturedAt }, null, 2));
+console.log(`상부 보고용 개정본: ${pages.length}페이지 / 캡처 6개 / 결과 예시 3개 / 잘림 없음`);

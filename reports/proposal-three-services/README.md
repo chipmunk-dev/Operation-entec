@@ -3,11 +3,17 @@
 상부 보고 대상: 해외메일 작성, 해외 자동 백업 오류 정리, 지속 이벤트 재전달.
 기존 개선활동 보고서와 전체 서비스 사용 설명서는 보존하고 별도 파일로 작성합니다.
 
-- `op-improvement-proposal-three-services.pdf`: 9페이지 상부 보고용 PDF
+- `운영보고업무자동화_개선제안서_2026.10.pdf`: 9페이지 상부 보고용 PDF
+- `op-improvement-proposal-three-services.pdf`: 같은 내용의 기존 파일명 유지본
 - `op-improvement-proposal-three-services-bundle.zip`: PDF, 세 기능의 가상 입력 TXT, 실제 백업 오류 결과 TXT
 - `screenshots/`: 세 기능의 입력·결과 화면 6개
 - `evidence.json`: 실제 클립보드 결과와 기능 검증 내용
-- `manifest.json`: 보고 대상·페이지 수·시간 수치의 근거
+- `manifest.json`: 기능 구성·페이지 수·서체·결과 예시·시간 수치의 근거
+
+개정본은 「운영 보고 업무 자동화 개선제안서」로 구성합니다.
+추진 배경·현행 업무·개선 기능·개선효과 중심의 보고 문체와 국문 고딕 Regular/Bold를 적용합니다.
+영문 메일 본문(실제 결과 1건 발췌), 백업 오류 보고 표(2건), 재전달 문구(2건)를
+스크린샷 외에 검색·복사 가능한 본문 예시로 수록합니다.
 
 소요시간은 사용자가 제공한 현업 참고값을 사용하며, 평균·보장 수치로 표현하지 않습니다.
 해외메일 건당 15~25초 → 5~10초, 백업 오류 보고 약 20분 → 5분 미만,
@@ -32,7 +38,7 @@ PLAYWRIGHT_BROWSERS_PATH=/tmp/operation-guide-browsers \
 node reports/proposal-three-services/generate.mjs
 ```
 
-다른 환경에서는 `GUIDE_PLAYWRIGHT_MODULE`, `GUIDE_FONT`, `GUIDE_BASE_URL`을 지정하세요.
+다른 환경에서는 `GUIDE_PLAYWRIGHT_MODULE`, `GUIDE_FONT`, `GUIDE_BOLD_FONT`, `GUIDE_FONT_DIR`, `GUIDE_BASE_URL`을 지정하세요.
 캡처는 새로운 브라우저 컨텍스트에서 수행되며 실제 메시지를 발송하지 않습니다.
 백업 TXT는 파일 저장 대화상자가 없는 환경에서 사용하는 서비스의 다운로드 경로로 검증합니다.
 
