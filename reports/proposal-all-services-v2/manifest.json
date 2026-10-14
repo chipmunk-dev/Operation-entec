@@ -1,0 +1,244 @@
+{
+  "edition": 2,
+  "pageCount": 23,
+  "chapters": [
+    {
+      "key": "mail",
+      "name": "해외메일 작성",
+      "number": "01",
+      "start": 4,
+      "end": 5,
+      "description": "서버 경고 → 영문 메일"
+    },
+    {
+      "key": "gems",
+      "name": "G-EMS 메시지",
+      "number": "02",
+      "start": 6,
+      "end": 7,
+      "description": "확인 이력 제거 → 메신저 문구"
+    },
+    {
+      "key": "redirect",
+      "name": "지속 이벤트 재전달",
+      "number": "03",
+      "start": 8,
+      "end": 10,
+      "description": "1일 이상 경고 → 재전달·확인내역"
+    },
+    {
+      "key": "backup",
+      "name": "자동 백업 에러",
+      "number": "04",
+      "start": 11,
+      "end": 12,
+      "description": "백업 결과 → 오류 표·TXT"
+    },
+    {
+      "key": "icheck",
+      "name": "아이체크 보고",
+      "number": "05",
+      "start": 13,
+      "end": 14,
+      "description": "13열 장비 내역 → 담당자별 문구"
+    },
+    {
+      "key": "editor",
+      "name": "아이체크 내역 편집",
+      "number": "06",
+      "start": 15,
+      "end": 18,
+      "description": "XLSX 편집 → 변경 보고·수정 파일"
+    },
+    {
+      "key": "persistent",
+      "name": "지속 메시지 엑셀 추출",
+      "number": "07",
+      "start": 19,
+      "end": 21,
+      "description": "6열 누적 경고 → 담당자별 XLSX"
+    }
+  ],
+  "screenshotCount": 21,
+  "images": [
+    "mail-input",
+    "mail-result",
+    "gems-input",
+    "gems-clean",
+    "gems-result",
+    "redirect-selection",
+    "redirect-result",
+    "redirect-history",
+    "backup-input",
+    "backup-result",
+    "icheck-input",
+    "icheck-result",
+    "editor-original",
+    "editor-entry",
+    "editor-off",
+    "editor-details",
+    "editor-result",
+    "persistent-input",
+    "persistent-review",
+    "persistent-manual",
+    "persistent-preview"
+  ],
+  "nativeExampleCount": 7,
+  "timeReferences": {
+    "mail": {
+      "unit": "해외메일 작성 1건",
+      "before": "1분",
+      "after": "15초 미만"
+    },
+    "gems": {
+      "unit": "메시지 10건 양식 정리",
+      "before": "30초 이상",
+      "after": "약 5초"
+    },
+    "redirect": {
+      "unit": "지속 이벤트 재전달 1회",
+      "before": "1시간",
+      "after": "20분 미만"
+    },
+    "backup": {
+      "unit": "백업 오류 정리·보고 1회",
+      "before": "약 20분",
+      "after": "5분 미만"
+    },
+    "icheck": {
+      "unit": "아이체크 보고 문구 작성",
+      "before": "건수·담당자 수에 따라 증가",
+      "after": "1분 미만"
+    },
+    "editor": {
+      "unit": "아이체크 파일 편집·변경 보고",
+      "before": "정량 비교 미측정",
+      "after": "정성 효과 확인"
+    },
+    "persistent": {
+      "unit": "지속 메시지 목록 정리 1회",
+      "before": "1~2시간 이상",
+      "after": "15분 미만"
+    }
+  },
+  "timeBasis": "현업 소요시간 참고값, 자동 측정 평균 아님",
+  "capturedAt": "2026-10-14T02:12:48.680Z",
+  "layout": [
+    {
+      "page": 1,
+      "footerGap": 246,
+      "clipped": []
+    },
+    {
+      "page": 2,
+      "footerGap": 236,
+      "clipped": []
+    },
+    {
+      "page": 3,
+      "footerGap": 278,
+      "clipped": []
+    },
+    {
+      "page": 4,
+      "footerGap": 176,
+      "clipped": []
+    },
+    {
+      "page": 5,
+      "footerGap": 162,
+      "clipped": []
+    },
+    {
+      "page": 6,
+      "footerGap": 193,
+      "clipped": []
+    },
+    {
+      "page": 7,
+      "footerGap": 112,
+      "clipped": []
+    },
+    {
+      "page": 8,
+      "footerGap": 183,
+      "clipped": []
+    },
+    {
+      "page": 9,
+      "footerGap": 202,
+      "clipped": []
+    },
+    {
+      "page": 10,
+      "footerGap": 229,
+      "clipped": []
+    },
+    {
+      "page": 11,
+      "footerGap": 212,
+      "clipped": []
+    },
+    {
+      "page": 12,
+      "footerGap": 100,
+      "clipped": []
+    },
+    {
+      "page": 13,
+      "footerGap": 286,
+      "clipped": []
+    },
+    {
+      "page": 14,
+      "footerGap": 218,
+      "clipped": []
+    },
+    {
+      "page": 15,
+      "footerGap": 188,
+      "clipped": []
+    },
+    {
+      "page": 16,
+      "footerGap": 129,
+      "clipped": []
+    },
+    {
+      "page": 17,
+      "footerGap": 255,
+      "clipped": []
+    },
+    {
+      "page": 18,
+      "footerGap": 165,
+      "clipped": []
+    },
+    {
+      "page": 19,
+      "footerGap": 130,
+      "clipped": []
+    },
+    {
+      "page": 20,
+      "footerGap": 286,
+      "clipped": []
+    },
+    {
+      "page": 21,
+      "footerGap": 63,
+      "clipped": []
+    },
+    {
+      "page": 22,
+      "footerGap": 180,
+      "clipped": []
+    },
+    {
+      "page": 23,
+      "footerGap": 183,
+      "clipped": []
+    }
+  ],
+  "pdfName": "운영업무보조기능_개선제안서_전체기능_제2판.pdf"
+}

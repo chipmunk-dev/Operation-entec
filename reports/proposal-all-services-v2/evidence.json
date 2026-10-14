@@ -1,0 +1,128 @@
+{
+  "capturedAt": "2026-10-14T02:12:48.680Z",
+  "dataKind": "가상 서버·IP·담당자",
+  "routes": [
+    "/foreign-mail",
+    "/gems-message",
+    "/persistent-redirect",
+    "/auto-backup-error-filter",
+    "/icheck-report",
+    "/eyecheck-light-log",
+    "/persistent-event-excel"
+  ],
+  "images": [
+    "mail-input",
+    "mail-result",
+    "gems-input",
+    "gems-clean",
+    "gems-result",
+    "redirect-selection",
+    "redirect-result",
+    "redirect-history",
+    "backup-input",
+    "backup-result",
+    "icheck-input",
+    "icheck-result",
+    "editor-original",
+    "editor-entry",
+    "editor-off",
+    "editor-details",
+    "editor-result",
+    "persistent-input",
+    "persistent-review",
+    "persistent-manual",
+    "persistent-preview"
+  ],
+  "results": {
+    "mail": "Dear!\nThis is KIC Control office in Korea.\nMonitoring System detected warning message(s) from your server.\nPlease check following message(s).\n\n-------------------------------------------------------\nDate        : 2026-09-09 09:00:00 (Base On Korea Time)\nIP             : 192.0.2.10\nHost        : DEMO-WEB-01\nMessage : CPU Utilization MAJOR occurred(91 %)\n-------------------------------------------------------\nDate        : 2026-09-09 09:00:00 (Base On Korea Time)\nIP             : 192.0.2.11\nHost        : DEMO-DB-01\nMessage : /data (Filesystem) Utilization MAJOR occurred(92 %)\n-------------------------------------------------------\n\nThank you.",
+    "gemsClean": "DEMO-WEB-01\nCPU Utilization MAJOR occurred(91 %)\n\nDEMO-DB-01\n/data Utilization MAJOR occurred(92 %)",
+    "gems": "안녕하세요 상암 상황실 홍예시 사원 입니다.\nG-EMS에서 발생한 메세지 전달드리니 확인 부탁드립니다.\n\nDEMO-WEB-01\nCPU Utilization MAJOR occurred(91 %)\n\nDEMO-DB-01\n/data Utilization MAJOR occurred(92 %)",
+    "redirect": "안녕하세요.\n상암 상황실 홍예시 사원입니다.\n지속중인 메세지 재전달드리니 확인 부탁드립니다.\n\n서버: DEMO-WEB-01\n내용: CPU Utilization MAJOR occurred(91 %)\n\n서버: DEMO-DB-01\n내용: /data Utilization MAJOR occurred(92 %)\n\n감사합니다.",
+    "redirectMail": "- Resend -\n\nDear!\nThis is KIC Control office in Korea.\nMonitoring System detected warning message(s) from your server.\nPlease check following message(s).\n\n-------------------------------------------------------\nDate        : 2026-09-09 09:00:00 (Base On Korea Time)\nIP             : 192.0.2.10\nHost        : DEMO-WEB-01\nMessage : CPU Utilization MAJOR occurred(91 %)\n-------------------------------------------------------\nDate        : 2026-09-09 09:00:00 (Base On Korea Time)\nIP             : 192.0.2.11\nHost        : DEMO-DB-01\nMessage : /data Utilization MAJOR occurred(92 %)\n-------------------------------------------------------\n\nThank you.",
+    "redirectHistory": "김예시 책임 문자 → 1조 홍예시 사원 10/14 11:12 김예시 책임 메신저 재전달",
+    "backup": "P-EUBKMST\tDEMO_DB_DAILY\nDEMO_WEB_DAILY\t2026-09-09 09:00:00\n2026-09-09 09:00:00\tErr: 58\nErr: 84",
+    "backupTxt": "﻿[P-EUBKMST]\nDEMO_DB_DAILY\nDEMO_WEB_DAILY\n-------------\n2026-09-09 09:00:00\n2026-09-09 09:00:00\n-------------\nErr: 58\nErr: 84\n\n[NBUMASTER]\n에러 없음\n\n[EXTMASTER]\n에러 없음",
+    "icheck": "안녕하세요 상암상황실 홍예시 사원입니다.\n서버실 장비 이상/점등건을 확인하여 보고드립니다.\n\n위치: SA3A-1\n서버: DEMO-WEB-01\n상태: 주황 점등",
+    "icheckSecond": "안녕하세요 상암상황실 홍예시 사원입니다.\n서버실 장비 이상/점등건을 확인하여 보고드립니다.\n\n위치: SA3A-2\n서버: DEMO-DB-01\n상태: 빨강 점등",
+    "editor": "안녕하세요 상암상황실 홍예시 사원입니다.\n서버실 장비 점등·소등 변경내역을 확인하여 보고드립니다.\n\n[신규 점등]\n위치: SA3A-3\n서버: DEMO-NEW-01\n상태: 주황 점등\n\n[신규 점등]\n위치: SA3A-3\n서버: DEMO-NEW-02\n상태: 주황 점등\n\n[소등]\n위치: SA3A-1\n서버: DEMO-HOST-01\n상태: 소등 (기존: 주황 점등)",
+    "editorRows": [
+      {
+        "A": "2026-09-09",
+        "C": "DEMO-HOST-02",
+        "D": "SA3A-2",
+        "I": "빨강 점등",
+        "L": "김예시 책임"
+      },
+      {
+        "A": "46309",
+        "C": "DEMO-NEW-01",
+        "D": "SA3A-3",
+        "I": "주황 점등",
+        "L": "김예시 책임",
+        "M": "○ 10/14"
+      },
+      {
+        "A": "46309",
+        "C": "DEMO-NEW-02",
+        "D": "SA3A-3",
+        "I": "주황 점등",
+        "L": "김예시 책임",
+        "M": "○ 10/14"
+      }
+    ],
+    "persistentRows": [
+      {
+        "A": "1",
+        "B": "2026-09-09 09:00:00",
+        "C": "2일 1시간",
+        "D": "김예시 책임",
+        "E": "DEMO-SRV-01",
+        "F": "/data Utilization MAJOR occurred(91 %)",
+        "G": "192.0.2.20",
+        "H": "DEMO>운영"
+      },
+      {
+        "A": "2",
+        "B": "2026-09-09 09:00:00",
+        "C": "2일 1시간",
+        "D": "김예시 책임",
+        "E": "DEMO-SRV-02",
+        "F": "/data Utilization MAJOR occurred(91 %)",
+        "G": "192.0.2.21",
+        "H": "DEMO>운영"
+      },
+      {
+        "A": "3",
+        "B": "2026-09-09 09:00:00",
+        "C": "2일 1시간",
+        "D": "이예시 선임",
+        "E": "DEMO-SRV-02",
+        "F": "/data Utilization MAJOR occurred(91 %)",
+        "G": "192.0.2.21",
+        "H": "DEMO>운영"
+      },
+      {
+        "A": "4",
+        "B": "2026-09-09 09:00:00",
+        "C": "2일 1시간",
+        "D": "박예시 책임",
+        "E": "DEMO-SRV-03",
+        "F": "/data Utilization MAJOR occurred(91 %)",
+        "G": "192.0.2.22",
+        "H": "DEMO>운영"
+      }
+    ]
+  },
+  "checks": [
+    "현재 7개 메뉴 확인",
+    "메일 탭·줄바꿈 정리 및 확인 이력 제거",
+    "G-EMS 2가지 출력 모드·실제 복사",
+    "재전달 복수선택·보류 미포함·확인내역 재생성",
+    "백업 Status 0·1 제외·58·84 추출·TXT 다운로드",
+    "아이체크 13열·중복 1건 제거·담당자별 2문구 분리",
+    "편집 원본 2건·신규 2건·소등 1건·필수정보 누락 복사 차단",
+    "편집 결과 XLSX 3건·장비정보 저장·저장 후 비교 유지",
+    "담당자 미확정 추출 차단·복수담당자 확정·XLSX 4행·필터·첫 행 고정",
+    "브라우저 오류 없음"
+  ]
+}
